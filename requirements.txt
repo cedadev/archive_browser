@@ -1,0 +1,7 @@
+Django==2.1
+django-classy-tags==0.8.0
+django-cookie-law==2.0.1
+fwtheme-django==0.1
+fwtheme-django-ceda-serv==1.2.0
+pytest-runner==4.2
+pytz==2018.5

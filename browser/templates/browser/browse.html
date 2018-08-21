@@ -1,0 +1,96 @@
+{% extends "fwtheme_django/layout.html" %}
+{% load static %}
+
+{% block page_title %}
+    <h1>Browse Archive</h1>
+{% endblock %}
+
+{% block head_js_extra %}
+    <script src="http://artefacts.ceda.ac.uk/themes/orgtheme/0.1/_vendor/jquery/dist/jquery.min.js"></script>
+{% endblock head_js_extra %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-11">
+            <h3 id="path_title"></h3>
+        </div>
+        <div class="col-1">
+            <button type="button" class="btn btn-primary btn-sm float-right mt-2" id="copyButton"
+                    onclick="copyPath()" onmouseleave="hideTooltip()" data-toggle="tooltip" title="Copy path">
+                <i class="fa fa-clipboard" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+    <input type="text" id="path" value="{{ path }}" style="display: none">
+    <hr>
+    <div class="row">
+        <div class="col-4 form-inline" id="collection_link">
+        </div>
+        <div class="col-8">
+            <form class="form-inline float-right" method="post">
+                <div class="form-group mb-2">
+                    <label for="download_query">
+                        Download multiple files
+                        <a href="javascript:OpenHelpWin('http://help.ceda.ac.uk/article/4431-ceda-archive-web-download-and-services')">
+                            &nbsp;<span class="fa fa-question-circle" aria-hidden="true"/>
+                        </a>:
+                    </label>
+
+                </div>
+                <div class="form-group mx-sm-3 mb-2">
+                    <input type="text" class="form-control" id="download_query" value="*">
+                </div>
+                <div class="form-group mb-2">
+                    <label>Depth: </label>
+                </div>
+                <div class="form-group mx-sm-3 mb-2">
+                    <select class="form-control">
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mb-2">Go</button>
+            </form>
+        </div>
+    </div>
+    <table class="table">
+        <thead>
+        <th style="width:25.3%"></th>
+        <th style="width:8.3%">Link</th>
+        <th style="width:41.5%">Description</th>
+        <th style="width:8.3%">Size</th>
+        <th style="width:16.6%">Actions</th>
+        </thead>
+        <tbody id="results">
+
+        </tbody>
+    </table>
+
+    <script src="{% static 'browser/js/browse.js' %}"></script>
+    <script src="{% static 'browser/js/elastic_browser.js' %}"></script>
+    <script src="{% static 'browser/js/mustache.min.js' %}"></script>
+
+    <script id="dir_template" type="text/html">
+        <tr>
+            <td><a href="javascript:ElasticBrowser.updateResults('<% path %>','<% archive_path %>')"><span
+                    class="fa fa-folder"></span> <%
+                item %></a></td>
+            <td><% &link %></td>
+            <td><% &description %></td>
+            <td><% size %></td>
+            <td><% &actions %></td>
+        </tr>
+    </script>
+
+    <script id="file_template" type="text/html">
+        <tr>
+            <td><span class="fa <% icon %>"></span> <% item %></td>
+            <td></td>
+            <td></td>
+            <td><% size %></td>
+            <td><% &actions %></td>
+        </tr>
+    </script>
+{% endblock %}
