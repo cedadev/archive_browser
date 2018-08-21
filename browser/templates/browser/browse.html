@@ -18,7 +18,7 @@
         <div class="col-1">
             <button type="button" class="btn btn-primary btn-sm float-right mt-2" id="copyButton"
                     onclick="copyPath()" onmouseleave="hideTooltip()" data-toggle="tooltip" title="Copy path">
-                <i class="fa fa-clipboard" aria-hidden="true"></i>
+                <i class="fas fa-copy" aria-hidden="true"></i>
             </button>
         </div>
     </div>
@@ -75,7 +75,7 @@
     <script id="dir_template" type="text/html">
         <tr>
             <td><a href="javascript:ElasticBrowser.updateResults('<% path %>','<% archive_path %>')"><span
-                    class="fa fa-folder"></span> <%
+                    class="fas fa-folder"></span> <%
                 item %></a></td>
             <td><% &link %></td>
             <td><% &description %></td>
@@ -86,7 +86,7 @@
 
     <script id="file_template" type="text/html">
         <tr>
-            <td><span class="fa <% icon %>"></span> <% item %></td>
+            <td><span class="<% icon %>"></span> <% item %></td>
             <td></td>
             <td></td>
             <td><% size %></td>

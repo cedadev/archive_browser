@@ -54,26 +54,26 @@ var ElasticBrowser = (function () {
             case "tar":
             case "tgz":
             case "bz2":
-                icon = "fa-file-archive-o"
+                icon = "far fa-file-archive";
                 break;
             case "png":
             case "gif":
             case "tif":
             case "TIF":
-                icon = "fa-file-image-o"
+                icon = "far fa-file-image";
                 break;
             case "txt":
-                icon = "fa-file-text-o"
+                icon = "far fa-file-alt";
                 break;
             case "html":
             case "xml":
-                icon = "fa-file-code-o"
+                icon = "far fa-file-code";
                 break;
             case "avi":
-                icon = "fa-file-video-o"
+                icon = "far fa-file-video";
                 break;
             default:
-                icon = "fa-file-o"
+                icon = "far fa-file"
 
         }
         return icon
