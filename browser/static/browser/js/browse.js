@@ -96,7 +96,6 @@ $(document).ready(function () {
 
     // Load the data
     ElasticBrowser.setup(options);
-    ElasticBrowser.updateResults($('#path').val())
     ElasticBrowser.addResults();
 
 })

@@ -5,15 +5,26 @@ from django.shortcuts import render
 
 
 def browse(request):
-    path = request.GET.get('path')
+    path = request.path
 
-    # Remove the trailing slash
-    if path and path.endswith('/'):
+    if len(path) > 1 and path.endswith('/'):
         path = path[:-1]
 
-    if path is None:
-        path = "/"
+    index_list = []
 
+    if path != '/':
+        split_target = path.split('/')[1:]
 
-    return render(request, 'browser/browse.html', {"path": path})
+        for i,dir in enumerate(split_target,1):
+
+            subset = split_target[:i]
+
+            index_list.append(
+                {
+                    "path": '/'.join(subset),
+                    "dir": dir
+                }
+            )
+
+    return render(request, 'browser/browse.html', {"path": path, "index_list": index_list})
 

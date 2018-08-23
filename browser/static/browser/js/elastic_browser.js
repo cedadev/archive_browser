@@ -215,7 +215,7 @@ var ElasticBrowser = (function () {
                     }
 
                     if (dir_array[i]._source.link !== undefined && dir_array[i]._source.link === true) {
-                        link_target = Mustache.render("<a href='?path={{target}}' target='_blank'><i class='fa fa-link' aria-hidden='true'></i></a>",
+                        link_target = Mustache.render("<a href='?path={{target}}' target='_blank'><i class='fas fa-link'></i></a>",
                             {
                                 target: dir_array[i]._source.archive_path
                             })
@@ -349,35 +349,7 @@ var ElasticBrowser = (function () {
         })
     }
 
-    var updateResults = function (target) {
-        // Create breadcrumb links
-        var breadcrumbs = "<a class='btn btn-outline-primary' role='button' href=\"javascript:ElasticBrowser.updateResults('/')\">/</a>"
 
-        if (target !== '/') {
-
-            var split_target = target.split('/')
-            split_target.shift()
-
-            var i;
-            for (i = 1; i < split_target.length + 1; i++) {
-                var subset = split_target.slice(0, i)
-                breadcrumbs = breadcrumbs + Mustache.render(
-                    "<a class='btn btn-outline-primary' href=\"javascript:ElasticBrowser.updateResults('/{{{ path }}}')\">{{{ dir }}}/</a>",
-                    {
-                        path: subset.join('/'),
-                        dir: subset[i - 1]
-                    })
-            }
-        }
-
-        // Modify the title
-        $('#' + options.pathTitleID).html("Index of " + breadcrumbs)
-
-        // Update hidden field
-        $('#' + options.pathID).val(target)
-
-        addResults()
-    }
 
     // Explicitly reveal public pointers to the private functions
     // that we want to reveal publicly
@@ -385,6 +357,5 @@ var ElasticBrowser = (function () {
     return {
         setup: setup,
         addResults: addResults,
-        updateResults: updateResults
     }
 })();

@@ -9,11 +9,23 @@
     <script src="http://artefacts.ceda.ac.uk/themes/orgtheme/0.1/_vendor/jquery/dist/jquery.min.js"></script>
 {% endblock head_js_extra %}
 
+{% block stylesheets_extra %}
+    <link rel="shortcut icon" href="http://www.ceda.ac.uk/static/img/favicon.ico"/>
+{% endblock %}
+
 {% block content %}
 
     <div class="row">
         <div class="col-11">
-            <h3 id="path_title"></h3>
+            <h3>
+                Index of&nbsp;
+                {% spaceless %}
+                    <a class='btn btn-outline-primary' role='button' href='/'>/</a>
+                    {% for dir in index_list %}
+                        <a class="btn btn-outline-primary" href="/{{ dir.path }}">{{ dir.dir }}/</a>
+                    {% endfor %}
+                {% endspaceless %}
+            </h3>
         </div>
         <div class="col-1">
             <button type="button" class="btn btn-primary btn-sm float-right mt-2" id="copyButton"
@@ -58,7 +70,7 @@
     <table class="table">
         <thead>
         <th style="width:25.3%"></th>
-        <th style="width:8.3%">Link</th>
+        <th style="width:8.3%">SymLink</th>
         <th style="width:41.5%">Description</th>
         <th style="width:8.3%">Size</th>
         <th style="width:16.6%">Actions</th>
@@ -74,9 +86,7 @@
 
     <script id="dir_template" type="text/html">
         <tr>
-            <td><a href="javascript:ElasticBrowser.updateResults('<% path %>','<% archive_path %>')"><span
-                    class="fas fa-folder"></span> <%
-                item %></a></td>
+            <td><a href="<% path %>"><span class="fas fa-folder"></span> <% item %></a></td>
             <td><% &link %></td>
             <td><% &description %></td>
             <td><% size %></td>
