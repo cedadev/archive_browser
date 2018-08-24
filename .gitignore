@@ -2,3 +2,4 @@ venv
 archive_browser/settings_local.py
 __pycache__
 *.pyc
+venv2.7

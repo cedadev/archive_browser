@@ -160,8 +160,8 @@ var ElasticBrowser = (function () {
         } else {
             dir_query.query.bool.must.push(
                 {
-                    "match_phrase_prefix": {
-                        "path": path
+                    "prefix": {
+                        "path.keyword": path+"/"
                     }
                 }
             );
@@ -187,6 +187,7 @@ var ElasticBrowser = (function () {
         var dir_url = [options.host, options.dir_index, '_search'].join("/");
         var dir_results_string = "";
 
+        console.log(JSON.stringify(dir_query))
         $.post({
             url: dir_url,
             data: JSON.stringify(dir_query),
