@@ -11,14 +11,14 @@
 
 {% block stylesheets_extra %}
     <link rel="shortcut icon" href="http://www.ceda.ac.uk/static/img/favicon.ico"/>
+    <link rel="stylesheet" href="{% static 'browser/css/browser.css' %}"/>
+    <link rel="stylesheet" href="{% static 'browser/css/autcomplete.css' %}"/>
 {% endblock %}
 
 {% block content %}
-
     <div class="row">
         <div class="col-11">
             <h3>
-                Index of&nbsp;
                 {% spaceless %}
                     <a class='btn btn-outline-primary' role='button' href='/'>/</a>
                     {% for dir in index_list %}
@@ -34,12 +34,31 @@
             </button>
         </div>
     </div>
-    <input type="text" id="path" value="{{ path }}" style="display: none">
+    <div>
+        <form autocomplete="off" action="/">
+            <div class="input-group mb-3 autocomplete">
+                <input type="text" class="form-control" id="dir_search" placeholder="Search directories"
+                       aria-label="Search directories" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" type="submit">Go</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <input class="hide" type="text" id="path" value="{{ path }}" style="display: none">
     <hr>
     <div class="row">
-        <div class="col-4 form-inline" id="collection_link">
+        <div class="col" id="collection_link"></div>
+    </div>
+
+    <div class="row">
+        <div class="col-3 hide" id="readmeButton">
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#readmeContent"
+                    aria-expanded="false" aria-controls="readmeContent">
+                00README
+            </button>
         </div>
-        <div class="col-8">
+        <div class="col">
             <form class="form-inline float-right" method="post">
                 <div class="form-group mb-2">
                     <label for="download_query">
@@ -67,10 +86,16 @@
             </form>
         </div>
     </div>
+    <div class="row">
+        <div class="collapse col mb-2" id="readmeContent">
+            <div class="card card-body">
+
+            </div>
+        </div>
+    </div>
     <table class="table">
         <thead>
         <th style="width:25.3%"></th>
-        <th style="width:8.3%">SymLink</th>
         <th style="width:41.5%">Description</th>
         <th style="width:8.3%">Size</th>
         <th style="width:16.6%">Actions</th>
@@ -83,11 +108,14 @@
     <script src="{% static 'browser/js/browse.js' %}"></script>
     <script src="{% static 'browser/js/elastic_browser.js' %}"></script>
     <script src="{% static 'browser/js/mustache.min.js' %}"></script>
+    <script src="{% static 'browser/js/autocomplete.js' %}"></script>
+    <script>
+        autocomplete(document.getElementById("dir_search"), countries);
+    </script>
 
     <script id="dir_template" type="text/html">
         <tr>
             <td><a href="<% path %>"><span class="fas fa-folder"></span> <% item %></a></td>
-            <td><% &link %></td>
             <td><% &description %></td>
             <td><% size %></td>
             <td><% &actions %></td>
@@ -98,9 +126,9 @@
         <tr>
             <td><span class="<% icon %>"></span> <% item %></td>
             <td></td>
-            <td></td>
             <td><% size %></td>
             <td><% &actions %></td>
         </tr>
     </script>
+
 {% endblock %}

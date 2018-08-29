@@ -29,14 +29,6 @@ String.prototype.toTitleCase = function () {
     });
 };
 
-function truncate30(string) {
-    if (string.length > 30) {
-        return string.slice(0,30) + "..."
-    } else {
-        return string
-    }
-
-}
 
 function getExtension(file) {
     // Extract the extension from a file path
