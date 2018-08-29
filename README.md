@@ -1,5 +1,7 @@
 # Archive Browser
 
+This is an simple django application which uses javascript AJAX requests to pull content from elaticsearch and display it on the page. The navigation is handled by this application but any download links won't work without pydap being configured alongside.
+
 ## Setting up the development environment
 
 Clone the repository
