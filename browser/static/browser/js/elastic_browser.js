@@ -18,7 +18,6 @@ var ElasticBrowser = (function () {
 
     function generate_actions(ext, file) {
 
-
         var download_templ = "<a class='btn btn-lg' href='" + file + "'><i class=\"fa fa-download\" aria-hidden=\"true\"></i></a>"
         var plot_templ = "<a class=\"btn btn-lg\" href=\"javascript:Start('" + file + "?plot')\"><i class=\"fa fa-line-chart\" aria-hidden=\"true\"></i></a>"
         var view_templ = "<a class='btn btn-lg' href='" + file + "'><i class=\"fa fa-eye\" aria-hidden=\"true\"></i></a>"
@@ -36,13 +35,19 @@ var ElasticBrowser = (function () {
 
             case "txt":
             case "html":
-                action_string = view_templ
+                action_string = view_templ;
                 break;
 
             default:
                 action_string = download_templ
         }
 
+        var filename = file.split('/');
+        filename = filename[filename.length -1];
+
+        if (filename === "00README"){
+            action_string = download_templ + view_templ;
+        }
         return action_string
     }
 
@@ -101,6 +106,15 @@ var ElasticBrowser = (function () {
         )
 
         return must_not
+    }
+
+    function moles_icon(record_type){
+        console.log(record_type)
+        if (record_type === 'Dataset'){
+            return "<i class=\"fas fa-database dataset\"></i>"
+        } else {
+            return "<i class=\"fas fa-copy collection\"></i>"
+        }
     }
 
     // Get Directories from elasticsearch
@@ -207,12 +221,16 @@ var ElasticBrowser = (function () {
                     var desc = "";
                     var link_target = "";
 
-                    if (dir_array[i]._source.title !== "" && !all_same) {
-                        desc = Mustache.render("<a href='{{{url}}}'>{{title}}</a>",
+                    if (dir_array[i]._source.title !== undefined && !all_same) {
+                        desc = Mustache.render("<a href='{{{url}}}'>{{{icon}}}&nbsp;{{title}}</a>",
                             {
                                 url: dir_array[i]._source.url,
-                                title: dir_array[i]._source.title
+                                title: dir_array[i]._source.title,
+                                icon: moles_icon(dir_array[i]._source.record_type.toTitleCase())
                             })
+                    } else if (dir_array[i]._source.readme !== undefined){
+                        // Use the top line of the readme if there is one
+                        desc = '<i class="fab fa-readme"></i>&nbsp;' + dir_array[i]._source.readme.split("\n")[0]
                     }
 
                     if (dir_array[i]._source.link !== undefined && dir_array[i]._source.link === true) {
@@ -319,28 +337,47 @@ var ElasticBrowser = (function () {
         })
 
 
-        // Get collection link
+        // Get collection link and readme
         $.post({
             url: dir_url,
             data: JSON.stringify(collection_query),
             success: function (data) {
                 var collection = data.hits.hits[0]
 
-                if (data.hits.total === 1 && collection._source.title !== undefined) {
+                if (data.hits.total === 1) {
 
-                    var collection_link = Mustache.render("<h6>{{collection_type}}: <a href='{{{url}}}'>{{title}}</a></h6>",
-                        {
-                            url: collection._source.url,
-                            collection_type: collection._source.record_type.toTitleCase(),
-                            title: truncate30(collection._source.title)
+                    if (collection._source.title !== undefined) {
+
+                        var collection_link = Mustache.render("<h3>{{{collection_type}}}&nbsp;<a href='{{{url}}}'>{{title}}</a></h3>",
+                            {
+                                url: collection._source.url,
+                                collection_type: moles_icon(collection._source.record_type.toTitleCase()),
+                                title: collection._source.title
+                            }
+                        )
+
+                        $('#collection_link').html(collection_link)
+
+                    } else {
+                        $('#collection_link').html("")
+                    }
+
+                    if (collection._source.readme !== undefined){
+                        $('#readmeButton').removeClass('hide')
+                        var readme_split = collection._source.readme.split('\n');
+
+                        var readme_html = "";
+                        for (var i =0; i < readme_split.length; i++ ){
+                            if (readme_split[i] !== ""){
+                                readme_html += readme_split[i]+"<br>"
+                            }
                         }
-                    )
 
-                    $('#collection_link').html(collection_link)
+                        $('#readmeContent div').html(readme_html)
+                    }
 
-                } else {
-                    $('#collection_link').html("")
                 }
+
 
             },
             contentType: "application/json",

@@ -29,14 +29,6 @@ String.prototype.toTitleCase = function () {
     });
 };
 
-function truncate30(string) {
-    if (string.length > 30) {
-        return string.slice(0,30) + "..."
-    } else {
-        return string
-    }
-
-}
 
 function getExtension(file) {
     // Extract the extension from a file path
@@ -89,7 +81,7 @@ $(document).ready(function () {
 
     // Set options
     var options = {
-        dir_index: "ceda-dirs",
+        dir_index: "ceda-dirs-2018-08-29",
         file_index: "ceda-level-2",
         exceptions: ["/sparc","/edc","/bodc"]
     };
