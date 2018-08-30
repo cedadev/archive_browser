@@ -109,7 +109,6 @@ var ElasticBrowser = (function () {
     }
 
     function moles_icon(record_type){
-        console.log(record_type)
         if (record_type === 'Dataset'){
             return "<i class=\"fas fa-database dataset\"></i>"
         } else {
@@ -201,7 +200,6 @@ var ElasticBrowser = (function () {
         var dir_url = [options.host, options.dir_index, '_search'].join("/");
         var dir_results_string = "";
 
-        console.log(JSON.stringify(dir_query))
         $.post({
             url: dir_url,
             data: JSON.stringify(dir_query),
@@ -230,7 +228,13 @@ var ElasticBrowser = (function () {
                             })
                     } else if (dir_array[i]._source.readme !== undefined){
                         // Use the top line of the readme if there is one
-                        desc = '<i class="fab fa-readme"></i>&nbsp;' + dir_array[i]._source.readme.split("\n")[0]
+                        var first_line_readme = dir_array[i]._source.readme.split("\n")[0]
+
+                        if (first_line_readme !== "HIDE DIRECTORY") {
+                            desc = '<i class="fab fa-readme"></i>&nbsp;' + dir_array[i]._source.readme.split("\n")[0]
+                        } else {
+                            desc = first_line_readme
+                        }
                     }
 
                     if (dir_array[i]._source.link !== undefined && dir_array[i]._source.link === true) {
@@ -240,24 +244,20 @@ var ElasticBrowser = (function () {
                             })
                     }
 
-                    dir_results_string = dir_results_string + Mustache.render(
-                        dir_template,
-                        {
-                            path: dir_array[i]._source.path,
-                            archive_path: dir_array[i]._source.archive_path,
-                            item: dir_array[i]._source.dir,
-                            link: link_target,
-                            description: desc,
-                            size: "",
-                            actions: ""
-                        }
-                    )
-
-                    dir_display_string = Mustache.render("Directories: ({{display}}/{{total}}) ",
-                        {
-                            display: dir_array.length,
-                            total: data.hits.total
-                        })
+                    if (desc !== "HIDE DIRECTORY") {
+                        dir_results_string = dir_results_string + Mustache.render(
+                            dir_template,
+                            {
+                                path: dir_array[i]._source.path,
+                                archive_path: dir_array[i]._source.archive_path,
+                                item: dir_array[i]._source.dir,
+                                link: link_target,
+                                description: desc,
+                                size: "",
+                                actions: ""
+                            }
+                        )
+                    }
 
                 }
 
