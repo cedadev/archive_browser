@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block page_title %}
-        <h1>Browse Archive</h1>
+    <h1>Browse Archive</h1>
 {% endblock %}
 
 {% block head_js_extra %}
@@ -15,7 +15,11 @@
 {% endblock %}
 
 {% block content %}
+            <div class="alert alert-info text-center" role="alert">
+            This is a cached view of the archive, some more recent changes may not be displayed. Please use our <a href="http://data.ceda.ac.uk">old service</a> to view recent changes.
+        </div>
     <div class="row">
+
         <div class="col-11">
             <h3>
                 {% spaceless %}
