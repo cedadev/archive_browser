@@ -76,14 +76,22 @@ function OpenHelpWin(page) {
     win.focus();
 }
 
+function pathManipulate(prefix, postfix){
+    // Used to build the correct path in order to initiate actions in pydap
+    var path = window.location.pathname
+
+    return [prefix,path,"/", postfix].join("")
+}
+
 $(document).ready(function () {
     // Setup the page and load the data
 
     // Set options
     var options = {
-        dir_index: "ceda-dirs-2018-08-29",
-        file_index: "ceda-level-2",
-        exceptions: ["/sparc","/edc","/bodc"]
+        dir_index: "ceda-dirs",
+        file_index: "ceda-fbi",
+        exceptions: ["/sparc","/edc","/bodc"],
+        path_prefix: "/pydap"
     };
 
     // Load the data

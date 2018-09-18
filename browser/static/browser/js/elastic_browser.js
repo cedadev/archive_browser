@@ -18,11 +18,37 @@ var ElasticBrowser = (function () {
 
     function generate_actions(ext, file) {
 
-        var download_templ = "<a class='btn btn-lg' href='" + file + "'><i class=\"fa fa-download\" aria-hidden=\"true\"></i></a>"
-        var plot_templ = "<a class=\"btn btn-lg\" href=\"javascript:Start('" + file + "?plot')\"><i class=\"fa fa-line-chart\" aria-hidden=\"true\"></i></a>"
-        var view_templ = "<a class='btn btn-lg' href='" + file + "'><i class=\"fa fa-eye\" aria-hidden=\"true\"></i></a>"
-        var subset_templ = "<a class='btn btn-lg' href='" + file + ".html'><i class=\"fa fa-cogs\" aria-hidden=\"true\"></i>\n</a>"
+        var file_name = file.split("/").slice(-1)[0];
 
+        // Generate button for download action
+        var download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa fa-{{icon}}'></i></a>",
+            {
+                url: pathManipulate(options.path_prefix, file_name),
+                icon: "download"
+            });
+
+        // Generate button for plotting action
+        var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa {{icon}}'></i></a>",
+            {
+                url: pathManipulate(options.path_prefix, "javascript:Start(" + file_name + "?plot"),
+                icon: "line-chart"
+            });
+
+        // Generate button for view action
+        var view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa fa-{{icon}}'></i></a>",
+            {
+                url: pathManipulate(options.path_prefix, file_name),
+                icon: "eye"
+            });
+
+        // Generate button for subset action
+        var subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa fa-{{icon}}'></i></a>",
+            {
+                url: pathManipulate(options.path_prefix, file_name + ".html"),
+                icon: "cogs"
+            });
+
+        // Build the correct action buttons for the file
         var action_string;
         switch (ext) {
             case "na":
