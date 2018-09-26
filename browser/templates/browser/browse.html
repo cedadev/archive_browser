@@ -17,7 +17,7 @@
 
 {% block content %}
     <div class="row">
-        <div class="col-7">
+        <div title="Directory path" data-toggle="tooltip" class="col-7">
             <h3>
                 {% spaceless %}
                     <a class='btn btn-outline-primary' role='button' href='/'>/</a>
@@ -27,19 +27,19 @@
                 {% endspaceless %}
             </h3>
         </div>
-        <div class="col-1">
-            <button type="button" class="btn btn-primary btn-sm float-right mt-2" id="copyButton"
-                    onclick="copyPath()" onmouseleave="hideTooltip()" data-toggle="tooltip" title="Copy path">
+        <div  class="col-1">
+                    <button type="button" id="copy" class="btn btn-primary btn-sm float-right mt-1" data-toggle="tooltip" data-placement="bottom"
+                data-original-title="Copy" onmouseleave="hidetooltip()" onclick="copyPath()">
                 <i class="fas fa-copy" aria-hidden="true"></i>
             </button>
         </div>
          <div class="col-4">
         <form autocomplete="off" action="/">
             <div class="input-group mb-3 autocomplete">
-                <input type="text" class="form-control" id="dir_search" placeholder="Search directories"
-                       aria-label="Search directories" aria-describedby="basic-addon2">
+                <input type="text" title="Search the directories" data-toggle="tooltip" class="form-control" id="dir_search" placeholder="Search directories"
+                       aria-label="Search the directory" aria-describedby="basic-addon2">
                 <div class="input-group-append">
-                    <button class="btn btn-outline-secondary" type="submit">Go</button>
+                    <button title="Search the directory" data-toggle="tooltip" class="btn btn-outline-secondary" type="submit">Go</button>
                 </div>
             </div>
         </form>
@@ -71,19 +71,19 @@
 
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <input type="text" class="form-control" id="download_query" value="*">
+                    <input title="Write your download query here" data-toggle="tooltip" type="text" class="form-control" id="download_query" value="*">
                 </div>
                 <div class="form-group mb-2">
                     <label>Depth: </label>
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <select class="form-control">
+                    <select title="File depth" class="form-control" data-toggle="tooltip">
                         <option>1</option>
                         <option>2</option>
                         <option>3</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary mb-2">Go</button>
+                <button title="Submit your download query" data-toggle="tooltip" type="submit" class="btn btn-primary mb-2">Go</button>
             </form>
         </div>
     </div>
@@ -114,6 +114,23 @@
         autocomplete(document.getElementById("dir_search"), countries);
     </script>
 
+    <script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+
+    $('#copy').click(function () {
+        $(this).attr("data-original-title","Copied!")
+        $(this).tooltip('show')
+    })
+
+    function hidetooltip() {
+        var copyBtn = $('#copy')
+        copyBtn.tooltip('hide')
+        copyBtn.attr("data-original-title","Copy")
+
+    }
+    </script>
     <script id="dir_template" type="text/html">
         <tr>
             <td><a href="<% path %>"><span class="fas fa-folder"></span> <% item %></a></td>

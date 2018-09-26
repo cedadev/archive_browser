@@ -38,9 +38,7 @@ function getExtension(file) {
 
 function copyPath() {
     var copyText = $('#path').val()
-    var copyBtn = $('#copyButton')
-    copyBtn.attr('data-original-title',"Copied: " + copyText)
-    copyBtn.tooltip('show')
+    var copyBtn = $('#copy')
 
     var tempInput = document.createElement('input')
     tempInput.style = "position: absolute; left: -1000px; top: -1000px"
@@ -49,19 +47,24 @@ function copyPath() {
     tempInput.select()
     document.execCommand('copy')
     document.body.removeChild(tempInput)
-
 }
 
 function hideTooltip (){
-    var copyBtn = $('#copyButton').tooltip('hide')
+        var copyBtn = $('#copy')
+        copyBtn.tooltip('hide')
+        copyBtn.attr("data-original-title","Copy")
 }
 
+$('#copy').hover(function () {
+   var copyBtn = $('#copy')
+   copyBtn.tooltip('hide')
+   copyBtn.attr('data-original-title',"Copy Directory Path")
+   copyBtn.tooltip('show')
+})
 
 $(function () {
-  $('[data-toggle="tooltip"]').tooltip({
-      trigger: 'manual'
-  })
-})
+  $('[data-toggle="tooltip"]').tooltip()
+})*/
 
 function Start(page) {
     // Open a new window to display the plotted data
