@@ -5,3 +5,4 @@ __pycache__
 .vagrant
 ../Vagrantfile
 *venv
+*.egg-info

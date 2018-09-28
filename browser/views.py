@@ -6,6 +6,7 @@ from django.shortcuts import render
 
 def browse(request):
     path = request.path
+    print (request.environ)
 
     if len(path) > 1 and path.endswith('/'):
         path = path[:-1]
