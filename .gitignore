@@ -2,4 +2,7 @@ venv
 archive_browser/settings_local.py
 __pycache__
 *.pyc
-venv2.7
+.vagrant
+../Vagrantfile
+*venv
+*.egg-info

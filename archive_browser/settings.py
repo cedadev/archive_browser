@@ -30,7 +30,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'dj_security_middleware.middleware.DJ_Security_Middleware'
+
 ]
+
+DJ_SECURITY_FILTER = ['.*']
 
 ROOT_URLCONF = 'archive_browser.urls'
 
@@ -51,7 +55,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'archive_browser.wsgi.application'
 
 
-SECURITY_LOGIN_SERVICE = ""
+SECURITY_LOGIN_SERVICE = "https://auth.ceda.ac.uk/account/signin"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/

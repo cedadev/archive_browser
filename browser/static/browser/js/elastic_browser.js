@@ -18,12 +18,37 @@ var ElasticBrowser = (function () {
 
     function generate_actions(ext, file) {
 
+        var file_name = file.split("/").slice(-1)[0];
 
-        var download_templ = "<a class='btn btn-lg' href='" + file + "'><i class=\"fa fa-download\" aria-hidden=\"true\"></i></a>"
-        var plot_templ = "<a class=\"btn btn-lg\" href=\"javascript:Start('" + file + "?plot')\"><i class=\"fa fa-line-chart\" aria-hidden=\"true\"></i></a>"
-        var view_templ = "<a class='btn btn-lg' href='" + file + "'><i class=\"fa fa-eye\" aria-hidden=\"true\"></i></a>"
-        var subset_templ = "<a class='btn btn-lg' href='" + file + ".html'><i class=\"fa fa-cogs\" aria-hidden=\"true\"></i>\n</a>"
+        // Generate button for download action
+        var download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa fa-{{icon}}'></i></a>",
+            {
+                url: pathManipulate(options.path_prefix, file_name),
+                icon: "download"
+            });
 
+        // Generate button for plotting action
+        var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa {{icon}}'></i></a>",
+            {
+                url: pathManipulate(options.path_prefix, "javascript:Start(" + file_name + "?plot"),
+                icon: "line-chart"
+            });
+
+        // Generate button for view action
+        var view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa fa-{{icon}}'></i></a>",
+            {
+                url: pathManipulate(options.path_prefix, file_name),
+                icon: "eye"
+            });
+
+        // Generate button for subset action
+        var subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa fa-{{icon}}'></i></a>",
+            {
+                url: pathManipulate(options.path_prefix, file_name + ".html"),
+                icon: "cogs"
+            });
+
+        // Build the correct action buttons for the file
         var action_string;
         switch (ext) {
             case "na":
@@ -36,13 +61,19 @@ var ElasticBrowser = (function () {
 
             case "txt":
             case "html":
-                action_string = view_templ
+                action_string = view_templ;
                 break;
 
             default:
                 action_string = download_templ
         }
 
+        var filename = file.split('/');
+        filename = filename[filename.length -1];
+
+        if (filename === "00README"){
+            action_string = download_templ + view_templ;
+        }
         return action_string
     }
 
@@ -101,6 +132,14 @@ var ElasticBrowser = (function () {
         )
 
         return must_not
+    }
+
+    function moles_icon(record_type){
+        if (record_type === 'Dataset'){
+            return "<i class=\"fas fa-database dataset\"></i>"
+        } else {
+            return "<i class=\"fas fa-copy collection\"></i>"
+        }
     }
 
     // Get Directories from elasticsearch
@@ -187,7 +226,6 @@ var ElasticBrowser = (function () {
         var dir_url = [options.host, options.dir_index, '_search'].join("/");
         var dir_results_string = "";
 
-        console.log(JSON.stringify(dir_query))
         $.post({
             url: dir_url,
             data: JSON.stringify(dir_query),
@@ -207,12 +245,22 @@ var ElasticBrowser = (function () {
                     var desc = "";
                     var link_target = "";
 
-                    if (dir_array[i]._source.title !== "" && !all_same) {
-                        desc = Mustache.render("<a href='{{{url}}}'>{{title}}</a>",
+                    if (dir_array[i]._source.title !== undefined && !all_same) {
+                        desc = Mustache.render("<a href='{{{url}}}'>{{{icon}}}&nbsp;{{title}}</a>",
                             {
                                 url: dir_array[i]._source.url,
-                                title: dir_array[i]._source.title
+                                title: dir_array[i]._source.title,
+                                icon: moles_icon(dir_array[i]._source.record_type.toTitleCase())
                             })
+                    } else if (dir_array[i]._source.readme !== undefined){
+                        // Use the top line of the readme if there is one
+                        var first_line_readme = dir_array[i]._source.readme.split("\n")[0]
+
+                        if (first_line_readme !== "HIDE DIRECTORY") {
+                            desc = '<i class="fab fa-readme"></i>&nbsp;' + dir_array[i]._source.readme.split("\n")[0]
+                        } else {
+                            desc = first_line_readme
+                        }
                     }
 
                     if (dir_array[i]._source.link !== undefined && dir_array[i]._source.link === true) {
@@ -222,24 +270,20 @@ var ElasticBrowser = (function () {
                             })
                     }
 
-                    dir_results_string = dir_results_string + Mustache.render(
-                        dir_template,
-                        {
-                            path: dir_array[i]._source.path,
-                            archive_path: dir_array[i]._source.archive_path,
-                            item: dir_array[i]._source.dir,
-                            link: link_target,
-                            description: desc,
-                            size: "",
-                            actions: ""
-                        }
-                    )
-
-                    dir_display_string = Mustache.render("Directories: ({{display}}/{{total}}) ",
-                        {
-                            display: dir_array.length,
-                            total: data.hits.total
-                        })
+                    if (desc !== "HIDE DIRECTORY") {
+                        dir_results_string = dir_results_string + Mustache.render(
+                            dir_template,
+                            {
+                                path: dir_array[i]._source.path,
+                                archive_path: dir_array[i]._source.archive_path,
+                                item: dir_array[i]._source.dir,
+                                link: link_target,
+                                description: desc,
+                                size: "",
+                                actions: ""
+                            }
+                        )
+                    }
 
                 }
 
@@ -319,28 +363,47 @@ var ElasticBrowser = (function () {
         })
 
 
-        // Get collection link
+        // Get collection link and readme
         $.post({
             url: dir_url,
             data: JSON.stringify(collection_query),
             success: function (data) {
                 var collection = data.hits.hits[0]
 
-                if (data.hits.total === 1 && collection._source.title !== undefined) {
+                if (data.hits.total === 1) {
 
-                    var collection_link = Mustache.render("<h6>{{collection_type}}: <a href='{{{url}}}'>{{title}}</a></h6>",
-                        {
-                            url: collection._source.url,
-                            collection_type: collection._source.record_type.toTitleCase(),
-                            title: truncate30(collection._source.title)
+                    if (collection._source.title !== undefined) {
+
+                        var collection_link = Mustache.render("<h3>{{{collection_type}}}&nbsp;<a href='{{{url}}}'>{{title}}</a></h3>",
+                            {
+                                url: collection._source.url,
+                                collection_type: moles_icon(collection._source.record_type.toTitleCase()),
+                                title: collection._source.title
+                            }
+                        )
+
+                        $('#collection_link').html(collection_link)
+
+                    } else {
+                        $('#collection_link').html("")
+                    }
+
+                    if (collection._source.readme !== undefined){
+                        $('#readmeButton').removeClass('hide')
+                        var readme_split = collection._source.readme.split('\n');
+
+                        var readme_html = "";
+                        for (var i =0; i < readme_split.length; i++ ){
+                            if (readme_split[i] !== ""){
+                                readme_html += readme_split[i]+"<br>"
+                            }
                         }
-                    )
 
-                    $('#collection_link').html(collection_link)
+                        $('#readmeContent div').html(readme_html)
+                    }
 
-                } else {
-                    $('#collection_link').html("")
                 }
+
 
             },
             contentType: "application/json",
