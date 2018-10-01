@@ -12,7 +12,6 @@
 {% block stylesheets_extra %}
     <link rel="shortcut icon" href="http://www.ceda.ac.uk/static/img/favicon.ico"/>
     <link rel="stylesheet" href="{% static 'browser/css/browser.css' %}"/>
-    <link rel="stylesheet" href="{% static 'browser/css/autcomplete.css' %}"/>
 {% endblock %}
 
 {% block content %}
@@ -24,7 +23,7 @@
 
     <div class="row">
 
-        <div class="col-7">
+        <div class="col-11">
             <h3>
                 {% spaceless %}
                     <a class='btn btn-outline-primary' role='button' href='/'>/</a>
@@ -39,17 +38,6 @@
                     data-original-title="Copy directory path" title="Copy directory path">
                 <i class="fas fa-copy" aria-hidden="true"></i>
             </button>
-        </div>
-        <div class="col-4">
-            <form autocomplete="off" action="/">
-                <div class="input-group mb-3 autocomplete">
-                    <input type="text" class="form-control" id="dir_search" placeholder="Search directories"
-                           aria-label="Search the directory" aria-describedby="basic-addon2">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="submit">Go</button>
-                    </div>
-                </div>
-            </form>
         </div>
     </div>
     <input class="hide" type="text" id="path" value="{{ path }}" style="display: none">
@@ -115,7 +103,6 @@
     <script src="{% static 'browser/js/browse.js' %}"></script>
     <script src="{% static 'browser/js/elastic_browser.js' %}"></script>
     <script src="{% static 'browser/js/mustache.min.js' %}"></script>
-    <script src="{% static 'browser/js/autocomplete.js' %}"></script>
     <script>
         autocomplete(document.getElementById("dir_search"), countries);
     </script>
