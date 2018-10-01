@@ -17,17 +17,14 @@
 
 {% block content %}
 
-    <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
+    <div class="alert alert-warning text-center" role="alert">
         This is a cached view of the archive, some more recent changes may not be displayed. Please use our <a
             href="/pydap/">old service</a> to view recent changes.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
     </div>
 
     <div class="row">
 
-        <div title="Directory path" data-toggle="tooltip" class="col-7">
+        <div class="col-7">
             <h3>
                 {% spaceless %}
                     <a class='btn btn-outline-primary' role='button' href='/'>/</a>
@@ -37,23 +34,23 @@
                 {% endspaceless %}
             </h3>
         </div>
-        <div  class="col-1">
-                    <button type="button" id="copy" class="btn btn-primary btn-sm float-right mt-1" data-toggle="tooltip" data-placement="bottom"
-                data-original-title="Copy" onmouseleave="hidetooltip()" onclick="copyPath()">
+        <div class="col-1">
+            <button type="button" id="copy" class="btn btn-primary btn-sm float-right mt-1" data-toggle="tooltip"
+                    data-original-title="Copy directory path" title="Copy directory path">
                 <i class="fas fa-copy" aria-hidden="true"></i>
             </button>
         </div>
-         <div class="col-4">
-        <form autocomplete="off" action="/">
-            <div class="input-group mb-3 autocomplete">
-                <input type="text" title="Search the directories" data-toggle="tooltip" class="form-control" id="dir_search" placeholder="Search directories"
-                       aria-label="Search the directory" aria-describedby="basic-addon2">
-                <div class="input-group-append">
-                    <button title="Search the directory" data-toggle="tooltip" class="btn btn-outline-secondary" type="submit">Go</button>
+        <div class="col-4">
+            <form autocomplete="off" action="/">
+                <div class="input-group mb-3 autocomplete">
+                    <input type="text" class="form-control" id="dir_search" placeholder="Search directories"
+                           aria-label="Search the directory" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="submit">Go</button>
+                    </div>
                 </div>
-            </div>
-        </form>
-    </div>
+            </form>
+        </div>
     </div>
     <input class="hide" type="text" id="path" value="{{ path }}" style="display: none">
     <hr>
@@ -80,19 +77,19 @@
 
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <input title="Write your download query here" data-toggle="tooltip" type="text" class="form-control" id="download_query" value="*">
+                    <input type="text" class="form-control" id="download_query" value="*">
                 </div>
                 <div class="form-group mb-2">
                     <label>Depth: </label>
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <select title="File depth" class="form-control" data-toggle="tooltip">
+                    <select class="form-control" title="Depth of search into directories" data-toggle="tooltip">
                         <option>1</option>
                         <option>2</option>
                         <option>3</option>
                     </select>
                 </div>
-                <button title="Submit your download query" data-toggle="tooltip" type="submit" class="btn btn-primary mb-2">Go</button>
+                <button type="submit" class="btn btn-primary mb-2">Go</button>
             </form>
         </div>
     </div>
@@ -123,23 +120,7 @@
         autocomplete(document.getElementById("dir_search"), countries);
     </script>
 
-    <script>
-    $(function () {
-        $('[data-toggle="tooltip"]').tooltip()
-    })
 
-    $('#copy').click(function () {
-        $(this).attr("data-original-title","Copied!")
-        $(this).tooltip('show')
-    })
-
-    function hidetooltip() {
-        var copyBtn = $('#copy')
-        copyBtn.tooltip('hide')
-        copyBtn.attr("data-original-title","Copy")
-
-    }
-    </script>
     <script id="dir_template" type="text/html">
         <tr>
             <td><a href="<% path %>"><span class="fas fa-folder"></span> <% item %></a></td>
@@ -158,4 +139,11 @@
         </tr>
     </script>
 
+{% endblock %}
+{% block tail_js_extra %}
+    <script>
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]'
+        });
+    </script>
 {% endblock %}

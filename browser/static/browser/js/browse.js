@@ -49,22 +49,21 @@ function copyPath() {
     document.body.removeChild(tempInput)
 }
 
-function hideTooltip (){
-        var copyBtn = $('#copy')
-        copyBtn.tooltip('hide')
-        copyBtn.attr("data-original-title","Copy")
-}
+// Tooltips
 
-$('#copy').hover(function () {
-   var copyBtn = $('#copy')
-   copyBtn.tooltip('hide')
-   copyBtn.attr('data-original-title',"Copy Directory Path")
-   copyBtn.tooltip('show')
+function hideTooltip (){
+}
+$('#copy').mouseleave(function () {
+    $(this).tooltip('hide')
+    $(this).attr("data-original-title","Copy directory path")
+
 })
 
-$(function () {
-  $('[data-toggle="tooltip"]').tooltip()
-})*/
+$('#copy').click(function () {
+    $(this).attr("data-original-title","Copied!")
+    $(this).tooltip('show')
+    copyPath()
+})
 
 function Start(page) {
     // Open a new window to display the plotted data

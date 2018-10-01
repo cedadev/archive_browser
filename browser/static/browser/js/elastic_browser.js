@@ -1,3 +1,6 @@
+var DATASET_TOOLTIP = "These records describe and link to the actual data in our archive. They also provide spatial and temporal information, access and usage information and link to background information on why and how the data were collected."
+var COLLECTION_TOOLTIP = "A collection of Datasets that share some common purpose, theme or association. These collections link to one or more Dataset records."
+
 var ElasticBrowser = (function () {
     // Elasticsearch interaction to populate the file browser
 
@@ -21,28 +24,28 @@ var ElasticBrowser = (function () {
         var file_name = file.split("/").slice(-1)[0];
 
         // Generate button for download action
-        var download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa fa-{{icon}}'></i></a>",
+        var download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Download file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
                 url: pathManipulate(options.path_prefix, file_name),
                 icon: "download"
             });
 
         // Generate button for plotting action
-        var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa {{icon}}'></i></a>",
+        var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Plot data' data-toggle='tooltip'><i class='fa {{icon}}'></i></a>",
             {
                 url: pathManipulate(options.path_prefix, "javascript:Start(" + file_name + "?plot"),
                 icon: "line-chart"
             });
 
         // Generate button for view action
-        var view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa fa-{{icon}}'></i></a>",
+        var view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='View file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
                 url: pathManipulate(options.path_prefix, file_name),
                 icon: "eye"
             });
 
         // Generate button for subset action
-        var subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}'><i class='fa fa-{{icon}}'></i></a>",
+        var subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Extract subset' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
                 url: pathManipulate(options.path_prefix, file_name + ".html"),
                 icon: "cogs"
@@ -136,9 +139,15 @@ var ElasticBrowser = (function () {
 
     function moles_icon(record_type){
         if (record_type === 'Dataset'){
-            return "<i class=\"fas fa-database dataset\"></i>"
+            return Mustache.render("<i class='fas fa-database dataset' title='{{ tooltip }}' data-toggle='tooltip'></i>",
+                {
+                    tooltip: DATASET_TOOLTIP
+                })
         } else {
-            return "<i class=\"fas fa-copy collection\"></i>"
+            return Mustache.render("<i class='fas fa-copy collection' title='{{tooltip}}' data-toggle='tooltip'></i>",
+                {
+                    tooltip: COLLECTION_TOOLTIP
+                });
         }
     }
 
@@ -257,7 +266,7 @@ var ElasticBrowser = (function () {
                         var first_line_readme = dir_array[i]._source.readme.split("\n")[0]
 
                         if (first_line_readme !== "HIDE DIRECTORY") {
-                            desc = '<i class="fab fa-readme"></i>&nbsp;' + dir_array[i]._source.readme.split("\n")[0]
+                            desc = '<i class="fab fa-readme" title="Description taken from 00README" data-toggle="tooltip"></i>&nbsp;' + dir_array[i]._source.readme.split("\n")[0]
                         } else {
                             desc = first_line_readme
                         }
