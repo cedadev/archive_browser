@@ -3,8 +3,9 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render
 from archive_browser.settings import PYDAP_SERVICE
+from django.views.decorators.csrf import csrf_exempt
 
-
+@csrf_exempt
 def browse(request):
     path = request.path
     print (request.environ)
