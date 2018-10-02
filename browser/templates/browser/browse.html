@@ -17,8 +17,7 @@
 {% block content %}
 
     <div class="alert alert-warning text-center" role="alert">
-        This is a cached view of the archive, some more recent changes may not be displayed. Please use our <a
-            href="{{ PYDAP_SERVICE }}">old service</a> to view recent changes.
+        This is a cached view of the archive, some more recent changes may not be displayed. <a href="{{ PYDAP_SERVICE }}{{ request.path }}">View most recent listing.</a>
     </div>
 
     <div class="row">
