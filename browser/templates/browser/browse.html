@@ -54,7 +54,7 @@
             </button>
         </div>
         <div class="col">
-            <form class="form-inline float-right" method="post">
+            <form class="form-inline float-right" method="post" action="{{ PYDAP_SERVICE }}{{ request.path }}">
                 <div class="form-group mb-2">
                     <label for="download_query">
                         Download multiple files
