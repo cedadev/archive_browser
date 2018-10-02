@@ -93,7 +93,7 @@ $(document).ready(function () {
         dir_index: "ceda-dirs",
         file_index: "ceda-fbi",
         exceptions: ["/sparc","/edc","/bodc"],
-        path_prefix: "/pydap"
+        path_prefix: PYDAP_URL
     };
 
     // Load the data

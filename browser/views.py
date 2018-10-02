@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render
+from archive_browser.settings import PYDAP_SERVICE
 
 
 def browse(request):
@@ -23,9 +24,11 @@ def browse(request):
             index_list.append(
                 {
                     "path": '/'.join(subset),
-                    "dir": dir
+                    "dir": dir,
                 }
             )
 
-    return render(request, 'browser/browse.html', {"path": path, "index_list": index_list})
+    context = {"path": path, "index_list": index_list, "PYDAP_SERVICE": PYDAP_SERVICE}
+
+    return render(request, 'browser/browse.html', context)
 

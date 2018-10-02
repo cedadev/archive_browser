@@ -18,7 +18,7 @@
 
     <div class="alert alert-warning text-center" role="alert">
         This is a cached view of the archive, some more recent changes may not be displayed. Please use our <a
-            href="/pydap/">old service</a> to view recent changes.
+            href="{{ PYDAP_SERVICE }}">old service</a> to view recent changes.
     </div>
 
     <div class="row">
@@ -103,10 +103,6 @@
     <script src="{% static 'browser/js/browse.js' %}"></script>
     <script src="{% static 'browser/js/elastic_browser.js' %}"></script>
     <script src="{% static 'browser/js/mustache.min.js' %}"></script>
-    <script>
-        autocomplete(document.getElementById("dir_search"), countries);
-    </script>
-
 
     <script id="dir_template" type="text/html">
         <tr>
@@ -115,6 +111,9 @@
             <td><% size %></td>
             <td><% &actions %></td>
         </tr>
+    </script>
+    <script>
+        var PYDAP_URL = "https://dap.ceda.ac.uk"
     </script>
 
     <script id="file_template" type="text/html">
