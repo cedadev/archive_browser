@@ -74,9 +74,6 @@ var ElasticBrowser = (function () {
         var filename = file.split('/');
         filename = filename[filename.length -1];
 
-        if (filename === "00README"){
-            action_string = download_templ + view_templ;
-        }
         return action_string
     }
 

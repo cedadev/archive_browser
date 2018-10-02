@@ -54,7 +54,7 @@
             </button>
         </div>
         <div class="col">
-            <form class="form-inline float-right" method="post" action="{{ PYDAP_SERVICE }}{{ request.path }}">
+            <form class="form-inline float-right" method="post" action="{{ PYDAP_SERVICE }}{{ request.path }}/">
                 <div class="form-group mb-2">
                     <label for="download_query">
                         Download multiple files
@@ -65,13 +65,13 @@
 
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <input type="text" class="form-control" id="download_query" value="*">
+                    <input type="text" class="form-control" id="download_query" name="glob" value="*">
                 </div>
                 <div class="form-group mb-2">
                     <label>Depth: </label>
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <select class="form-control" title="Depth of search into directories" data-toggle="tooltip">
+                    <select class="form-control" title="Depth of search into directories" data-toggle="tooltip" name="depth">
                         <option>1</option>
                         <option>2</option>
                         <option>3</option>
