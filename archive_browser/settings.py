@@ -76,5 +76,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-PYDAP_SERVICE = "https://dap.ceda.ac.uk"
+PYDAP_SERVICE = "http://130.246.129.89"
 from archive_browser.settings_local import *
