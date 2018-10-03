@@ -20,6 +20,7 @@ var ElasticBrowser = (function () {
     };
 
     function generate_actions(ext, file) {
+        // javascript:Start('http://data.ceda.ac.uk/badc/namblex/data/aber-radar-1290mhz/20020801//aber-radar-1290mhz_macehead_20020801_hig-res-1h-1.na?plot')
 
         var file_name = file.split("/").slice(-1)[0];
 
@@ -31,10 +32,10 @@ var ElasticBrowser = (function () {
             });
 
         // Generate button for plotting action
-        var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Plot data' data-toggle='tooltip'><i class='fa {{icon}}'></i></a>",
+        var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Plot data' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
-                url: pathManipulate(options.path_prefix, "javascript:Start(" + file_name + "?plot"),
-                icon: "line-chart"
+                url: pathManipulate("javascript:Start('"+ options.path_prefix, file_name + "?plot')"),
+                icon: "chart-line"
             });
 
         // Generate button for view action
@@ -325,7 +326,6 @@ var ElasticBrowser = (function () {
                 }
             }),
             success: function (data) {
-                console.log(data.hits.hits)
                 if (data.hits.hits.length === 1) {
                     var archive_path = data.hits.hits[0]._source.archive_path
 
@@ -333,8 +333,6 @@ var ElasticBrowser = (function () {
                     file_query.query.term["info.directory"] = archive_path
                     var file_url = [options.host, options.file_index, '_search'].join("/");
                     var file_results_string = "";
-
-                    console.log(file_query)
 
                     $.post({
                         url: file_url,
