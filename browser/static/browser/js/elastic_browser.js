@@ -303,6 +303,9 @@ var ElasticBrowser = (function () {
                 // Add results to table
                 target.html(table_string)
 
+                // Add dir results count to table
+                $('#dir_count').html(data.hits.total + " dirs")
+
             },
             contentType: "application/json",
             error: function (data) {
@@ -310,7 +313,8 @@ var ElasticBrowser = (function () {
             }
         })
 
-        // Get archive path
+        // Check directories index for directory. Return the archive path for the directory.
+        // Then search the archive path in the files index to return the files.
         $.post({
             url: dir_url,
             data: JSON.stringify({
@@ -321,6 +325,7 @@ var ElasticBrowser = (function () {
                 }
             }),
             success: function (data) {
+                console.log(data.hits.hits)
                 if (data.hits.hits.length === 1) {
                     var archive_path = data.hits.hits[0]._source.archive_path
 
@@ -328,6 +333,8 @@ var ElasticBrowser = (function () {
                     file_query.query.term["info.directory"] = archive_path
                     var file_url = [options.host, options.file_index, '_search'].join("/");
                     var file_results_string = "";
+
+                    console.log(file_query)
 
                     $.post({
                         url: file_url,
@@ -355,6 +362,9 @@ var ElasticBrowser = (function () {
 
                             // Add results to table
                             target.html(table_string)
+
+                            // Add file results count to table
+                            $('#file_count').html(data.hits.total + " files")
 
                         },
                         contentType: "application/json",
