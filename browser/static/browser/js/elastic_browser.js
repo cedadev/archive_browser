@@ -284,9 +284,7 @@ var ElasticBrowser = (function () {
                             dir_template,
                             {
                                 path: dir_array[i]._source.path,
-                                archive_path: dir_array[i]._source.archive_path,
                                 item: dir_array[i]._source.dir,
-                                link: link_target,
                                 description: desc,
                                 size: "",
                                 actions: ""
@@ -350,10 +348,10 @@ var ElasticBrowser = (function () {
                                 file_results_string = file_results_string + Mustache.render(
                                     file_template,
                                     {
+                                        icon: getIcon(ext),
                                         item: file_array[i]._source.info.name,
                                         size: sizeText(file_array[i]._source.info.size),
-                                        actions: generate_actions(ext, file_path),
-                                        icon: getIcon(ext)
+                                        actions: generate_actions(ext, file_path)
                                     }
                                 )
                             }
