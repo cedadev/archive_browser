@@ -224,6 +224,8 @@ var ElasticBrowser = (function () {
         // Render templates
         var dir_template = $('#dir_' + options.templateID).html();
         var file_template = $('#file_' + options.templateID).html();
+        var no_results_template = $('#no_results_template').html();
+
 
         // Speeds up future use
         Mustache.parse(dir_template, options.customTags);
@@ -371,6 +373,9 @@ var ElasticBrowser = (function () {
                         }
                     })
 
+                } else if (data.hits.hits.length === 0 && path != "/"){
+                    table_string += Mustache.render(no_results_template,{})
+                    target.html(table_string)
                 }
             },
             contentType: "application/json"
