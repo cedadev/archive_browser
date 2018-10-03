@@ -16,12 +16,8 @@
 
 {% block content %}
 
-    <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
-        This is a cached view of the archive, some more recent changes may not be displayed. Please use our <a
-            href="/pydap/">old service</a> to view recent changes.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+    <div class="alert alert-warning text-center" role="alert">
+        This is a cached view of the archive, some more recent changes may not be displayed. <a href="{{ PYDAP_SERVICE }}{{ request.path }}">View most recent listing.</a>
     </div>
 
     <div class="row">
@@ -37,8 +33,8 @@
             </h3>
         </div>
         <div class="col-1">
-            <button type="button" class="btn btn-primary btn-sm float-right mt-2" id="copyButton"
-                    onclick="copyPath()" onmouseleave="hideTooltip()" data-toggle="tooltip" title="Copy path">
+            <button type="button" id="copy" class="btn btn-primary btn-sm float-right mt-1" data-toggle="tooltip"
+                    data-original-title="Copy directory path" title="Copy directory path">
                 <i class="fas fa-copy" aria-hidden="true"></i>
             </button>
         </div>
@@ -57,7 +53,7 @@
             </button>
         </div>
         <div class="col">
-            <form class="form-inline float-right" method="post">
+            <form class="form-inline float-right" method="post" action="{{ PYDAP_SERVICE }}{{ request.path }}/">
                 <div class="form-group mb-2">
                     <label for="download_query">
                         Download multiple files
@@ -68,13 +64,13 @@
 
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <input type="text" class="form-control" id="download_query" value="*">
+                    <input type="text" class="form-control" id="download_query" name="glob" value="*">
                 </div>
                 <div class="form-group mb-2">
                     <label>Depth: </label>
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <select class="form-control">
+                    <select class="form-control" title="Depth of search into directories" data-toggle="tooltip" name="depth">
                         <option>1</option>
                         <option>2</option>
                         <option>3</option>
@@ -115,6 +111,9 @@
             <td><% &actions %></td>
         </tr>
     </script>
+    <script>
+        var PYDAP_URL = "{{ PYDAP_SERVICE }}"
+    </script>
 
     <script id="file_template" type="text/html">
         <tr>
@@ -125,4 +124,11 @@
         </tr>
     </script>
 
+{% endblock %}
+{% block tail_js_extra %}
+    <script>
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]'
+        });
+    </script>
 {% endblock %}

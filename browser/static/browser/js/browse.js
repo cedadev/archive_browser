@@ -38,9 +38,7 @@ function getExtension(file) {
 
 function copyPath() {
     var copyText = $('#path').val()
-    var copyBtn = $('#copyButton')
-    copyBtn.attr('data-original-title',"Copied: " + copyText)
-    copyBtn.tooltip('show')
+    var copyBtn = $('#copy')
 
     var tempInput = document.createElement('input')
     tempInput.style = "position: absolute; left: -1000px; top: -1000px"
@@ -49,18 +47,22 @@ function copyPath() {
     tempInput.select()
     document.execCommand('copy')
     document.body.removeChild(tempInput)
-
 }
+
+// Tooltips
 
 function hideTooltip (){
-    var copyBtn = $('#copyButton').tooltip('hide')
 }
+$('#copy').mouseleave(function () {
+    $(this).tooltip('hide')
+    $(this).attr("data-original-title","Copy directory path")
 
+})
 
-$(function () {
-  $('[data-toggle="tooltip"]').tooltip({
-      trigger: 'manual'
-  })
+$('#copy').click(function () {
+    $(this).attr("data-original-title","Copied!")
+    $(this).tooltip('show')
+    copyPath()
 })
 
 function Start(page) {
@@ -91,7 +93,7 @@ $(document).ready(function () {
         dir_index: "ceda-dirs",
         file_index: "ceda-fbi",
         exceptions: ["/sparc","/edc","/bodc"],
-        path_prefix: "/pydap"
+        path_prefix: PYDAP_URL
     };
 
     // Load the data
