@@ -253,6 +253,7 @@ var ElasticBrowser = (function () {
                 for (i = 0; i < dir_array.length; i++) {
                     var desc = "";
                     var link_target = "";
+                    var icon = "<i class='fas fa-folder'></i>";
 
                     if (dir_array[i]._source.title !== undefined && !all_same) {
                         desc = Mustache.render("<a href='{{{url}}}'>{{{icon}}}&nbsp;{{title}}</a>",
@@ -277,6 +278,8 @@ var ElasticBrowser = (function () {
                             {
                                 target: dir_array[i]._source.archive_path
                             })
+
+                        icon = "<i class='fas fa-folder text-info' title='Symbolic link' data-toggle='tooltip'></i>"
                     }
 
                     if (desc !== "HIDE DIRECTORY") {
@@ -284,9 +287,8 @@ var ElasticBrowser = (function () {
                             dir_template,
                             {
                                 path: dir_array[i]._source.path,
-                                archive_path: dir_array[i]._source.archive_path,
+                                icon: icon,
                                 item: dir_array[i]._source.dir,
-                                link: link_target,
                                 description: desc,
                                 size: "",
                                 actions: ""
@@ -393,7 +395,7 @@ var ElasticBrowser = (function () {
 
                     if (collection._source.title !== undefined) {
 
-                        var collection_link = Mustache.render("<h3>{{{collection_type}}}&nbsp;<a href='{{{url}}}'>{{title}}</a></h3>",
+                        var collection_link = Mustache.render("<h3>{{{collection_type}}}<a href='{{{url}}}'>{{title}}</a></h3>",
                             {
                                 url: collection._source.url,
                                 collection_type: moles_icon(collection._source.record_type.toTitleCase()),
