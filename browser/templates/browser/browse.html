@@ -17,7 +17,8 @@
 {% block content %}
 
     <div class="alert alert-warning text-center" role="alert">
-        This is a cached view of the archive, some more recent changes may not be displayed. <a href="{{ PYDAP_SERVICE }}{{ request.path }}">View most recent listing.</a>
+        This is a cached view of the archive, some more recent changes may not be displayed. <a
+            href="{{ PYDAP_SERVICE }}{{ request.path }}">View most recent listing.</a>
     </div>
 
     <div class="row">
@@ -70,7 +71,8 @@
                     <label>Depth: </label>
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <select class="form-control" title="Depth of search into directories" data-toggle="tooltip" name="depth">
+                    <select class="form-control" title="Depth of search into directories" data-toggle="tooltip"
+                            name="depth">
                         <option>1</option>
                         <option>2</option>
                         <option>3</option>
@@ -87,17 +89,23 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col messages"></div>
+    </div>
     <table class="table">
         <thead>
-        <th style="width:25.3%"><span class="text-muted small" id="dir_count">0 dirs</span>&nbsp;<span class="text-muted small" id="file_count">0 files</span></th>
+        <th style="width:25.3%"><span class="text-muted small" id="dir_count">0 dirs</span>&nbsp;<span
+                class="text-muted small" id="file_count">0 files</span></th>
         <th style="width:41.5%">Description</th>
         <th style="width:8.3%">Size</th>
         <th style="width:16.6%">Actions</th>
         </thead>
-        <tbody id="results">
-
+        <tbody id="results"></td>
         </tbody>
     </table>
+    <div class="row">
+        <div class="col messages"></div>
+    </div>
 
     <script src="{% static 'browser/js/browse.js' %}"></script>
     <script src="{% static 'browser/js/elastic_browser.js' %}"></script>
@@ -122,15 +130,6 @@
             <td class="align-middle"><% size %></td>
             <td class="align-middle"><% &actions %></td>
         </tr>
-    </script>
-
-    <script id="no_results_template" type="text/html">
-        <tr>
-            <td colspan="4" class="text-center">
-                <div class="alert bg-light text-dark">This path returned no results</div>
-            </td>
-        </tr>
-
     </script>
 
 {% endblock %}

@@ -34,7 +34,7 @@ var ElasticBrowser = (function () {
         // Generate button for plotting action
         var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Plot data' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
-                url: pathManipulate("javascript:Start('"+ options.path_prefix, file_name + "?plot')"),
+                url: pathManipulate("javascript:Start('" + options.path_prefix, file_name + "?plot')"),
                 icon: "chart-line"
             });
 
@@ -73,7 +73,7 @@ var ElasticBrowser = (function () {
         }
 
         var filename = file.split('/');
-        filename = filename[filename.length -1];
+        filename = filename[filename.length - 1];
 
         return action_string
     }
@@ -135,8 +135,8 @@ var ElasticBrowser = (function () {
         return must_not
     }
 
-    function moles_icon(record_type){
-        if (record_type === 'Dataset'){
+    function moles_icon(record_type) {
+        if (record_type === 'Dataset') {
             return Mustache.render("<i class='fas fa-database dataset' title='{{ tooltip }}' data-toggle='tooltip'></i>",
                 {
                     tooltip: DATASET_TOOLTIP
@@ -184,7 +184,7 @@ var ElasticBrowser = (function () {
                     "order": "asc"
                 }
             },
-            "size": 1000
+            "size": options.max_files_per_page
         };
 
         var collection_query = {
@@ -207,7 +207,7 @@ var ElasticBrowser = (function () {
             dir_query.query.bool.must.push(
                 {
                     "prefix": {
-                        "path.keyword": path+"/"
+                        "path.keyword": path + "/"
                     }
                 }
             );
@@ -224,7 +224,7 @@ var ElasticBrowser = (function () {
         // Render templates
         var dir_template = $('#dir_' + options.templateID).html();
         var file_template = $('#file_' + options.templateID).html();
-        var no_results_template = $('#no_results_template').html();
+        var too_many_results_template = $('#too_many_results_template').html();
 
 
         // Speeds up future use
@@ -261,7 +261,7 @@ var ElasticBrowser = (function () {
                                 title: dir_array[i]._source.title,
                                 icon: moles_icon(dir_array[i]._source.record_type.toTitleCase())
                             })
-                    } else if (dir_array[i]._source.readme !== undefined){
+                    } else if (dir_array[i]._source.readme !== undefined) {
                         // Use the top line of the readme if there is one
                         var first_line_readme = dir_array[i]._source.readme.split("\n")[0]
 
@@ -364,6 +364,19 @@ var ElasticBrowser = (function () {
                             // Add file results count to table
                             $('#file_count').html(data.hits.total + " files")
 
+                            if (data.hits.total > options.max_files_per_page){
+
+                                $(".messages").each(function () {
+                                    $(this).html(Mustache.render(
+                                    "<div class=\"alert alert-danger text-center\">Too many files in current directory. Displaying {{ max_files }}/{{ display }} files.<a class=\"btn btn-primary btn-sm ml-2\" href='{{ pydap_url }}' role='button'>Show All</a></div>",
+                                    {
+                                        max_files: formatNumber(options.max_files_per_page),
+                                        pydap_url: PYDAP_URL+ window.location.pathname,
+                                        display: formatNumber(data.hits.total)
+                                    }))
+                                })
+                            }
+
                         },
                         contentType: "application/json",
                         error: function (data) {
@@ -371,7 +384,7 @@ var ElasticBrowser = (function () {
                         }
                     })
 
-                } else if (data.hits.hits.length === 0 && path != "/"){
+                } else if (data.hits.hits.length === 0 && path != "/") {
                     window.location.replace(PYDAP_URL + window.location.pathname)
                 }
             },
@@ -404,14 +417,14 @@ var ElasticBrowser = (function () {
                         $('#collection_link').html("")
                     }
 
-                    if (collection._source.readme !== undefined){
+                    if (collection._source.readme !== undefined) {
                         $('#readmeButton').removeClass('hide')
                         var readme_split = collection._source.readme.split('\n');
 
                         var readme_html = "";
-                        for (var i =0; i < readme_split.length; i++ ){
-                            if (readme_split[i] !== ""){
-                                readme_html += readme_split[i]+"<br>"
+                        for (var i = 0; i < readme_split.length; i++) {
+                            if (readme_split[i] !== "") {
+                                readme_html += readme_split[i] + "<br>"
                             }
                         }
 
@@ -428,7 +441,6 @@ var ElasticBrowser = (function () {
             }
         })
     }
-
 
 
     // Explicitly reveal public pointers to the private functions
