@@ -372,8 +372,7 @@ var ElasticBrowser = (function () {
                     })
 
                 } else if (data.hits.hits.length === 0 && path != "/"){
-                    table_string += Mustache.render(no_results_template,{})
-                    target.html(table_string)
+                    window.location.replace(PYDAP_URL + window.location.pathname)
                 }
             },
             contentType: "application/json"
