@@ -20,6 +20,7 @@ var ElasticBrowser = (function () {
     };
 
     function generate_actions(ext, file) {
+        // javascript:Start('http://data.ceda.ac.uk/badc/namblex/data/aber-radar-1290mhz/20020801//aber-radar-1290mhz_macehead_20020801_hig-res-1h-1.na?plot')
 
         var file_name = file.split("/").slice(-1)[0];
 
@@ -31,10 +32,10 @@ var ElasticBrowser = (function () {
             });
 
         // Generate button for plotting action
-        var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Plot data' data-toggle='tooltip'><i class='fa {{icon}}'></i></a>",
+        var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Plot data' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
-                url: pathManipulate(options.path_prefix, "javascript:Start(" + file_name + "?plot"),
-                icon: "line-chart"
+                url: pathManipulate("javascript:Start('"+ options.path_prefix, file_name + "?plot')"),
+                icon: "chart-line"
             });
 
         // Generate button for view action
@@ -223,6 +224,8 @@ var ElasticBrowser = (function () {
         // Render templates
         var dir_template = $('#dir_' + options.templateID).html();
         var file_template = $('#file_' + options.templateID).html();
+        var no_results_template = $('#no_results_template').html();
+
 
         // Speeds up future use
         Mustache.parse(dir_template, options.customTags);
@@ -281,9 +284,7 @@ var ElasticBrowser = (function () {
                             dir_template,
                             {
                                 path: dir_array[i]._source.path,
-                                archive_path: dir_array[i]._source.archive_path,
                                 item: dir_array[i]._source.dir,
-                                link: link_target,
                                 description: desc,
                                 size: "",
                                 actions: ""
@@ -303,6 +304,9 @@ var ElasticBrowser = (function () {
                 // Add results to table
                 target.html(table_string)
 
+                // Add dir results count to table
+                $('#dir_count').html(data.hits.total + " dirs")
+
             },
             contentType: "application/json",
             error: function (data) {
@@ -310,7 +314,8 @@ var ElasticBrowser = (function () {
             }
         })
 
-        // Get archive path
+        // Check directories index for directory. Return the archive path for the directory.
+        // Then search the archive path in the files index to return the files.
         $.post({
             url: dir_url,
             data: JSON.stringify({
@@ -343,10 +348,10 @@ var ElasticBrowser = (function () {
                                 file_results_string = file_results_string + Mustache.render(
                                     file_template,
                                     {
+                                        icon: getIcon(ext),
                                         item: file_array[i]._source.info.name,
                                         size: sizeText(file_array[i]._source.info.size),
-                                        actions: generate_actions(ext, file_path),
-                                        icon: getIcon(ext)
+                                        actions: generate_actions(ext, file_path)
                                     }
                                 )
                             }
@@ -356,6 +361,9 @@ var ElasticBrowser = (function () {
                             // Add results to table
                             target.html(table_string)
 
+                            // Add file results count to table
+                            $('#file_count').html(data.hits.total + " files")
+
                         },
                         contentType: "application/json",
                         error: function (data) {
@@ -363,6 +371,8 @@ var ElasticBrowser = (function () {
                         }
                     })
 
+                } else if (data.hits.hits.length === 0 && path != "/"){
+                    window.location.replace(PYDAP_URL + window.location.pathname)
                 }
             },
             contentType: "application/json"

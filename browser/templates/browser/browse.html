@@ -89,7 +89,7 @@
     </div>
     <table class="table">
         <thead>
-        <th style="width:25.3%"></th>
+        <th style="width:25.3%"><span class="text-muted small" id="dir_count">0 dirs</span>&nbsp;<span class="text-muted small" id="file_count">0 files</span></th>
         <th style="width:41.5%">Description</th>
         <th style="width:8.3%">Size</th>
         <th style="width:16.6%">Actions</th>
@@ -117,11 +117,20 @@
 
     <script id="file_template" type="text/html">
         <tr>
-            <td><span class="<% icon %>"></span> <% item %></td>
+            <td class="align-middle"><span class="<% icon %>"></span> <% item %></td>
             <td></td>
-            <td><% size %></td>
-            <td><% &actions %></td>
+            <td class="align-middle"><% size %></td>
+            <td class="align-middle"><% &actions %></td>
         </tr>
+    </script>
+
+    <script id="no_results_template" type="text/html">
+        <tr>
+            <td colspan="4" class="text-center">
+                <div class="alert bg-light text-dark">This path returned no results</div>
+            </td>
+        </tr>
+
     </script>
 
 {% endblock %}
