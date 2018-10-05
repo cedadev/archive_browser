@@ -409,7 +409,7 @@ var ElasticBrowser = (function () {
                     window.location.replace(PYDAP_URL + window.location.pathname)
                 }
             },
-            contentType: "application/json"
+            contentType: "application/json",
         })
 
 
