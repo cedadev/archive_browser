@@ -85,6 +85,11 @@ function pathManipulate(prefix, postfix){
     return [prefix,path,"/", postfix].join("")
 }
 
+function formatNumber (num) {
+    return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")
+}
+
+
 $(document).ready(function () {
     // Setup the page and load the data
 
@@ -93,12 +98,14 @@ $(document).ready(function () {
         dir_index: "ceda-dirs",
         file_index: "ceda-fbi",
         exceptions: ["/sparc","/edc","/bodc"],
-        path_prefix: PYDAP_URL
+        path_prefix: PYDAP_URL,
+        max_files_per_page: 2000
     };
 
     // Load the data
     ElasticBrowser.setup(options);
     ElasticBrowser.addResults();
+
 
 })
 

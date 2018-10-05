@@ -17,6 +17,8 @@ from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
+    re_path('^show_all/(?P<path>.*)/$', views.show_all, name='show_all' ),
+    re_path('^show_all/(?P<path>.*)', views.show_all, name='show_all' ),
     re_path('.*', views.browse, name='browse' ),
 ]
 

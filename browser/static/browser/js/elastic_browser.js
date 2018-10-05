@@ -14,10 +14,39 @@ var ElasticBrowser = (function () {
         pathID: 'path'
     };
 
+    var file_template;
+    var dir_template;
+    var table_string;
+    var target;
+    var total_results;
+    var archive_path;
+    var file_url;
+    var dir_url;
+    var dir_results_string;
+
+
     // Make sure to add the settings
     var setup = function (user_options) {
         $.extend(options, user_options)
+
+        // Load mustache templates
+        dir_template = $('#dir_' + options.templateID).html();
+        file_template = $('#file_template').html();
+
+        // Speeds up future use
+        Mustache.parse(dir_template, options.customTags);
+        Mustache.parse(file_template, options.customTags);
+
+        // Results variables
+        table_string = "";
+        target = $('#' + options.resultsID);
+
+        // Indexes
+        file_url = [options.host, options.file_index, '_search'].join("/");
+        dir_url = [options.host, options.dir_index, '_search'].join("/");
+
     };
+
 
     function generate_actions(ext, file) {
         // javascript:Start('http://data.ceda.ac.uk/badc/namblex/data/aber-radar-1290mhz/20020801//aber-radar-1290mhz_macehead_20020801_hig-res-1h-1.na?plot')
@@ -34,7 +63,7 @@ var ElasticBrowser = (function () {
         // Generate button for plotting action
         var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Plot data' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
-                url: pathManipulate("javascript:Start('"+ options.path_prefix, file_name + "?plot')"),
+                url: pathManipulate("javascript:Start('" + options.path_prefix, file_name + "?plot')"),
                 icon: "chart-line"
             });
 
@@ -73,7 +102,7 @@ var ElasticBrowser = (function () {
         }
 
         var filename = file.split('/');
-        filename = filename[filename.length -1];
+        filename = filename[filename.length - 1];
 
         return action_string
     }
@@ -135,8 +164,8 @@ var ElasticBrowser = (function () {
         return must_not
     }
 
-    function moles_icon(record_type){
-        if (record_type === 'Dataset'){
+    function moles_icon(record_type) {
+        if (record_type === 'Dataset') {
             return Mustache.render("<i class='fas fa-database dataset' title='{{ tooltip }}' data-toggle='tooltip'></i>",
                 {
                     tooltip: DATASET_TOOLTIP
@@ -153,11 +182,8 @@ var ElasticBrowser = (function () {
     var addResults = function () {
 
         // Setup
-        var table_string = "";
         var path = $('#' + options.pathID).val();
-        var target = $('#' + options.resultsID);
 
-        // Create queries
         var dir_query = {
             "sort": {
                 "dir.keyword": {
@@ -184,7 +210,7 @@ var ElasticBrowser = (function () {
                     "order": "asc"
                 }
             },
-            "size": 1000
+            "size": options.max_files_per_page
         };
 
         var collection_query = {
@@ -207,7 +233,7 @@ var ElasticBrowser = (function () {
             dir_query.query.bool.must.push(
                 {
                     "prefix": {
-                        "path.keyword": path+"/"
+                        "path.keyword": path + "/"
                     }
                 }
             );
@@ -221,19 +247,8 @@ var ElasticBrowser = (function () {
         }
 
 
-        // Render templates
-        var dir_template = $('#dir_' + options.templateID).html();
-        var file_template = $('#file_' + options.templateID).html();
-        var no_results_template = $('#no_results_template').html();
-
-
-        // Speeds up future use
-        Mustache.parse(dir_template, options.customTags);
-        Mustache.parse(file_template, options.customTags);
-
         // Get directories
-        var dir_url = [options.host, options.dir_index, '_search'].join("/");
-        var dir_results_string = "";
+        dir_results_string = "";
 
         $.post({
             url: dir_url,
@@ -261,7 +276,7 @@ var ElasticBrowser = (function () {
                                 title: dir_array[i]._source.title,
                                 icon: moles_icon(dir_array[i]._source.record_type.toTitleCase())
                             })
-                    } else if (dir_array[i]._source.readme !== undefined){
+                    } else if (dir_array[i]._source.readme !== undefined) {
                         // Use the top line of the readme if there is one
                         var first_line_readme = dir_array[i]._source.readme.split("\n")[0]
 
@@ -294,6 +309,7 @@ var ElasticBrowser = (function () {
 
                 }
 
+                dir_results_string = dir_results_string
                 // Make sure dirs are before files
                 if (table_string === "") {
                     table_string = table_string + dir_results_string
@@ -327,11 +343,10 @@ var ElasticBrowser = (function () {
             }),
             success: function (data) {
                 if (data.hits.hits.length === 1) {
-                    var archive_path = data.hits.hits[0]._source.archive_path
+                    archive_path = data.hits.hits[0]._source.archive_path
 
                     // Get Files
                     file_query.query.term["info.directory"] = archive_path
-                    var file_url = [options.host, options.file_index, '_search'].join("/");
                     var file_results_string = "";
 
                     $.post({
@@ -361,17 +376,35 @@ var ElasticBrowser = (function () {
                             // Add results to table
                             target.html(table_string)
 
+                            // Update total results variable
+                            total_results = data.hits.total
+
                             // Add file results count to table
                             $('#file_count').html(data.hits.total + " files")
 
+
                         },
                         contentType: "application/json",
+                        complete: function (data) {
+                            if (total_results > options.max_files_per_page) {
+
+                                $(".messages").each(function () {
+                                    $(this).html(Mustache.render(
+                                        "<div class=\"alert alert-danger text-center\">Too many files in current directory. Displaying {{ max_files }}/{{ display }} files.<a class=\"btn btn-primary btn-sm ml-2\" role='button' onclick='ElasticBrowser.getAll()' id='show_all'>Show All</a></div>",
+                                        {
+                                            max_files: formatNumber(options.max_files_per_page),
+                                            pydap_url: PYDAP_URL + window.location.pathname,
+                                            display: formatNumber(total_results)
+                                        }))
+                                })
+                            }
+                        },
                         error: function (data) {
                             console.log(data)
                         }
                     })
 
-                } else if (data.hits.hits.length === 0 && path != "/"){
+                } else if (data.hits.hits.length === 0 && path != "/") {
                     window.location.replace(PYDAP_URL + window.location.pathname)
                 }
             },
@@ -404,14 +437,14 @@ var ElasticBrowser = (function () {
                         $('#collection_link').html("")
                     }
 
-                    if (collection._source.readme !== undefined){
+                    if (collection._source.readme !== undefined) {
                         $('#readmeButton').removeClass('hide')
                         var readme_split = collection._source.readme.split('\n');
 
                         var readme_html = "";
-                        for (var i =0; i < readme_split.length; i++ ){
-                            if (readme_split[i] !== ""){
-                                readme_html += readme_split[i]+"<br>"
+                        for (var i = 0; i < readme_split.length; i++) {
+                            if (readme_split[i] !== "") {
+                                readme_html += readme_split[i] + "<br>"
                             }
                         }
 
@@ -429,6 +462,56 @@ var ElasticBrowser = (function () {
         })
     }
 
+    function getAllResults() {
+
+        $('a[id="show_all"]').each( function () {
+            $(this).html("<img src='/static/browser/img/loading.gif' style='height: 19px'></img>"
+            )
+        })
+
+        var file_results_string = ""
+
+        $.get({
+            url: window.location.origin + "/show_all" + archive_path,
+            success: function (data) {
+
+                var file_array = data.results
+
+                var i;
+                for (i = 0; i < file_array.length; i++) {
+                    var file_path = [file_array[i]._source.info.directory, file_array[i]._source.info.name].join('/')
+                    var ext = getExtension(file_path)
+
+                    file_results_string = file_results_string + Mustache.render(
+                        file_template,
+                        {
+                            icon: getIcon(ext),
+                            item: file_array[i]._source.info.name,
+                            size: sizeText(file_array[i]._source.info.size),
+                            actions: generate_actions(ext, file_path)
+                        }
+                    )
+                }
+
+                table_string = dir_results_string + file_results_string;
+
+                // Add results to table
+                target.html(table_string)
+
+            },
+            contentType: "application/json",
+            error: function (data) {
+                console.log(data)
+            },
+            complete: function (data) {
+                $(".messages").each(function () {
+                    $(this).html("")
+                })
+
+            }
+        })
+
+    }
 
 
     // Explicitly reveal public pointers to the private functions
@@ -437,5 +520,6 @@ var ElasticBrowser = (function () {
     return {
         setup: setup,
         addResults: addResults,
+        getAll: getAllResults,
     }
 })();
