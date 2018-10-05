@@ -398,6 +398,7 @@ var ElasticBrowser = (function () {
                                         }))
                                 })
                             }
+                            $('#page_load').hide()
                         },
                         error: function (data) {
                             console.log(data)
