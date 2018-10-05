@@ -45,7 +45,7 @@ def show_all(request, path):
 
     query = {"query": {
         "term": {
-            "info.directory": f'/{path}'
+            "info.directory": "/{}".format(path)
         }
     },
         "sort": {
