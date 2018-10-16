@@ -390,7 +390,7 @@ var ElasticBrowser = (function () {
 
                                 $(".messages").each(function () {
                                     $(this).html(Mustache.render(
-                                        "<div class=\"alert alert-danger text-center\">Too many files in current directory. Displaying {{ max_files }}/{{ display }} files.<a class=\"btn btn-primary btn-sm ml-2\" role='button' onclick='ElasticBrowser.getAll()' id='show_all'>Show All</a></div>",
+                                        "<div class=\"alert alert-danger text-center\">Too many files in current directory. Displaying {{ max_files }} out of {{ display }} files.<a class=\"btn btn-primary btn-sm ml-2\" role='button' onclick='ElasticBrowser.getAll()' id='show_all'>Show All</a></div>",
                                         {
                                             max_files: formatNumber(options.max_files_per_page),
                                             pydap_url: PYDAP_URL + window.location.pathname,
