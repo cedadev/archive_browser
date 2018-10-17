@@ -205,6 +205,16 @@ var ElasticBrowser = (function () {
         };
 
         var file_query = {
+            "query":{
+                "bool":{
+                    "must": {},
+                    "filter":{
+                        "term":{
+                            "info.location": "on_disk"
+                        }
+                    }
+                }
+            },
             "sort": {
                 "info.name": {
                     "order": "asc"
@@ -224,7 +234,7 @@ var ElasticBrowser = (function () {
         if (path === '/') {
             dir_query.query.bool.filter.term.depth = 1
 
-            file_query.query = {
+            file_query.query.bool.must = {
                 "term": {
                     "info.directory": "/"
                 }
@@ -239,7 +249,7 @@ var ElasticBrowser = (function () {
             );
 
 
-            file_query.query = {
+            file_query.query.bool.must = {
                 "term": {
                     "info.directory": ""
                 }
@@ -346,7 +356,7 @@ var ElasticBrowser = (function () {
                     archive_path = data.hits.hits[0]._source.archive_path
 
                     // Get Files
-                    file_query.query.term["info.directory"] = archive_path
+                    file_query.query.bool.must.term["info.directory"] = archive_path
                     var file_results_string = "";
 
                     $.post({
