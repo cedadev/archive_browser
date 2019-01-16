@@ -39,7 +39,7 @@ def browse(request):
 def show_all(request, path):
     scroll_size = 10000
 
-    es = Elasticsearch(hosts=[{"host": "jasmin-es1.ceda.ac.uk", "port": 80}])
+    es = Elasticsearch(hosts=["https://jasmin-es1.ceda.ac.uk"])
 
     results = []
 
