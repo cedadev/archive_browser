@@ -1,4 +1,4 @@
-Django==2.1.2
+Django==2.1.5
 django-classy-tags==0.8.0
 django-cookie-law==2.0.1
 pytest-runner==4.2
