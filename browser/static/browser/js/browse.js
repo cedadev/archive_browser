@@ -90,22 +90,5 @@ function formatNumber (num) {
 }
 
 
-$(document).ready(function () {
-    // Setup the page and load the data
 
-    // Set options
-    var options = {
-        dir_index: "ceda-dirs",
-        file_index: "ceda-fbi",
-        exceptions: ["/sparc","/edc","/bodc"],
-        path_prefix: PYDAP_URL,
-        max_files_per_page: 2000
-    };
-
-    // Load the data
-    ElasticBrowser.setup(options);
-    ElasticBrowser.addResults();
-
-
-})
 

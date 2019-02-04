@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render, HttpResponse
-from archive_browser.settings import PYDAP_SERVICE
+from archive_browser.settings import PYDAP_SERVICE, DIRECTORY_INDEX, FILE_INDEX
 from django.views.decorators.csrf import csrf_exempt
 from elasticsearch import Elasticsearch
 import json
@@ -31,7 +31,13 @@ def browse(request):
                 }
             )
 
-    context = {"path": path, "index_list": index_list, "PYDAP_SERVICE": PYDAP_SERVICE}
+    context = {
+        "path": path,
+        "index_list": index_list,
+        "PYDAP_SERVICE": PYDAP_SERVICE,
+        "DIRECTORY_INDEX": DIRECTORY_INDEX,
+        "FILE_INDEX": FILE_INDEX
+    }
 
     return render(request, 'browser/browse.html', context)
 
@@ -39,7 +45,7 @@ def browse(request):
 def show_all(request, path):
     scroll_size = 10000
 
-    es = Elasticsearch(hosts=[{"host": "jasmin-es1.ceda.ac.uk", "port": 80}])
+    es = Elasticsearch(hosts=["https://jasmin-es1.ceda.ac.uk"])
 
     results = []
 

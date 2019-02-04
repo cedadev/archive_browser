@@ -117,6 +117,28 @@
     <script src="{% static 'browser/js/browse.js' %}"></script>
     <script src="{% static 'browser/js/elastic_browser.js' %}"></script>
 
+    <script>
+        $(document).ready(function () {
+            // Setup the page and load the data
+
+            // Set options
+            var options = {
+                dir_index: "{{ DIRECTORY_INDEX }}",
+                file_index: "{{ FILE_INDEX }}",
+                exceptions: ["/sparc", "/edc", "/bodc"],
+                path_prefix: PYDAP_URL,
+                max_files_per_page: 2000
+            };
+
+            // Load the data
+            ElasticBrowser.setup(options);
+            ElasticBrowser.addResults();
+        })
+    </script>
+
+
+    {# Mustache templates #}
+
     <script id="dir_template" type="text/html">
         <tr>
             <td><a href="<% path %>"><span class="fas fa-folder"></span> <% item %></a></td>
@@ -137,6 +159,7 @@
             <td class="align-middle"><% &actions %></td>
         </tr>
     </script>
+
 
 {% endblock %}
 {% block tail_js_extra %}
