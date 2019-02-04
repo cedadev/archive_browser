@@ -76,5 +76,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-PYDAP_SERVICE = "http://data.ceda.ac.uk"
+PYDAP_SERVICE = 'http://data.ceda.ac.uk'
+DIRECTORY_INDEX = 'ceda-dirs'
+FILE_INDEX = 'ceda-fbi'
 from archive_browser.settings_local import *
