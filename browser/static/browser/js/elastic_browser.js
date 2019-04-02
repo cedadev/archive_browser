@@ -56,53 +56,28 @@ var ElasticBrowser = (function () {
         // Generate button for download action
         var download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Download file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
-                url: pathManipulate(options.path_prefix, file_name),
+                url: pathManipulate(options.path_prefix + '/fileServer', file_name),
                 icon: "download"
-            });
-
-        // Generate button for plotting action
-        var plot_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Plot data' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
-            {
-                url: pathManipulate("javascript:Start('" + options.path_prefix, file_name + "?plot')"),
-                icon: "chart-line"
-            });
-
-        // Generate button for view action
-        var view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='View file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
-            {
-                url: pathManipulate(options.path_prefix, file_name),
-                icon: "eye"
             });
 
         // Generate button for subset action
         var subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Extract subset' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
-                url: pathManipulate(options.path_prefix, file_name + ".html"),
+                url: pathManipulate(options.path_prefix + '/dodsC', file_name + ".html"),
                 icon: "cogs"
             });
 
         // Build the correct action buttons for the file
         var action_string;
         switch (ext) {
-            case "na":
-                action_string = download_templ + plot_templ
-                break;
 
             case "nc":
                 action_string = download_templ + subset_templ;
                 break;
 
-            case "txt":
-            case "html":
-                action_string = view_templ;
-                break;
-
             default:
                 action_string = download_templ
         }
-
-        var filename = file.split('/');
-        filename = filename[filename.length - 1];
 
         return action_string
     }
@@ -403,7 +378,7 @@ var ElasticBrowser = (function () {
                                         "<div class=\"alert alert-danger text-center\">Too many files in current directory. Displaying {{ max_files }} out of {{ display }} files.<a class=\"btn btn-primary btn-sm ml-2\" role='button' onclick='ElasticBrowser.getAll()' id='show_all'>Show All</a></div>",
                                         {
                                             max_files: formatNumber(options.max_files_per_page),
-                                            pydap_url: PYDAP_URL + window.location.pathname,
+                                            pydap_url: THREDDS_URL + window.location.pathname,
                                             display: formatNumber(total_results)
                                         }))
                                 })
@@ -416,7 +391,7 @@ var ElasticBrowser = (function () {
                     })
 
                 } else if (data.hits.hits.length === 0 && path != "/") {
-                    window.location.replace(PYDAP_URL + window.location.pathname)
+                    window.location.replace(THREDDS_URL + window.location.pathname)
                 }
             },
             contentType: "application/json",

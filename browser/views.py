@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render, HttpResponse
-from archive_browser.settings import PYDAP_SERVICE, DIRECTORY_INDEX, FILE_INDEX
+from archive_browser.settings import THREDDS_SERVICE, DIRECTORY_INDEX, FILE_INDEX
 from django.views.decorators.csrf import csrf_exempt
 from elasticsearch import Elasticsearch
 import json
@@ -34,7 +34,7 @@ def browse(request):
     context = {
         "path": path,
         "index_list": index_list,
-        "PYDAP_SERVICE": PYDAP_SERVICE,
+        "THREDDS_SERVICE": THREDDS_SERVICE,
         "DIRECTORY_INDEX": DIRECTORY_INDEX,
         "FILE_INDEX": FILE_INDEX
     }
