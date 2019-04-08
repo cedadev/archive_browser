@@ -391,7 +391,15 @@ var ElasticBrowser = (function () {
                     })
 
                 } else if (data.hits.hits.length === 0 && path != "/") {
-                    window.location.replace(THREDDS_URL + window.location.pathname + "/catalog.html")
+                    var redirect_path = THREDDS_URL + window.location.pathname;
+
+                    if (redirect_path.slice(-1) == "/"){
+                        redirect_path += "catalog.html"
+                    } else {
+                        redirect_path += "/catalog.html"
+                    }
+                    
+                    window.location.replace(redirect_path)
 
                 }
             },
