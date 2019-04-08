@@ -434,7 +434,7 @@ var ElasticBrowser = (function () {
                             }
                         }
 
-                        $('#readmeContent div').html(readme_html)
+                        $('#readmeContent div').html(escapeHtml(readme_html))
                     }
 
                 }
