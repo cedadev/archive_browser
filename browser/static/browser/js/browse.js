@@ -3,6 +3,16 @@ function round(value, decimals) {
     return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }
 
+function escapeHtml(text) {
+    'use strict';
+    return text.replace(/[\"&'\/<>]/g, function (a) {
+        return {
+            '"': '&quot;', '&': '&amp;', "'": '&#39;',
+            '/': '&#47;',  '<': '&lt;',  '>': '&gt;'
+        }[a];
+    });
+}
+
 function sizeText(size) {
     // Take a number of bytes and form a string with the correct suffix
     var output_string;
@@ -90,22 +100,5 @@ function formatNumber (num) {
 }
 
 
-$(document).ready(function () {
-    // Setup the page and load the data
 
-    // Set options
-    var options = {
-        dir_index: "ceda-dirs",
-        file_index: "ceda-fbi",
-        exceptions: ["/sparc","/edc","/bodc"],
-        path_prefix: PYDAP_URL,
-        max_files_per_page: 2000
-    };
-
-    // Load the data
-    ElasticBrowser.setup(options);
-    ElasticBrowser.addResults();
-
-
-})
 

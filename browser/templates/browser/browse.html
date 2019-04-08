@@ -18,7 +18,8 @@
 
     <div class="alert alert-warning text-center" role="alert">
         This is a cached view of the archive, some more recent changes may not be displayed. <a
-            href="{{ PYDAP_SERVICE }}{{ request.path }}">View most recent listing.</a>
+            href="{{ THREDDS_SERVICE }}{% if request.path != '/' %}/catalog{{ request.path }}/catalog.html{% else %}/filesCatalog.html{% endif %}">View most recent listing.</a>
+
     </div>
 
     <div class="row">
@@ -52,34 +53,6 @@
                     aria-expanded="false" aria-controls="readmeContent">
                 00README
             </button>
-        </div>
-        <div class="col">
-            <form class="form-inline float-right" method="post" action="{{ PYDAP_SERVICE }}{{ request.path }}/">
-                <div class="form-group mb-2">
-                    <label for="download_query">
-                        Download multiple files
-                        <a href="javascript:OpenHelpWin('http://help.ceda.ac.uk/article/4431-ceda-archive-web-download-and-services')">
-                            &nbsp;<span class="fa fa-question-circle" aria-hidden="true"/>
-                        </a>:
-                    </label>
-
-                </div>
-                <div class="form-group mx-sm-3 mb-2">
-                    <input type="text" class="form-control" id="download_query" name="glob" value="*">
-                </div>
-                <div class="form-group mb-2">
-                    <label>Depth: </label>
-                </div>
-                <div class="form-group mx-sm-3 mb-2">
-                    <select class="form-control" title="Depth of search into directories" data-toggle="tooltip"
-                            name="depth">
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary mb-2">Go</button>
-            </form>
         </div>
     </div>
     <div class="row">
@@ -117,6 +90,28 @@
     <script src="{% static 'browser/js/browse.js' %}"></script>
     <script src="{% static 'browser/js/elastic_browser.js' %}"></script>
 
+    <script>
+        $(document).ready(function () {
+            // Setup the page and load the data
+
+            // Set options
+            var options = {
+                dir_index: "{{ DIRECTORY_INDEX }}",
+                file_index: "{{ FILE_INDEX }}",
+                exceptions: ["/sparc", "/edc", "/bodc"],
+                path_prefix: THREDDS_URL,
+                max_files_per_page: 2000
+            };
+
+            // Load the data
+            ElasticBrowser.setup(options);
+            ElasticBrowser.addResults();
+        })
+    </script>
+
+
+    {# Mustache templates #}
+
     <script id="dir_template" type="text/html">
         <tr>
             <td><a href="<% path %>"><span class="fas fa-folder"></span> <% item %></a></td>
@@ -126,7 +121,7 @@
         </tr>
     </script>
     <script>
-        var PYDAP_URL = "{{ PYDAP_SERVICE }}"
+        var THREDDS_URL = "{{ THREDDS_SERVICE }}"
     </script>
 
     <script id="file_template" type="text/html">
@@ -137,6 +132,7 @@
             <td class="align-middle"><% &actions %></td>
         </tr>
     </script>
+
 
 {% endblock %}
 {% block tail_js_extra %}
