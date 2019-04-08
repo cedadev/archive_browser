@@ -416,7 +416,7 @@ var ElasticBrowser = (function () {
                     })
 
                 } else if (data.hits.hits.length === 0 && path != "/") {
-                    window.location.replace(PYDAP_URL + window.location.pathname)
+                    window.location.replace(PYDAP_URL + window.location.pathname + "/catalog.html")
                 }
             },
             contentType: "application/json",
