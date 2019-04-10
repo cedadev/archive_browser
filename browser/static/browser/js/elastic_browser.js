@@ -391,13 +391,7 @@ var ElasticBrowser = (function () {
                     })
 
                 } else if (data.hits.hits.length === 0 && path != "/") {
-                    var redirect_path = THREDDS_URL + window.location.pathname;
-
-                    if (redirect_path.slice(-1) == "/"){
-                        redirect_path += "catalog.html"
-                    } else {
-                        redirect_path += "/catalog.html"
-                    }
+                    var redirect_path = THREDDS_URL + "/fileServer" + window.location.pathname;
                     
                     window.location.replace(redirect_path)
 
