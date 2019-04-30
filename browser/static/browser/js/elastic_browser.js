@@ -392,9 +392,16 @@ var ElasticBrowser = (function () {
 
                 } else if (data.hits.hits.length === 0 && path != "/") {
                     var redirect_path = THREDDS_URL + "/fileServer" + window.location.pathname;
-                    
+                    $('#page_load').hide()
+                    $('.table').hide()
                     window.location.replace(redirect_path)
 
+                    setTimeout( function () {
+                            $('.messages:first').html(
+                                "<div class=\"alert alert-success text-center\"><h4>Attempting to download file, please check your downloads</h4></div>"
+                            )
+                        },1000
+                    )
                 }
             },
             contentType: "application/json",
