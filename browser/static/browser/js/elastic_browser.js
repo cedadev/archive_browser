@@ -398,7 +398,7 @@ var ElasticBrowser = (function () {
 
                     setTimeout( function () {
                             $('.messages:first').html(
-                                "<div class=\"alert alert-success text-center\"><h4>Attempting to download file, please check your downloads</h4></div>"
+                                "<div class=\"alert alert-success text-center\"><h4>Downloading file...</h4></div>"
                             )
                         },1000
                     )
