@@ -30,7 +30,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'dj_security_middleware.middleware.DJ_Security_Middleware'
+    'dj_security_middleware.middleware.DJSecurityMiddleware'
 
 ]
 
