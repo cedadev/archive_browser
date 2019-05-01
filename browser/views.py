@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from archive_browser.settings import THREDDS_SERVICE, DIRECTORY_INDEX, FILE_INDEX
 from django.views.decorators.csrf import csrf_exempt
 from elasticsearch import Elasticsearch
 import json
 import math
+import requests
 
 
 @csrf_exempt
@@ -15,6 +16,13 @@ def browse(request):
 
     if len(path) > 1 and path.endswith('/'):
         path = path[:-1]
+
+    # Check if the requested path is a file and serve
+    thredds_path = f'{THREDDS_SERVICE}/fileServer{path}'
+
+    r = requests.head(thredds_path)
+    if r.status_code == 200:
+        return HttpResponseRedirect(thredds_path)
 
     index_list = []
 
