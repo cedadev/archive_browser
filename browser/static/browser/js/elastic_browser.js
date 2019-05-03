@@ -424,15 +424,12 @@ var ElasticBrowser = (function () {
                     // been missed by the Elasticsearch indexing tools. This should be a
                     // directory because we have already checked for a file in the Django view.
 
-                    var redirect_path = THREDDS_URL + "/catalog" + window.location.pathname + "/catalog.html";
                     $('#page_load').hide()
                     $('.table').hide()
                     $('.messages:first').html(
-                                "<div class=\"alert alert-success text-center\"><h4>Path not found in index, redirecting to check file system...</h4></div>"
+                                "<div class=\"alert alert-success text-center\"><h4>Path not found. Please check your URL.</h4></div>"
                             )
-                    setTimeout(function () {
-                        window.location.replace(redirect_path)
-                    }, 1000)
+
 
                 }
             },
