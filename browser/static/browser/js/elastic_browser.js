@@ -63,7 +63,7 @@ var ElasticBrowser = (function () {
         // Generate button for view action
         var view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='View file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
-                url: pathManipulate(options.path_prefix, file_name),
+                url: pathManipulate(options.path_prefix + '/fileServer', file_name),
                 icon: "eye"
             });
 
