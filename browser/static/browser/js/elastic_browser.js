@@ -60,6 +60,13 @@ var ElasticBrowser = (function () {
                 icon: "download"
             });
 
+        // Generate button for view action
+        var view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='View file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+            {
+                url: pathManipulate(options.path_prefix + '/fileServer', file_name),
+                icon: "eye"
+            });
+
         // Generate button for subset action
         var subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Extract subset' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
@@ -75,9 +82,30 @@ var ElasticBrowser = (function () {
                 action_string = download_templ + subset_templ;
                 break;
 
+            case "gif":
+            case "jpg":
+            case "jpeg":
+            case "png":
+            case "svg":
+            case "svgz":
+            case "tif":
+            case "tiff":
+            case "wbmp":
+            case "webp":
+            case "ico":
+            case "jng":
+            case "bmp":
+            case "txt":
+                action_string = view_templ;
+                break;
+
             default:
                 action_string = download_templ
         }
+
+       if (file_name === '00README'){
+            action_string = view_templ
+       }
 
         return action_string
     }
@@ -391,22 +419,22 @@ var ElasticBrowser = (function () {
                     })
 
                 } else if (data.hits.hits.length === 0 && path != "/") {
-                    var redirect_path = THREDDS_URL + "/fileServer" + window.location.pathname;
+                    // If there are no results in the directory index then we should revert
+                    // to THREDDS to see if there is a directory in the archive which has just
+                    // been missed by the Elasticsearch indexing tools. This should be a
+                    // directory because we have already checked for a file in the Django view.
+
                     $('#page_load').hide()
                     $('.table').hide()
-                    window.location.replace(redirect_path)
-
-                    setTimeout( function () {
-                            $('.messages:first').html(
-                                "<div class=\"alert alert-success text-center\"><h4>Downloading file...</h4></div>"
+                    $('.messages:first').html(
+                                "<div class=\"alert alert-success text-center\"><h4>Path not found. Please check your URL.</h4></div>"
                             )
-                        },1000
-                    )
+
+
                 }
             },
             contentType: "application/json",
         })
-
 
         // Get collection link and readme
         $.post({
