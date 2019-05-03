@@ -419,17 +419,21 @@ var ElasticBrowser = (function () {
                     })
 
                 } else if (data.hits.hits.length === 0 && path != "/") {
-                    var redirect_path = THREDDS_URL + "/fileServer" + window.location.pathname;
+                    // If there are no results in the directory index then we should revert
+                    // to THREDDS to see if there is a directory in the archive which has just
+                    // been missed by the Elasticsearch indexing tools. This should be a
+                    // directory because we have already checked for a file in the Django view.
+
+                    var redirect_path = THREDDS_URL + "/catalog" + window.location.pathname + "/catalog.html";
                     $('#page_load').hide()
                     $('.table').hide()
-                    window.location.replace(redirect_path)
-
-                    setTimeout( function () {
-                            $('.messages:first').html(
-                                "<div class=\"alert alert-success text-center\"><h4>Downloading file...</h4></div>"
+                    $('.messages:first').html(
+                                "<div class=\"alert alert-success text-center\"><h4>Path not found in index, redirecting to check file system...</h4></div>"
                             )
-                        },1000
-                    )
+                    setTimeout(function () {
+                        window.location.replace(redirect_path)
+                    }, 1000)
+
                 }
             },
             contentType: "application/json",
