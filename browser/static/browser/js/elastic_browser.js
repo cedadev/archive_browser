@@ -60,6 +60,13 @@ var ElasticBrowser = (function () {
                 icon: "download"
             });
 
+        // Generate button for view action
+        var view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='View file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+            {
+                url: pathManipulate(options.path_prefix, file_name),
+                icon: "eye"
+            });
+
         // Generate button for subset action
         var subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Extract subset' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
@@ -75,9 +82,30 @@ var ElasticBrowser = (function () {
                 action_string = download_templ + subset_templ;
                 break;
 
+            case "gif":
+            case "jpg":
+            case "jpeg":
+            case "png":
+            case "svg":
+            case "svgz":
+            case "tif":
+            case "tiff":
+            case "wbmp":
+            case "webp":
+            case "ico":
+            case "jng":
+            case "bmp":
+            case "txt":
+                action_string = view_templ;
+                break;
+
             default:
                 action_string = download_templ
         }
+
+       if (file_name === '00README'){
+            action_string = view_templ
+       }
 
         return action_string
     }
@@ -406,7 +434,6 @@ var ElasticBrowser = (function () {
             },
             contentType: "application/json",
         })
-
 
         // Get collection link and readme
         $.post({
