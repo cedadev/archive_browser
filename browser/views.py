@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseNotFound
 from archive_browser.settings import THREDDS_SERVICE, DIRECTORY_INDEX, FILE_INDEX
 from django.views.decorators.csrf import csrf_exempt
 from elasticsearch import Elasticsearch
@@ -23,6 +24,17 @@ def browse(request):
     r = requests.head(thredds_path)
     if r.status_code == 200:
         return HttpResponseRedirect(thredds_path)
+
+    # Check if the requested directory path is real. Ignore top level directories
+    # to reduce response time.
+    if path not in ['/','/badc','/neodc','/ngdc']:
+        thredds_path = f'{THREDDS_SERVICE}/catalog{path}/catalog.html'
+        r = requests.head(thredds_path)
+
+        # If directory is not in the
+        if r.status_code == 404:
+            return  HttpResponseNotFound("Resource not found in the CEDA archive")
+
 
     index_list = []
 
