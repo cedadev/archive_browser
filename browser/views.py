@@ -2,14 +2,17 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, HttpResponse
 from archive_browser.settings import THREDDS_SERVICE, DIRECTORY_INDEX, FILE_INDEX
 from django.views.decorators.csrf import csrf_exempt
 from elasticsearch import Elasticsearch
 import json
 import math
 import requests
+from requests.exceptions import  ReadTimeout
 
+class HttpResonseReadTimeout(HttpResponse):
+    status_code = 408
 
 @csrf_exempt
 def browse(request):
@@ -21,7 +24,12 @@ def browse(request):
     # Check if the requested path is a file and serve
     thredds_path = f'{THREDDS_SERVICE}/fileServer{path}'
 
-    r = requests.head(thredds_path)
+    try:
+        r = requests.head(thredds_path, timeout=60)
+    except ReadTimeout:
+        return HttpResonseReadTimeout(
+            f'Request Timeout. The server had problems contacting {thredds_path}. Try again later')
+
     if r.status_code == 200:
         return HttpResponseRedirect(thredds_path)
 
@@ -29,7 +37,14 @@ def browse(request):
     # to reduce response time.
     if path not in ['/','/badc','/neodc','/ngdc']:
         thredds_path = f'{THREDDS_SERVICE}/catalog{path}/catalog.html'
-        r = requests.head(thredds_path)
+
+        # Set timeout to stop data.ceda from hanging when dap.ceda takes a while to respond.
+        # 404s are usually quick so can continue after 0.5 seconds.
+        try:
+            r = requests.head(thredds_path, timeout=0.5)
+
+        except ReadTimeout:
+            pass
 
         # If directory is not in the
         if r.status_code == 404:
