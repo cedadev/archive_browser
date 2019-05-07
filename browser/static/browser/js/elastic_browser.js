@@ -96,6 +96,8 @@ var ElasticBrowser = (function () {
             case "jng":
             case "bmp":
             case "txt":
+            case "pdf":
+            case "html":
                 action_string = view_templ;
                 break;
 
