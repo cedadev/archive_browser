@@ -30,7 +30,7 @@ def browse(request):
         return HttpResonseReadTimeout(
             f'Request Timeout. The server had problems contacting {thredds_path}. Try again later')
 
-    if r.status_code == 200:
+    if r.status_code in [200, 302]:
         return HttpResponseRedirect(thredds_path)
 
     # Check if the requested directory path is real. Ignore top level directories
