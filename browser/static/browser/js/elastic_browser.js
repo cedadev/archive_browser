@@ -374,6 +374,7 @@ var ElasticBrowser = (function () {
                             for (i = 0; i < file_array.length; i++) {
                                 var file_path = [file_array[i]._source.info.directory, file_array[i]._source.info.name].join('/')
                                 var ext = getExtension(file_path)
+                                var file_name = file_path.split("/").slice(-1)[0];
 
                                 file_results_string = file_results_string + Mustache.render(
                                     file_template,
@@ -381,7 +382,9 @@ var ElasticBrowser = (function () {
                                         icon: getIcon(ext),
                                         item: file_array[i]._source.info.name,
                                         size: sizeText(file_array[i]._source.info.size),
-                                        actions: generate_actions(ext, file_path)
+                                        actions: generate_actions(ext, file_path),
+                                        download_link: pathManipulate(options.path_prefix + '/fileServer', file_name)
+
                                     }
                                 )
                             }
@@ -510,7 +513,9 @@ var ElasticBrowser = (function () {
                 var i;
                 for (i = 0; i < file_array.length; i++) {
                     var file_path = [file_array[i]._source.info.directory, file_array[i]._source.info.name].join('/')
-                    var ext = getExtension(file_path)
+                    var ext = getExtension(file_path);
+                    var file_name = file_path.split("/").slice(-1)[0];
+
 
                     file_results_string = file_results_string + Mustache.render(
                         file_template,
@@ -518,7 +523,8 @@ var ElasticBrowser = (function () {
                             icon: getIcon(ext),
                             item: file_array[i]._source.info.name,
                             size: sizeText(file_array[i]._source.info.size),
-                            actions: generate_actions(ext, file_path)
+                            actions: generate_actions(ext, file_path),
+                            download_link: pathManipulate(options.path_prefix + '/fileServer', file_name)
                         }
                     )
                 }
