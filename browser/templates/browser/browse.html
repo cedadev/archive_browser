@@ -77,6 +77,9 @@
     <div class="row">
         <div class="col messages"></div>
     </div>
+    <div class="alert alert-light text-center text-dark {% if path == "/" %} hide {% endif %}" id="page_load" role="alert">
+        Loading...
+    </div>
     <table class="table table-sm">
         <thead>
         <th style="width:25.3%"><span class="text-muted small" id="dir_count">0 dirs</span>&nbsp;<span
@@ -86,11 +89,6 @@
         <th style="width:16.6%">Actions</th>
         </thead>
 
-        {% if path != "/" %}
-            <div class="alert alert-light text-center text-dark" id="page_load" role="alert">
-                Loading...
-            </div>
-        {% endif %}
 
         <tbody id="results"></tbody>
     </table>
@@ -116,8 +114,16 @@
             };
 
             // Load the data
-            ElasticBrowser.setup(options);
-            ElasticBrowser.addResults();
+            try {
+                ElasticBrowser.setup(options);
+                ElasticBrowser.addResults();
+            } catch(err){
+                var page_load = $('#page_load')
+                page_load.html("An error occured. Some older browsers are unsupported, try a newer browser. If the problem continues, <a href='mailto:support@ceda.ac.uk'>contact support.</a>")
+                page_load.removeClass('alert-light text-dark')
+                page_load.addClass('alert-danger')
+                page_load.show()
+            }
         })
     </script>
 
