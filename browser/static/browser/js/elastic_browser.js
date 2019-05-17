@@ -423,7 +423,7 @@ var ElasticBrowser = (function () {
                         }
                     })
 
-                } else if (data.hits.hits.length === 0 && path != "/") {
+                } else if (data.hits.hits.length === 0 && path !== "/") {
                     // If there are no results in the directory index then we should revert
                     // to THREDDS to see if there is a directory in the archive which has just
                     // been missed by the Elasticsearch indexing tools. This should be a
