@@ -274,7 +274,7 @@ var ElasticBrowser = (function () {
                 var all_same = false
 
                 if (dir_array.length > 1) {
-                    all_same = dir_array.every((val, i, arr) => val._source.title === arr[0]._source.title
+                    all_same = dir_array.every(function(val, i, arr) { val._source.title === arr[0]._source.title }
                 )
                 }
 
