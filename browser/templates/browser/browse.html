@@ -20,6 +20,11 @@
             href="{{ THREDDS_SERVICE }}{% if request.path != '/' %}/catalog{{ request.path }}/catalog.html{% else %}/filesCatalog.html{% endif %}">View most recent listing.</a>
 
     </div>
+    {% for message in messages_ %}
+        <div class="alert alert-with-icon alert-danger text-center" role="alert">
+            <i class="fa fa-exclamation-circle"></i>&nbsp;{{ message }}
+        </div>
+    {% endfor %}
 
     <div class="row">
         <div class="col-11">

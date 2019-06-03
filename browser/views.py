@@ -9,7 +9,9 @@ from elasticsearch import Elasticsearch
 import json
 import math
 import requests
-from requests.exceptions import  ReadTimeout
+from requests.exceptions import  Timeout, ConnectionError
+from django.contrib import messages
+import logging
 
 class HttpResonseReadTimeout(HttpResponse):
     status_code = 408
@@ -25,13 +27,18 @@ def browse(request):
     thredds_path = f'{THREDDS_SERVICE}/fileServer{path}'
 
     try:
-        r = requests.head(thredds_path, timeout=60)
-    except ReadTimeout:
-        return HttpResonseReadTimeout(
-            f'Request Timeout. The server had problems contacting {thredds_path}. Try again later')
+        r = requests.head(thredds_path, timeout=5)
 
-    if r.status_code in [200, 302]:
-        return HttpResponseRedirect(thredds_path)
+    except (Timeout, ConnectionError) as e:
+        r = None
+        logging.error(e)
+        messages.error(request, 'We are experiencing problems contacting the download server. '
+                                'Viewing or downloading files may not be possible until the issue is resolved.')
+
+    # Check if successful
+    if hasattr(r, 'status_code'):
+            if r.status_code in [200, 302]:
+                return HttpResponseRedirect(thredds_path)
 
     # Check if the requested directory path is real. Ignore top level directories
     # to reduce response time.
@@ -43,13 +50,13 @@ def browse(request):
         try:
             r = requests.head(thredds_path, timeout=0.5)
 
-        except ReadTimeout:
-            pass
+        except Timeout as e:
+            logging.error(e)
 
-        # If directory is not in the
-        if r.status_code == 404:
-            return  HttpResponseNotFound("Resource not found in the CEDA archive")
-
+        # If directory is not in the archive, give a response
+        if hasattr(r, 'status_code'):
+            if r.status_code == 404:
+                return  HttpResponseNotFound("Resource not found in the CEDA archive")
 
     index_list = []
 
@@ -71,7 +78,8 @@ def browse(request):
         "index_list": index_list,
         "THREDDS_SERVICE": THREDDS_SERVICE,
         "DIRECTORY_INDEX": DIRECTORY_INDEX,
-        "FILE_INDEX": FILE_INDEX
+        "FILE_INDEX": FILE_INDEX,
+        "messages_": messages.get_messages(request)
     }
 
     return render(request, 'browser/browse.html', context)
