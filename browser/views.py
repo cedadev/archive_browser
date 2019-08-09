@@ -40,24 +40,6 @@ def browse(request):
             if r.status_code in [200, 302]:
                 return HttpResponseRedirect(thredds_path)
 
-    # Check if the requested directory path is real. Ignore top level directories
-    # to reduce response time.
-    if path not in ['/','/badc','/neodc','/ngdc']:
-        thredds_path = f'{THREDDS_SERVICE}/catalog{path}/catalog.html'
-
-        # Set timeout to stop data.ceda from hanging when dap.ceda takes a while to respond.
-        # 404s are usually quick so can continue after 0.5 seconds.
-        try:
-            r = requests.head(thredds_path, timeout=0.5)
-
-        except Timeout as e:
-            logging.error(e)
-
-        # If directory is not in the archive, give a response
-        if hasattr(r, 'status_code'):
-            if r.status_code == 404:
-                return  HttpResponseNotFound("Resource not found in the CEDA archive")
-
     index_list = []
 
     if path != '/':
