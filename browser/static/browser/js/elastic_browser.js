@@ -357,7 +357,6 @@ var ElasticBrowser = (function () {
             },
             contentType: "application/json",
             error: function (data) {
-                console.log(data)
             }
         })
 
