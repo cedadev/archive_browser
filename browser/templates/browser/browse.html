@@ -59,7 +59,7 @@
     </div>
 
     <input class="hide" type="text" id="path" value="{{ path }}" style="display: none">
-    
+
     <div class="row">
         <div class="col" id="collection_link"></div>
     </div>
@@ -108,7 +108,6 @@
     <script>
         $(document).ready(function () {
             // Setup the page and load the data
-
             // Set options
             var options = {
                 dir_index: "{{ DIRECTORY_INDEX }}",
@@ -117,7 +116,6 @@
                 path_prefix: THREDDS_URL,
                 max_files_per_page: 2000
             };
-
             // Load the data
             try {
                 ElasticBrowser.setup(options);
