@@ -271,6 +271,7 @@ var ElasticBrowser = (function () {
             success: function (data) {
                 var dir_array = data.hits.hits
 
+
                 var all_same = false
 
                 if (dir_array.length > 1) {
@@ -283,13 +284,17 @@ var ElasticBrowser = (function () {
                 for (i = 0; i < dir_array.length; i++) {
                     var desc = "";
                     var link_target = "";
-
+                    var info_templ = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See full description' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+                        {
+                            url: dir_array[i]._source.url,
+                            icon: 'info-circle'
+                        })
                     if (dir_array[i]._source.title !== undefined && !all_same) {
-                        desc = Mustache.render("<a href='{{{url}}}'>{{{icon}}}&nbsp;{{title}}</a>",
+                        desc = Mustache.render("{{{icon}}}&nbsp;{{title}}",
                             {
-                                url: dir_array[i]._source.url,
                                 title: dir_array[i]._source.title,
                                 icon: moles_icon(dir_array[i]._source.record_type.toTitleCase())
+
                             })
                     } else if (dir_array[i]._source.readme !== undefined) {
                         // Use the top line of the readme if there is one
@@ -309,20 +314,31 @@ var ElasticBrowser = (function () {
                             })
                     }
 
-                    if (desc !== "HIDE DIRECTORY") {
-                        dir_results_string = dir_results_string + Mustache.render(
-                            dir_template,
-                            {
-                                path: dir_array[i]._source.path,
-                                item: dir_array[i]._source.dir,
-                                description: desc,
-                                size: "",
-                                actions: ""
-                            }
-                        )
+                    if (desc !== "HIDE DIRECTORY" && dir_array[i]._source.url !== undefined) {
+                            dir_results_string = dir_results_string + Mustache.render(
+                                dir_template,
+                                {
+                                    path: dir_array[i]._source.path,
+                                    item: dir_array[i]._source.dir,
+                                    description: desc,
+                                    size: "",
+                                    actions: info_templ
+                                }
+                            )
+                        }
+                    else if (desc !== "HIDE DIRECTORY") {
+                            dir_results_string = dir_results_string + Mustache.render(
+                                dir_template,
+                                {
+                                    path: dir_array[i]._source.path,
+                                    item: dir_array[i]._source.dir,
+                                    description: desc,
+                                    size: "",
+                                    actions: ""
+                                }
+                            )
+                        }
                     }
-
-                }
 
                 dir_results_string = dir_results_string
                 // Make sure dirs are before files
@@ -341,7 +357,6 @@ var ElasticBrowser = (function () {
             },
             contentType: "application/json",
             error: function (data) {
-                console.log(data)
             }
         })
 
