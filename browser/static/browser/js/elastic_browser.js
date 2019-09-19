@@ -326,7 +326,7 @@ var ElasticBrowser = (function () {
                                 }
                             )
                         }
-                    else if (desc !== "HIDE DIRECTORY" && dir_array[i]._source.url == undefined) {
+                    else if (desc !== "HIDE DIRECTORY") {
                             dir_results_string = dir_results_string + Mustache.render(
                                 dir_template,
                                 {
