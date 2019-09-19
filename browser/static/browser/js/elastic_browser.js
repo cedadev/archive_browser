@@ -270,7 +270,7 @@ var ElasticBrowser = (function () {
             data: JSON.stringify(dir_query),
             success: function (data) {
                 var dir_array = data.hits.hits
-                console.log(dir_array)
+
 
                 var all_same = false
 
