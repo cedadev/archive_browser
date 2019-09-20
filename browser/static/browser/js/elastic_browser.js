@@ -214,7 +214,7 @@ var ElasticBrowser = (function () {
                 }
             },
             "size": 1000
-        }
+        };
 
         var file_query = {
             "query":{
