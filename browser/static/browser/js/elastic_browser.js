@@ -47,7 +47,6 @@ var ElasticBrowser = (function () {
 
     };
 
-
     function generate_actions(ext, file) {
         // javascript:Start('http://data.ceda.ac.uk/badc/namblex/data/aber-radar-1290mhz/20020801//aber-radar-1290mhz_macehead_20020801_hig-res-1h-1.na?plot')
 
@@ -206,8 +205,16 @@ var ElasticBrowser = (function () {
                     }
                 }
             },
+            "aggs": {
+                "descriptions": {
+                    "terms": {
+                        "field": "title.keyword",
+                        "size": 2
+                    }
+                }
+            },
             "size": 1000
-        };
+        }
 
         var file_query = {
             "query":{
@@ -270,6 +277,7 @@ var ElasticBrowser = (function () {
             data: JSON.stringify(dir_query),
             success: function (data) {
                 var dir_array = data.hits.hits
+                var buckets = data.aggregations.descriptions.buckets
 
 
                 var all_same = false
@@ -289,7 +297,7 @@ var ElasticBrowser = (function () {
                             url: dir_array[i]._source.url,
                             icon: 'info-circle'
                         })
-                    if (dir_array[i]._source.title !== undefined && !all_same) {
+                    if (dir_array[i]._source.title !== undefined && buckets.length > 1) {
                         desc = Mustache.render("{{{icon}}}&nbsp;{{title}}",
                             {
                                 title: dir_array[i]._source.title,
