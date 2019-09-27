@@ -466,7 +466,7 @@ var ElasticBrowser = (function () {
             data: JSON.stringify(collection_query),
             success: function (data) {
                 var collection = data.hits.hits[0]
-                var catalogue_entry = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+                var catalogue_entry = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-{{icon}} fa-2x'></i></a>",
                         {
                             url: collection._source.url,
                             icon: "book"
@@ -476,7 +476,7 @@ var ElasticBrowser = (function () {
 
                     if (collection._source.title !== undefined) {
 
-                        var collection_link = Mustache.render("<h3>{{{collection_type}}}&nbsp;{{title}} {{{button}}}</h3>",
+                        var collection_link = Mustache.render("<h3>{{{collection_type}}}&nbsp;{{title}}&nbsp;{{{button}}}</h3>",
                             {
                                 collection_type: moles_icon(collection._source.record_type.toTitleCase()),
                                 title: collection._source.title,
