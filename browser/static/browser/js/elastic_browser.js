@@ -476,7 +476,7 @@ var ElasticBrowser = (function () {
 
                     if (collection._source.title !== undefined) {
 
-                        var collection_link = Mustache.render("<h3>{{{collection_type}}}&nbsp;{{title}}&nbsp;{{{button}}}</h3>",
+                        var collection_link = Mustache.render("<h3>{{{collection_type}}}&nbsp;{{title}}</h3>" + "<h3>{{{button}}}</h3>",
                             {
                                 collection_type: moles_icon(collection._source.record_type.toTitleCase()),
                                 title: collection._source.title,
