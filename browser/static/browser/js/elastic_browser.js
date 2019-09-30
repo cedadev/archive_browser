@@ -292,7 +292,7 @@ var ElasticBrowser = (function () {
                 for (i = 0; i < dir_array.length; i++) {
                     var desc = "";
                     var link_target = "";
-                    var info_templ = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See full description' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+                    var info_templ = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><span class='fa fa-{{icon}}'></span></a>",
                         {
                             url: dir_array[i]._source.url,
                             icon: 'info-circle'
@@ -474,18 +474,25 @@ var ElasticBrowser = (function () {
             data: JSON.stringify(collection_query),
             success: function (data) {
                 var collection = data.hits.hits[0]
+                var catalogue_entry = Mustache.render("<a class='pl-1' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+                        {
+                            url: collection._source.url,
+                            icon: "info-circle"
+                        })
 
                 if (data.hits.total === 1) {
 
                     if (collection._source.title !== undefined) {
 
-                        var collection_link = Mustache.render("<h3>{{{collection_type}}}&nbsp;<a href='{{{url}}}'>{{title}}</a></h3>",
+                        var collection_link = Mustache.render("<h4>{{{collection_type}}}&nbsp;{{title}}&nbsp;{{{button}}}</h4>",
                             {
-                                url: collection._source.url,
                                 collection_type: moles_icon(collection._source.record_type.toTitleCase()),
-                                title: collection._source.title
+                                title: collection._source.title,
+                                button: catalogue_entry
+
                             }
                         )
+
 
                         $('#collection_link').html(collection_link)
 
