@@ -292,10 +292,10 @@ var ElasticBrowser = (function () {
                 for (i = 0; i < dir_array.length; i++) {
                     var desc = "";
                     var link_target = "";
-                    var info_templ = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See full description' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+                    var info_templ = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><span class='fa fa-{{icon}}'></span></a>",
                         {
                             url: dir_array[i]._source.url,
-                            icon: 'info-circle'
+                            icon: 'book'
                         })
                     if (dir_array[i]._source.title !== undefined && buckets.length > 1) {
                         desc = Mustache.render("{{{icon}}}&nbsp;{{title}}",
@@ -474,7 +474,7 @@ var ElasticBrowser = (function () {
             data: JSON.stringify(collection_query),
             success: function (data) {
                 var collection = data.hits.hits[0]
-                var catalogue_entry = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-{{icon}} fa-2x'></i></a>",
+                var catalogue_entry = Mustache.render("<a href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
                         {
                             url: collection._source.url,
                             icon: "book"
