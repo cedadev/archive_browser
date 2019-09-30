@@ -295,7 +295,7 @@ var ElasticBrowser = (function () {
                     var info_templ = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><span class='fa fa-{{icon}}'></span></a>",
                         {
                             url: dir_array[i]._source.url,
-                            icon: 'book'
+                            icon: 'info-circle'
                         })
                     if (dir_array[i]._source.title !== undefined && buckets.length > 1) {
                         desc = Mustache.render("{{{icon}}}&nbsp;{{title}}",
@@ -474,17 +474,17 @@ var ElasticBrowser = (function () {
             data: JSON.stringify(collection_query),
             success: function (data) {
                 var collection = data.hits.hits[0]
-                var catalogue_entry = Mustache.render("<a href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+                var catalogue_entry = Mustache.render("<a class='pl-1' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
                         {
                             url: collection._source.url,
-                            icon: "book"
+                            icon: "info-circle"
                         })
 
                 if (data.hits.total === 1) {
 
                     if (collection._source.title !== undefined) {
 
-                        var collection_link = Mustache.render("<h3>{{{collection_type}}}&nbsp;{{{button}}}&nbsp;{{title}}</h3>",
+                        var collection_link = Mustache.render("<h4>{{{collection_type}}}&nbsp;{{title}}&nbsp;{{{button}}}</h4>",
                             {
                                 collection_type: moles_icon(collection._source.record_type.toTitleCase()),
                                 title: collection._source.title,
@@ -492,6 +492,7 @@ var ElasticBrowser = (function () {
 
                             }
                         )
+
 
                         $('#collection_link').html(collection_link)
 
