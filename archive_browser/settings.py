@@ -20,6 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sessions',
+    'django.contrib.messages',
     'fwtheme_django_ceda_serv',
     'fwtheme_django',
     'browser.apps.BrowserConfig',

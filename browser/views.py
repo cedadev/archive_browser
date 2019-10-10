@@ -9,7 +9,7 @@ from elasticsearch import Elasticsearch
 import json
 import math
 import requests
-from requests.exceptions import  Timeout, ConnectionError
+from requests.exceptions import  Timeout, ConnectionError, ReadTimout
 from django.contrib import messages
 import logging
 
@@ -29,7 +29,7 @@ def browse(request):
     try:
         r = requests.head(thredds_path, timeout=5)
 
-    except (Timeout, ConnectionError) as e:
+    except (Timeout, ConnectionError, ReadTimout) as e:
         r = None
         logging.error(e)
         messages.error(request, 'We are experiencing problems contacting the download server. '
