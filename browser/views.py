@@ -12,6 +12,7 @@ import requests
 from requests.exceptions import  Timeout, ConnectionError
 from django.contrib import messages
 import logging
+import os
 
 class HttpResonseReadTimeout(HttpResponse):
     status_code = 408
@@ -32,8 +33,9 @@ def browse(request):
     except (Timeout, ConnectionError) as e:
         r = None
         logging.error(e)
-        messages.error(request, 'We are experiencing problems contacting the download server. '
-                                'Viewing or downloading files may not be possible until the issue is resolved.')
+        if '.' in os.path.basename(thredds_path):
+            messages.error(request, 'It took longer than expected to contact the download service, '
+                                f'if you were trying do download a file you can do so directly using <a href="{thredds_path}">{thredds_path}</a>')
 
     # Check if successful
     if hasattr(r, 'status_code'):

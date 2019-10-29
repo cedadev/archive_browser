@@ -22,7 +22,7 @@
     </div>
     {% for message in messages_ %}
         <div class="alert alert-with-icon alert-danger text-center" role="alert">
-            <i class="fa fa-exclamation-circle"></i>&nbsp;{{ message }}
+            <i class="fa fa-exclamation-circle"></i>&nbsp;{{ message | safe}}
         </div>
     {% endfor %}
 
