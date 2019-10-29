@@ -454,12 +454,12 @@ var ElasticBrowser = (function () {
 
                     $('#page_load').hide()
                     $('.table').hide()
-                    var dap_link = Mustache.render("<a href='{{{url}}}'>Go to live listing</a>",
+                    var dap_link = Mustache.render("<a href='{{{url}}}'>Try in live view.</a>",
                         {
                             url: THREDDS_URL + '/catalog' + path +'/catalog.html'
                         })
                     $('.messages:first').html(
-                                "<div class=\"alert alert-success text-center\"><h4>Directory not in index. " + dap_link +"</h4></div>"
+                                "<div class=\"alert alert-success text-center\"><h4>Not found in archive index. " + dap_link +"</h4></div>"
                             )
 
 

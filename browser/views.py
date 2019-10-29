@@ -34,8 +34,7 @@ def browse(request):
         r = None
         logging.error(e)
         if '.' in os.path.basename(thredds_path):
-            messages.error(request, 'It took longer than expected to contact the download service, '
-                                f'if you were trying do download a file you can do so directly using <a href="{thredds_path}">{thredds_path}</a>')
+            messages.error(request, f'Service has timed out. Try refreshing the page or click <a href="{thredds_path}">here</a> for direct download.')
 
     # Check if successful
     if hasattr(r, 'status_code'):
