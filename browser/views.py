@@ -110,3 +110,6 @@ def show_all(request, path):
             search_after = hits[-1]["sort"]
 
     return HttpResponse(json.dumps({"results": results}), content_type="application/json")
+
+def storage_types(request):
+    return render(request, 'browser/storage_types.html')
