@@ -405,7 +405,7 @@ var ElasticBrowser = (function () {
                                             icon: getIcon(ext),
                                             item: file_array[i]._source.info.name,
                                             size: sizeText(file_array[i]._source.info.size),
-                                            actions: "<a class='btn btn-lg' href='/storage_types#on_tape' title='File on tape' data-toggle='tooltip'><i class='fas fa-tape'></i></a>",
+                                            actions: "<a class='btn btn-lg' href='/storage_types#on_tape' title='File on tape' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>",
                                             download_link: pathManipulate(options.path_prefix + '/fileServer', file_name)
 
                                         }
