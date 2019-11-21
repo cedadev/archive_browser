@@ -19,6 +19,7 @@ from . import views
 urlpatterns = [
     re_path('^show_all/(?P<path>.*)/$', views.show_all, name='show_all' ),
     re_path('^show_all/(?P<path>.*)', views.show_all, name='show_all' ),
+    path('storage_types', views.storage_types, name='storage_types'),
     re_path('.*', views.browse, name='browse' ),
 ]
 

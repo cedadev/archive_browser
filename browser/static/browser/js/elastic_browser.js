@@ -15,6 +15,7 @@ var ElasticBrowser = (function () {
     };
 
     var file_template;
+    var muted_file_template;
     var dir_template;
     var table_string;
     var target;
@@ -32,10 +33,12 @@ var ElasticBrowser = (function () {
         // Load mustache templates
         dir_template = $('#dir_' + options.templateID).html();
         file_template = $('#file_template').html();
+        muted_file_template = $('#muted_file_template').html();
 
         // Speeds up future use
         Mustache.parse(dir_template, options.customTags);
         Mustache.parse(file_template, options.customTags);
+        Mustache.parse(muted_file_template, options.customTags);
 
         // Results variables
         table_string = "";
@@ -219,12 +222,7 @@ var ElasticBrowser = (function () {
         var file_query = {
             "query":{
                 "bool":{
-                    "must": {},
-                    "filter":{
-                        "term":{
-                            "info.location": "on_disk"
-                        }
-                    }
+                    "must": {}
                 }
             },
             "sort": {
@@ -399,17 +397,33 @@ var ElasticBrowser = (function () {
                                 var ext = getExtension(file_path)
                                 var file_name = file_path.split("/").slice(-1)[0];
 
-                                file_results_string = file_results_string + Mustache.render(
-                                    file_template,
-                                    {
-                                        icon: getIcon(ext),
-                                        item: file_array[i]._source.info.name,
-                                        size: sizeText(file_array[i]._source.info.size),
-                                        actions: generate_actions(ext, file_path),
-                                        download_link: pathManipulate(options.path_prefix + '/fileServer', file_name)
+                                if (file_array[i]._source.info.location === 'on_tape') {
 
-                                    }
-                                )
+                                    file_results_string = file_results_string + Mustache.render(
+                                        muted_file_template,
+                                        {
+                                            icon: getIcon(ext),
+                                            item: file_array[i]._source.info.name,
+                                            size: sizeText(file_array[i]._source.info.size),
+                                            actions: "<a class='btn btn-lg' href='/storage_types#on_tape' title='File on tape' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>",
+                                            download_link: pathManipulate(options.path_prefix + '/fileServer', file_name)
+
+                                        }
+                                    )
+
+                                } else {
+                                    file_results_string = file_results_string + Mustache.render(
+                                        file_template,
+                                        {
+                                            icon: getIcon(ext),
+                                            item: file_array[i]._source.info.name,
+                                            size: sizeText(file_array[i]._source.info.size),
+                                            actions: generate_actions(ext, file_path),
+                                            download_link: pathManipulate(options.path_prefix + '/fileServer', file_name)
+
+                                        }
+                                    )
+                                }
                             }
 
                             table_string = table_string + file_results_string;
