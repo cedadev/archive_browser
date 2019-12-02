@@ -54,6 +54,7 @@ var ElasticBrowser = (function () {
         // javascript:Start('http://data.ceda.ac.uk/badc/namblex/data/aber-radar-1290mhz/20020801//aber-radar-1290mhz_macehead_20020801_hig-res-1h-1.na?plot')
 
         var file_name = file.split("/").slice(-1)[0];
+        var subset_templ = "";
 
         // Generate button for download action
         var download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Download file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
@@ -69,12 +70,14 @@ var ElasticBrowser = (function () {
                 icon: "eye"
             });
 
-        // Generate button for subset action
-        var subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Extract subset' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
-            {
-                url: pathManipulate(file_name, "opendap"),
-                icon: "cogs"
-            });
+        if (!USE_FTP){
+            // Generate button for subset action
+            subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Extract subset' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+                {
+                    url: pathManipulate(file_name, "opendap"),
+                    icon: "cogs"
+                });
+        }
 
         // Build the correct action buttons for the file
         var action_string;
