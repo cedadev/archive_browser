@@ -15,11 +15,23 @@
 
 {% block content %}
 
+{% if USE_FTP %}
     <div class="alert alert-info text-center" role="alert">
         This is a cached view of the archive, some more recent changes may not be displayed. <a
-            href="{{ THREDDS_SERVICE }}{% if request.path != '/' %}/catalog{{ request.path }}/catalog.html{% else %}/filesCatalog.html{% endif %}">View most recent listing.</a>
+            href="{{ DOWNLOAD_SERVICE }}{{ request.path }}">View most recent listing.</a>
 
     </div>
+{% else %}
+    <div class="alert alert-info text-center" role="alert">
+        This is a cached view of the archive, some more recent changes may not be displayed. <a
+            href="{{ DOWNLOAD_SERVICE }}{% if request.path != '/' %}/catalog{{ request.path }}/catalog.html{% else %}/filesCatalog.html{% endif %}">View most recent listing.</a>
+
+    </div>
+{% endif %}
+
+
+
+
     {% for message in messages_ %}
         <div class="alert alert-with-icon alert-danger text-center" role="alert">
             <i class="fa fa-exclamation-circle"></i>&nbsp;{{ message | safe}}
@@ -106,6 +118,7 @@
     <script src="{% static 'browser/js/elastic_browser.js' %}"></script>
 
     <script>
+
         $(document).ready(function () {
             // Setup the page and load the data
             // Set options
@@ -113,7 +126,7 @@
                 dir_index: "{{ DIRECTORY_INDEX }}",
                 file_index: "{{ FILE_INDEX }}",
                 exceptions: ["/sparc", "/edc", "/bodc"],
-                path_prefix: THREDDS_URL,
+                path_prefix: DOWNLOAD_SERVICE,
                 max_files_per_page: 2000
             };
             // Load the data
@@ -142,7 +155,8 @@
         </tr>
     </script>
     <script>
-        var THREDDS_URL = "{{ THREDDS_SERVICE }}"
+        var DOWNLOAD_SERVICE = "{{ DOWNLOAD_SERVICE }}";
+        var USE_FTP = {% if USE_FTP %}true;{% else %}false;{% endif %}
     </script>
 
     <script id="file_template" type="text/html">
