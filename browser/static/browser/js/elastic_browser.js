@@ -93,8 +93,6 @@ var ElasticBrowser = (function () {
             case "png":
             case "svg":
             case "svgz":
-            case "tif":
-            case "tiff":
             case "wbmp":
             case "webp":
             case "ico":
