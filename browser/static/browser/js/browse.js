@@ -88,11 +88,53 @@ function OpenHelpWin(page) {
     win.focus();
 }
 
-function pathManipulate(prefix, postfix){
+function pathManipulate(postfix, type){
     // Used to build the correct path in order to initiate actions in pydap
-    var path = window.location.pathname
+    var path = window.location.pathname;
 
-    return [prefix,path,"/", postfix].join("")
+    if (USE_FTP){
+            var ftp_template = Mustache.render("{{{download_service}}}{{{ directory }}}/{{filename}}",
+        {
+            download_service: DOWNLOAD_SERVICE,
+            directory: path,
+            filename: postfix
+        });
+
+
+        return ftp_template
+    }
+
+    var download_template = Mustache.render("{{{download_service}}}/fileServer{{{ directory }}}/{{filename}}",
+            {
+                download_service: DOWNLOAD_SERVICE,
+                directory: path,
+                filename: postfix
+            });
+
+    var opendap_template = Mustache.render("{{{download_service}}}/dodsc/{{{ directory }}}/{{filename}}.html",
+        {
+            download_service: DOWNLOAD_SERVICE,
+            directory: path,
+            filename: postfix
+        });
+
+    var catalog_template  = Mustache.render("{{{download_service}}}/catalog/{{{ directory }}}/catalog.html",
+        {
+            download_service: DOWNLOAD_SERVICE,
+            directory: path
+        });
+
+    switch (type){
+
+        case "catalog":
+            return catalog_template;
+        case "opendap":
+            return opendap_template;
+        default:
+            return download_template
+    }
+
+
 }
 
 function formatNumber (num) {

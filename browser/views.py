@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from django.http import HttpResponseNotFound, HttpResponse
-from archive_browser.settings import THREDDS_SERVICE, DIRECTORY_INDEX, FILE_INDEX
+from archive_browser.settings import THREDDS_SERVICE, DIRECTORY_INDEX, FILE_INDEX, USE_FTP, FTP_SERVICE
 from django.views.decorators.csrf import csrf_exempt
 from elasticsearch import Elasticsearch
 import json
@@ -24,22 +24,25 @@ def browse(request):
     if len(path) > 1 and path.endswith('/'):
         path = path[:-1]
 
-    # Check if the requested path is a file and serve
-    thredds_path = f'{THREDDS_SERVICE}/fileServer{path}'
+    # These checks don't work against the ftp server
+    if not USE_FTP:
 
-    try:
-        r = requests.head(thredds_path, timeout=5)
+        # Check if the requested path is a file and serve
+        thredds_path = f'{THREDDS_SERVICE}/fileServer{path}'
 
-    except (Timeout, ConnectionError) as e:
-        r = None
-        logging.error(e)
-        if '.' in os.path.basename(thredds_path):
-            messages.error(request, f'Service has timed out. Try refreshing the page or click <a href="{thredds_path}">here</a> for direct download.')
+        try:
+            r = requests.head(thredds_path, timeout=5)
 
-    # Check if successful
-    if hasattr(r, 'status_code'):
-            if r.status_code in [200, 302]:
-                return HttpResponseRedirect(thredds_path)
+        except (Timeout, ConnectionError) as e:
+            r = None
+            logging.error(e)
+            if '.' in os.path.basename(thredds_path):
+                messages.error(request, f'Service has timed out. Try refreshing the page or click <a href="{thredds_path}">here</a> for direct download.')
+
+        # Check if successful
+        if hasattr(r, 'status_code'):
+                if r.status_code in [200, 302]:
+                    return HttpResponseRedirect(thredds_path)
 
     index_list = []
 
@@ -59,9 +62,10 @@ def browse(request):
     context = {
         "path": path,
         "index_list": index_list,
-        "THREDDS_SERVICE": THREDDS_SERVICE,
+        "DOWNLOAD_SERVICE": THREDDS_SERVICE if not USE_FTP else FTP_SERVICE,
         "DIRECTORY_INDEX": DIRECTORY_INDEX,
         "FILE_INDEX": FILE_INDEX,
+        "USE_FTP": USE_FTP,
         "messages_": messages.get_messages(request)
     }
 

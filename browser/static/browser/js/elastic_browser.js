@@ -54,27 +54,30 @@ var ElasticBrowser = (function () {
         // javascript:Start('http://data.ceda.ac.uk/badc/namblex/data/aber-radar-1290mhz/20020801//aber-radar-1290mhz_macehead_20020801_hig-res-1h-1.na?plot')
 
         var file_name = file.split("/").slice(-1)[0];
+        var subset_templ = "";
 
         // Generate button for download action
         var download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Download file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
-                url: pathManipulate(options.path_prefix + '/fileServer', file_name),
+                url: pathManipulate(file_name),
                 icon: "download"
             });
 
         // Generate button for view action
         var view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='View file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
-                url: pathManipulate(options.path_prefix + '/fileServer', file_name),
+                url: pathManipulate(file_name),
                 icon: "eye"
             });
 
-        // Generate button for subset action
-        var subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Extract subset' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
-            {
-                url: pathManipulate(options.path_prefix + '/dodsC', file_name + ".html"),
-                icon: "cogs"
-            });
+        if (!USE_FTP){
+            // Generate button for subset action
+            subset_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Extract subset' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+                {
+                    url: pathManipulate(file_name, "opendap"),
+                    icon: "cogs"
+                });
+        }
 
         // Build the correct action buttons for the file
         var action_string;
@@ -406,7 +409,7 @@ var ElasticBrowser = (function () {
                                             item: file_array[i]._source.info.name,
                                             size: sizeText(file_array[i]._source.info.size),
                                             actions: "<a class='btn btn-lg' href='/storage_types#on_tape' title='File on tape' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>",
-                                            download_link: pathManipulate(options.path_prefix + '/fileServer', file_name)
+                                            download_link: pathManipulate(file_name)
 
                                         }
                                     )
@@ -419,7 +422,7 @@ var ElasticBrowser = (function () {
                                             item: file_array[i]._source.info.name,
                                             size: sizeText(file_array[i]._source.info.size),
                                             actions: generate_actions(ext, file_path),
-                                            download_link: pathManipulate(options.path_prefix + '/fileServer', file_name)
+                                            download_link: pathManipulate(file_name)
 
                                         }
                                     )
@@ -448,7 +451,6 @@ var ElasticBrowser = (function () {
                                         "<div class=\"alert alert-danger text-center\">Too many files in current directory. Displaying {{ max_files }} out of {{ display }} files.<a class=\"btn btn-primary btn-sm ml-2\" role='button' onclick='ElasticBrowser.getAll()' id='show_all'>Show All</a></div>",
                                         {
                                             max_files: formatNumber(options.max_files_per_page),
-                                            pydap_url: THREDDS_URL + window.location.pathname,
                                             display: formatNumber(total_results)
                                         }))
                                 })
@@ -470,7 +472,7 @@ var ElasticBrowser = (function () {
                     $('.table').hide()
                     var dap_link = Mustache.render("<a href='{{{url}}}'>Try in live view.</a>",
                         {
-                            url: THREDDS_URL + '/catalog' + path +'/catalog.html'
+                            url: pathManipulate("","catalog")
                         })
                     $('.messages:first').html(
                                 "<div class=\"alert alert-success text-center\"><h4>Not found in archive index. " + dap_link +"</h4></div>"
@@ -568,7 +570,7 @@ var ElasticBrowser = (function () {
                             item: file_array[i]._source.info.name,
                             size: sizeText(file_array[i]._source.info.size),
                             actions: generate_actions(ext, file_path),
-                            download_link: pathManipulate(options.path_prefix + '/fileServer', file_name)
+                            download_link: pathManipulate(file_name)
                         }
                     )
                 }
