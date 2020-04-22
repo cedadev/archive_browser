@@ -223,7 +223,12 @@ var ElasticBrowser = (function () {
         var file_query = {
             "query":{
                 "bool":{
-                    "must": {}
+                    "must": {},
+                    "must_not": {
+                        "regexp": {
+                            "dir.keyword": "[.].*"
+                        }
+                    }
                 }
             },
             "sort": {
@@ -356,7 +361,7 @@ var ElasticBrowser = (function () {
                 }
 
                 // Add results to table
-                target.html(table_string)
+                target.html(table_string);
 
                 // Add dir results count to table
                 $('#dir_count').html(data.hits.total + " dirs")

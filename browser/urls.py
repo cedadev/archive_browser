@@ -17,6 +17,9 @@ from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
+    re_path('^directories/(?P<path>.*)', views.get_directories, name='directories'),
+    re_path('^files/(?P<path>.*)', views.get_files, name='files'),
+    re_path('^collection/(?P<path>.*)', views.get_collection, name='collection'),
     re_path('^show_all/(?P<path>.*)/$', views.show_all, name='show_all' ),
     re_path('^show_all/(?P<path>.*)', views.show_all, name='show_all' ),
     path('storage_types', views.storage_types, name='storage_types'),
