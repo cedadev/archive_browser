@@ -5,7 +5,7 @@ var ElasticBrowser = (function () {
     // Elasticsearch interaction to populate the file browser
 
     // Set default options
-    var options = {
+    const options = {
         host: "https://jasmin-es1.ceda.ac.uk",
         customTags: ['<%', '%>'],
         resultsID: 'results',
@@ -14,21 +14,20 @@ var ElasticBrowser = (function () {
         pathID: 'path'
     };
 
-    var file_template;
-    var muted_file_template;
-    var dir_template;
-    var table_string;
-    var target;
-    var total_results;
-    var archive_path;
-    var file_url;
-    var dir_url;
-    var dir_results_string;
+    let file_template;
+    let muted_file_template;
+    let dir_template;
+    let table_string;
+    let target;
+    let total_results;
+    let file_url;
+    let dir_url;
+    let dir_results_string;
 
 
     // Make sure to add the settings
-    var setup = function (user_options) {
-        $.extend(options, user_options)
+    const setup = function (user_options) {
+        $.extend(options, user_options);
 
         // Load mustache templates
         dir_template = $('#dir_' + options.templateID).html();
@@ -44,27 +43,21 @@ var ElasticBrowser = (function () {
         table_string = "";
         target = $('#' + options.resultsID);
 
-        // Indexes
-        file_url = [options.host, options.file_index, '_search'].join("/");
-        dir_url = [options.host, options.dir_index, '_search'].join("/");
-
     };
 
-    function generate_actions(ext, file) {
-        // javascript:Start('http://data.ceda.ac.uk/badc/namblex/data/aber-radar-1290mhz/20020801//aber-radar-1290mhz_macehead_20020801_hig-res-1h-1.na?plot')
+    function generate_actions(ext, file_name) {
 
-        var file_name = file.split("/").slice(-1)[0];
-        var subset_templ = "";
+        let subset_templ = "";
 
         // Generate button for download action
-        var download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Download file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+        let download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Download file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
                 url: pathManipulate(file_name),
                 icon: "download"
             });
 
         // Generate button for view action
-        var view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='View file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+        let view_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='View file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
                 url: pathManipulate(file_name),
                 icon: "eye"
@@ -80,7 +73,7 @@ var ElasticBrowser = (function () {
         }
 
         // Build the correct action buttons for the file
-        var action_string;
+        let action_string;
         switch (ext) {
 
             case "nc":
@@ -116,7 +109,7 @@ var ElasticBrowser = (function () {
     }
 
     function getIcon(ext) {
-        var icon
+        let icon;
         switch (ext) {
             case "gz":
             case "zip":
@@ -148,30 +141,6 @@ var ElasticBrowser = (function () {
         return icon
     }
 
-    function generateExceptions(exceptions) {
-        var must_not = [];
-
-        for (var i = 0; i < exceptions.length; i++) {
-            must_not.push(
-                {
-                    "term": {
-                        "path.keyword": exceptions[i]
-                    }
-                }
-            )
-        }
-
-        must_not.push(
-            {
-                "regexp": {
-                    "dir.keyword": "[.].*"
-                }
-            }
-        )
-
-        return must_not
-    }
-
     function moles_icon(record_type) {
         if (record_type === 'Dataset') {
             return Mustache.render("<i class='fas fa-database dataset' title='{{ tooltip }}' data-toggle='tooltip'></i>",
@@ -187,130 +156,41 @@ var ElasticBrowser = (function () {
     }
 
     // Get Directories from elasticsearch
-    var addResults = function () {
+    const addResults = function () {
 
         // Setup
-        var path = $('#' + options.pathID).val();
+        const path = $('#' + options.pathID).val();
 
-        var dir_query = {
-            "sort": {
-                "dir.keyword": {
-                    "order": "asc"
-                }
-            },
-            "query": {
-                "bool": {
-                    "must": [],
-                    "must_not": generateExceptions(options.exceptions),
-                    "filter": {
-                        "term": {
-                            "depth": path.split("/").length
-                        }
-                    }
-                }
-            },
-            "aggs": {
-                "descriptions": {
-                    "terms": {
-                        "field": "title.keyword",
-                        "size": 2
-                    }
-                }
-            },
-            "size": 1000
-        };
-
-        var file_query = {
-            "query":{
-                "bool":{
-                    "must": {},
-                    "must_not": {
-                        "regexp": {
-                            "dir.keyword": "[.].*"
-                        }
-                    }
-                }
-            },
-            "sort": {
-                "info.name": {
-                    "order": "asc"
-                }
-            },
-            "size": options.max_files_per_page
-        };
-
-        var collection_query = {
-            "query": {
-                "term": {
-                    "path.keyword": path
-                }
-            }
-        };
-
-        if (path === '/') {
-            dir_query.query.bool.filter.term.depth = 1
-
-            file_query.query.bool.must = {
-                "term": {
-                    "info.directory": "/"
-                }
-            };
-        } else {
-            dir_query.query.bool.must.push(
-                {
-                    "prefix": {
-                        "path.keyword": path + "/"
-                    }
-                }
-            );
-
-
-            file_query.query.bool.must = {
-                "term": {
-                    "info.directory": ""
-                }
-            };
-        }
-
+        dir_url = '/api/directories' + path;
+        file_url = '/api/files' + path;
 
         // Get directories
         dir_results_string = "";
 
-        $.post({
+        $.get({
             url: dir_url,
-            data: JSON.stringify(dir_query),
             success: function (data) {
-                var dir_array = data.hits.hits
-                var buckets = data.aggregations.descriptions.buckets
+                let dir_array = data.results;
 
-
-                var all_same = false
-
-                if (dir_array.length > 1) {
-                    all_same = dir_array.every(function(val, i, arr) { val._source.title === arr[0]._source.title }
-                )
-                }
-
-
-                var i;
-                for (i = 0; i < dir_array.length; i++) {
-                    var desc = "";
-                    var link_target = "";
-                    var info_templ = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><span class='fa fa-{{icon}}'></span></a>",
+                for (let i = 0; i < dir_array.length; i++) {
+                    let desc = "";
+                    let link_target = "";
+                    let info_templ = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><span class='fa fa-{{icon}}'></span></a>",
                         {
-                            url: dir_array[i]._source.url,
+                            url: dir_array[i].url,
                             icon: 'info-circle'
-                        })
-                    if (dir_array[i]._source.title !== undefined && buckets.length > 1) {
+                        });
+
+                    if (dir_array[i].title !== undefined && data.render_titles) {
                         desc = Mustache.render("{{{icon}}}&nbsp;{{title}}",
                             {
-                                title: dir_array[i]._source.title,
-                                icon: moles_icon(dir_array[i]._source.record_type.toTitleCase())
+                                title: dir_array[i].title,
+                                icon: moles_icon(dir_array[i].record_type.toTitleCase())
 
                             })
-                    } else if (dir_array[i]._source.readme !== undefined) {
+                    } else if (dir_array[i].readme !== undefined) {
                         // Use the top line of the readme if there is one
-                        var first_line_readme = dir_array[i]._source.readme.split("\n")[0]
+                        let first_line_readme = dir_array[i].readme.split("\n")[0];
 
                         if (first_line_readme !== "HIDE DIRECTORY") {
                             desc = '<i class="fab fa-readme" title="Description taken from 00README" data-toggle="tooltip"></i>&nbsp;' + dir_array[i]._source.readme.split("\n")[0]
@@ -319,19 +199,19 @@ var ElasticBrowser = (function () {
                         }
                     }
 
-                    if (dir_array[i]._source.link !== undefined && dir_array[i]._source.link === true) {
+                    if (dir_array[i].link !== undefined && dir_array[i].link === true) {
                         link_target = Mustache.render("<a href='?path={{target}}' target='_blank'><i class='fas fa-link'></i></a>",
                             {
-                                target: dir_array[i]._source.archive_path
+                                target: dir_array[i].archive_path
                             })
                     }
 
-                    if (desc !== "HIDE DIRECTORY" && dir_array[i]._source.url !== undefined) {
+                    if (desc !== "HIDE DIRECTORY" && dir_array[i].url !== undefined) {
                             dir_results_string = dir_results_string + Mustache.render(
                                 dir_template,
                                 {
-                                    path: dir_array[i]._source.path,
-                                    item: dir_array[i]._source.dir,
+                                    path: dir_array[i].path,
+                                    item: dir_array[i].dir,
                                     description: desc,
                                     size: "",
                                     actions: info_templ
@@ -342,8 +222,8 @@ var ElasticBrowser = (function () {
                             dir_results_string = dir_results_string + Mustache.render(
                                 dir_template,
                                 {
-                                    path: dir_array[i]._source.path,
-                                    item: dir_array[i]._source.dir,
+                                    path: dir_array[i].path,
+                                    item: dir_array[i].dir,
                                     description: desc,
                                     size: "",
                                     actions: ""
@@ -352,7 +232,6 @@ var ElasticBrowser = (function () {
                         }
                     }
 
-                dir_results_string = dir_results_string
                 // Make sure dirs are before files
                 if (table_string === "") {
                     table_string = table_string + dir_results_string
@@ -364,153 +243,91 @@ var ElasticBrowser = (function () {
                 target.html(table_string);
 
                 // Add dir results count to table
-                $('#dir_count').html(data.hits.total + " dirs")
+                $('#dir_count').html(data.result_count + " dirs")
 
             },
             contentType: "application/json",
             error: function (data) {
             }
-        })
+        });
 
-        // Check directories index for directory. Return the archive path for the directory.
-        // Then search the archive path in the files index to return the files.
-        $.post({
-            url: dir_url,
-            data: JSON.stringify({
-                "query": {
-                    "term": {
-                        "path.keyword": path
-                    }
-                }
-            }),
+        // Get the files and collection link at the top of the page
+        let file_results_string = "";
+
+        $.get({
+            url: file_url,
+            // data: JSON.stringify(file_query),
             success: function (data) {
-                if (data.hits.hits.length === 1) {
-                    archive_path = data.hits.hits[0]._source.archive_path
 
-                    // Get Files
-                    file_query.query.bool.must.term["info.directory"] = archive_path
-                    var file_results_string = "";
+                if (!$.isEmptyObject(data.parent_dir)) {
+                    let file_array = data.results;
 
-                    $.post({
-                        url: file_url,
-                        data: JSON.stringify(file_query),
-                        success: function (data) {
-                            var file_array = data.hits.hits
+                    let i;
+                    for (i = 0; i < file_array.length; i++) {
+                        
+                        let file_name = file_array[i].info.name;
+                        let ext = getExtension(file_name);
 
-                            var i;
-                            for (i = 0; i < file_array.length; i++) {
-                                var file_path = [file_array[i]._source.info.directory, file_array[i]._source.info.name].join('/')
-                                var ext = getExtension(file_path)
-                                var file_name = file_path.split("/").slice(-1)[0];
+                        if (file_array[i].info.location === 'on_tape') {
 
-                                if (file_array[i]._source.info.location === 'on_tape') {
+                            file_results_string = file_results_string + Mustache.render(
+                                muted_file_template,
+                                {
+                                    icon: getIcon(ext),
+                                    item: file_array[i].info.name,
+                                    size: sizeText(file_array[i].info.size),
+                                    actions: "<a class='btn btn-lg' href='/storage_types#on_tape' title='File on tape' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>",
+                                    download_link: pathManipulate(file_name)
 
-                                    file_results_string = file_results_string + Mustache.render(
-                                        muted_file_template,
-                                        {
-                                            icon: getIcon(ext),
-                                            item: file_array[i]._source.info.name,
-                                            size: sizeText(file_array[i]._source.info.size),
-                                            actions: "<a class='btn btn-lg' href='/storage_types#on_tape' title='File on tape' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>",
-                                            download_link: pathManipulate(file_name)
-
-                                        }
-                                    )
-
-                                } else {
-                                    file_results_string = file_results_string + Mustache.render(
-                                        file_template,
-                                        {
-                                            icon: getIcon(ext),
-                                            item: file_array[i]._source.info.name,
-                                            size: sizeText(file_array[i]._source.info.size),
-                                            actions: generate_actions(ext, file_path),
-                                            download_link: pathManipulate(file_name)
-
-                                        }
-                                    )
                                 }
-                            }
-
-                            table_string = table_string + file_results_string;
-
-                            // Add results to table
-                            target.html(table_string)
-
-                            // Update total results variable
-                            total_results = data.hits.total
-
-                            // Add file results count to table
-                            $('#file_count').html(data.hits.total + " files")
-
-
-                        },
-                        contentType: "application/json",
-                        complete: function (data) {
-                            if (total_results > options.max_files_per_page) {
-
-                                $(".messages").each(function () {
-                                    $(this).html(Mustache.render(
-                                        "<div class=\"alert alert-danger text-center\">Too many files in current directory. Displaying {{ max_files }} out of {{ display }} files.<a class=\"btn btn-primary btn-sm ml-2\" role='button' onclick='ElasticBrowser.getAll()' id='show_all'>Show All</a></div>",
-                                        {
-                                            max_files: formatNumber(options.max_files_per_page),
-                                            display: formatNumber(total_results)
-                                        }))
-                                })
-                            }
-                            $('#page_load').hide()
-                        },
-                        error: function (data) {
-                            console.log(data)
-                        }
-                    })
-
-                } else if (data.hits.hits.length === 0 && path !== "/") {
-                    // If there are no results in the directory index then we should revert
-                    // to THREDDS to see if there is a directory in the archive which has just
-                    // been missed by the Elasticsearch indexing tools. This should be a
-                    // directory because we have already checked for a file in the Django view.
-
-                    $('#page_load').hide()
-                    $('.table').hide()
-                    var dap_link = Mustache.render("<a href='{{{url}}}'>Try in live view.</a>",
-                        {
-                            url: pathManipulate("","catalog")
-                        })
-                    $('.messages:first').html(
-                                "<div class=\"alert alert-success text-center\"><h4>Not found in archive index. " + dap_link +"</h4></div>"
                             )
 
+                        } else {
+                            file_results_string = file_results_string + Mustache.render(
+                                file_template,
+                                {
+                                    icon: getIcon(ext),
+                                    item: file_array[i].info.name,
+                                    size: sizeText(file_array[i].info.size),
+                                    actions: generate_actions(ext, file_name),
+                                    download_link: pathManipulate(file_name)
 
-                }
-            },
-            contentType: "application/json",
-        })
+                                }
+                            )
+                        }
+                    }
 
-        // Get collection link and readme
-        $.post({
-            url: dir_url,
-            data: JSON.stringify(collection_query),
-            success: function (data) {
-                var collection = data.hits.hits[0]
-                var catalogue_entry = Mustache.render("<a class='pl-1' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
-                        {
-                            url: collection._source.url,
-                            icon: "info-circle"
-                        })
+                    table_string = table_string + file_results_string;
 
-                if (data.hits.total === 1) {
+                    // Add results to table
+                    target.html(table_string);
 
-                    if (collection._source.title !== undefined) {
+                    // Update total results variable
+                    total_results = data.result_count;
 
-                        var collection_link = Mustache.render("<h4>{{{collection_type}}}&nbsp;{{title}}&nbsp;{{{button}}}</h4>",
+                    // Add file results count to table
+                    $('#file_count').html(total_results + " files")
+
+                    // Add the collection link above the results table
+                    let collection = data.parent_dir;
+      
+                    // Make sure there is a title
+                    if (collection.title !== undefined) {
+
+                        let catalogue_entry = Mustache.render("<a class='pl-1' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
                             {
-                                collection_type: moles_icon(collection._source.record_type.toTitleCase()),
-                                title: collection._source.title,
+                                url: collection.url,
+                                icon: "info-circle"
+                            });
+
+                        let collection_link = Mustache.render("<h4>{{{collection_type}}}&nbsp;{{title}}&nbsp;{{{button}}}</h4>",
+                            {
+                                collection_type: moles_icon(collection.record_type.toTitleCase()),
+                                title: collection.title,
                                 button: catalogue_entry
 
                             }
-                        )
+                        );
 
 
                         $('#collection_link').html(collection_link)
@@ -519,12 +336,12 @@ var ElasticBrowser = (function () {
                         $('#collection_link').html("")
                     }
 
-                    if (collection._source.readme !== undefined) {
-                        $('#readmeButton').removeClass('hide')
-                        var readme_split = collection._source.readme.split('\n');
+                    if (collection.readme !== undefined) {
+                        $('#readmeButton').removeClass('hide');
+                        let readme_split = collection.readme.split('\n');
 
-                        var readme_html = "";
-                        for (var i = 0; i < readme_split.length; i++) {
+                        let readme_html = "";
+                        for (let i = 0; i < readme_split.length; i++) {
                             if (readme_split[i] !== "") {
                                 readme_html += readme_split[i] + "<br>"
                             }
@@ -533,46 +350,77 @@ var ElasticBrowser = (function () {
                         $('#readmeContent div').html(escapeHtml(readme_html))
                     }
 
+
+                } else if (path !== "/") {
+                    // If there are no results in the directory index then we should revert
+                    // to THREDDS to see if there is a directory in the archive which has just
+                    // been missed by the Elasticsearch indexing tools. This should be a
+                    // directory because we have already checked for a file in the Django view.
+
+                    $('#page_load').hide();
+                    $('.table').hide();
+                    let dap_link = Mustache.render("<a href='{{{url}}}'>Try in live view.</a>",
+                        {
+                            url: pathManipulate("","catalog")
+                        });
+                    $('.messages:first').html(
+                                "<div class=\"alert alert-success text-center\"><h4>Not found in archive index. " + dap_link +"</h4></div>"
+                            )
                 }
-
-
             },
             contentType: "application/json",
+            complete: function (data) {
+
+                if (total_results > options.max_files_per_page) {
+                    
+                    // Render message at top and bottom of page to tell the user there are more results than shown
+                    $(".messages").each(function () {
+                        $(this).html(Mustache.render(
+                            "<div class=\"alert alert-danger text-center\">Too many files in current directory. Displaying {{ max_files }}/{{ display }} files.<a class=\"btn btn-primary btn-sm ml-2\" role='button' onclick='ElasticBrowser.getAll()' id='show_all'>Show All</a></div>",
+                            {
+                                max_files: formatNumber(options.max_files_per_page),
+                                display: formatNumber(total_results)
+                            }))
+                    })
+                }
+                $('#page_load').hide()
+            },
             error: function (data) {
                 console.log(data)
             }
-        })
-    }
+        });
+        
+    };
 
-    function getAllResults() {
+    const getAllResults = function getAllResults() {
 
+        const path = $('#' + options.pathID).val();
+        let show_all_url = '/api/show_all' + path;
+        let file_results_string = "";
+
+        // Show loading icon in button
         $('a[id="show_all"]').each( function () {
-            $(this).html("<img src='/static/browser/img/loading.gif' style='height: 19px'></img>"
+            $(this).html("Retrieving Results&nbsp;<img src='/static/browser/img/loading.gif' style='height: 19px'/>"
             )
-        })
-
-        var file_results_string = ""
+        });
 
         $.get({
-            url: window.location.origin + "/show_all" + archive_path,
+            url: show_all_url,
             success: function (data) {
 
-                var file_array = data.results
+                let file_array = data.results;
 
-                var i;
-                for (i = 0; i < file_array.length; i++) {
-                    var file_path = [file_array[i]._source.info.directory, file_array[i]._source.info.name].join('/')
-                    var ext = getExtension(file_path);
-                    var file_name = file_path.split("/").slice(-1)[0];
-
+                for (let i = 0; i < file_array.length; i++) {
+                    let file_name = file_array[i].info.name;
+                    let ext = getExtension(file_name);
 
                     file_results_string = file_results_string + Mustache.render(
                         file_template,
                         {
                             icon: getIcon(ext),
-                            item: file_array[i]._source.info.name,
-                            size: sizeText(file_array[i]._source.info.size),
-                            actions: generate_actions(ext, file_path),
+                            item: file_array[i].info.name,
+                            size: sizeText(file_array[i].info.size),
+                            actions: generate_actions(ext, file_name),
                             download_link: pathManipulate(file_name)
                         }
                     )
@@ -595,13 +443,10 @@ var ElasticBrowser = (function () {
 
             }
         })
+    };
 
-    }
-
-
-    // Explicitly reveal public pointers to the private functions
+    // Explicitly reveal pointers to the functions
     // that we want to reveal publicly
-
     return {
         setup: setup,
         addResults: addResults,

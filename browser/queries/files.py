@@ -13,6 +13,7 @@ from django.conf import settings
 
 def file_query(path):
     return {
+        "_source": {"excludes":["info.phenomena"]},
         "query": {
             "bool": {
                 "must": [

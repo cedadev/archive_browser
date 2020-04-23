@@ -5,7 +5,6 @@ from django.shortcuts import render, HttpResponseRedirect
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-import json
 import math
 import requests
 from requests.exceptions import  Timeout, ConnectionError
@@ -14,6 +13,7 @@ import logging
 import os
 from browser.utils import as_root_path, get_elasticsearch_client
 import browser.queries as base_queries
+from elasticsearch.helpers import scan
 
 
 class HttpResonseReadTimeout(HttpResponse):
@@ -66,9 +66,8 @@ def browse(request):
         "path": path,
         "index_list": index_list,
         "DOWNLOAD_SERVICE": settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE,
-        "DIRECTORY_INDEX": settings.DIRECTORY_INDEX,
-        "FILE_INDEX": settings.FILE_INDEX,
         "USE_FTP": settings.USE_FTP,
+        "MAX_FILES_PER_PAGE": settings.MAX_FILES_PER_PAGE,
         "messages_": messages.get_messages(request)
     }
 
@@ -78,39 +77,35 @@ def browse(request):
 @as_root_path
 def show_all(request, path):
 
+    all_results = []
+    first_result = {}
+
+    dir_query = base_queries.dir_meta(path)
+
     es = get_elasticsearch_client()
 
-    results = []
+    results = es.search(index=settings.DIRECTORY_INDEX, body=dir_query)
 
-    query = base_queries.file_query(path)
+    if results['hits']['total'] == 1:
+        first_result = results['hits']['hits'][0]['_source']
+        archive_path = first_result['archive_path']
 
-    query['size'] = settings.SCROLL_SIZE
+        # Need to use the archive path in case the data
+        # path includes symlinks
+        query = base_queries.file_query(archive_path)
 
-    res = es.search(index="ceda-fbi", body=query)
+        query['size'] = settings.SCROLL_SIZE
 
-    total_results = res["hits"]["total"]
+        res = scan(es, index=settings.FILE_INDEX, query=query)
 
-    if total_results > 0:
-        scroll_count = math.floor(total_results / settings.SCROLL_SIZE)
-
-        hits = res["hits"]["hits"]
-
-        results.extend(hits)
-        search_after = hits[-1]["sort"]
-
-        for search in range(scroll_count):
-            query["search_after"] = search_after
-
-            res = es.search(index="ceda-fbi", body=query)
-
-            hits = res["hits"]["hits"]
-            results.extend(hits)
-            search_after = hits[-1]["sort"]
+        # Convert iterator into list of results and remove un-needed data
+        all_results = [hit['_source'] for hit in res]
 
     return JsonResponse(
         {
-            "results": [hit['_source'] for hit in hits],
-            "result_count": total_results
+            "results": all_results,
+            "result_count": len(all_results),
+            "parent_dir": first_result
         }
     )
 
@@ -158,8 +153,7 @@ def get_directories(request, path):
             'result_count': results['hits']['total'],
             'results': hits,
             'render_titles': render_titles
-        },
-        json_dumps_params={'indent': 4}
+        }
     )
 
 
@@ -171,31 +165,33 @@ def get_files(request, path):
     :return:
     """
 
+    hits = []
+    first_result = {}
+    total = 0
+
     dir_query = base_queries.dir_meta(path)
 
     es = get_elasticsearch_client()
 
     results = es.search(index=settings.DIRECTORY_INDEX, body=dir_query)
+
     if results['hits']['total'] == 1:
-        archive_path = results['hits']['hits'][0]['_source']['archive_path']
+        first_result = results['hits']['hits'][0]['_source']
+        archive_path = first_result['archive_path']
 
         file_query = base_queries.file_query(archive_path)
 
         results = es.search(index=settings.FILE_INDEX, body=file_query)
         hits = [hit['_source'] for hit in results['hits']['hits']]
+        total = results['hits']['total']
 
-        return JsonResponse(
-            {
-                'result_count': results['hits']['total'],
-                'results': hits,
-            },
-            json_dumps_params={'indent': 4}
-        )
-
-    return JsonResponse({
-        'result_count': 0,
-        'results': [],
-    })
+    return JsonResponse(
+        {
+            'result_count': total,
+            'results': hits,
+            'parent_dir': first_result
+        }
+    )
 
 
 @as_root_path
@@ -206,6 +202,8 @@ def get_collection(request, path):
     :return:
     """
 
+    hits = []
+
     collection_query = base_queries.dir_meta(path)
 
     es = get_elasticsearch_client()
@@ -213,8 +211,8 @@ def get_collection(request, path):
     results = es.search(index=settings.DIRECTORY_INDEX, body=collection_query)
 
     if results['hits']['total'] == 1:
-        return JsonResponse({
-            'results': [results['hits']['hits'][0]['_source']]
-        }, json_dumps_params={'indent': 4})
+        hits = [results['hits']['hits'][0]['_source']]
 
-    return JsonResponse({})
+    return JsonResponse({
+        'results': hits
+    })
