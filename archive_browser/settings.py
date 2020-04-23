@@ -87,7 +87,6 @@ DIRECTORY_INDEX = 'ceda-dirs'
 FILE_INDEX = 'ceda-fbi'
 MAX_FILES_PER_PAGE = 2000
 ROOT_DIRECTORY_FILTER = ['/sparc','/edc','/bodc']
-SCROLL_SIZE = 5000
 
 from archive_browser.settings_local import *
 

@@ -11,7 +11,7 @@ from requests.exceptions import  Timeout, ConnectionError
 from django.contrib import messages
 import logging
 import os
-from browser.utils import as_root_path, get_elasticsearch_client
+from browser.utils import as_root_path, get_elasticsearch_client, pretty_print, str2bool
 import browser.queries as base_queries
 from elasticsearch.helpers import scan
 
@@ -74,42 +74,6 @@ def browse(request):
     return render(request, 'browser/browse.html', context)
 
 
-@as_root_path
-def show_all(request, path):
-
-    all_results = []
-    first_result = {}
-
-    dir_query = base_queries.dir_meta(path)
-
-    es = get_elasticsearch_client()
-
-    results = es.search(index=settings.DIRECTORY_INDEX, body=dir_query)
-
-    if results['hits']['total'] == 1:
-        first_result = results['hits']['hits'][0]['_source']
-        archive_path = first_result['archive_path']
-
-        # Need to use the archive path in case the data
-        # path includes symlinks
-        query = base_queries.file_query(archive_path)
-
-        query['size'] = settings.SCROLL_SIZE
-
-        res = scan(es, index=settings.FILE_INDEX, query=query)
-
-        # Convert iterator into list of results and remove un-needed data
-        all_results = [hit['_source'] for hit in res]
-
-    return JsonResponse(
-        {
-            "results": all_results,
-            "result_count": len(all_results),
-            "parent_dir": first_result
-        }
-    )
-
-
 def storage_types(request):
     """
     Page to display information about different storage types
@@ -120,7 +84,8 @@ def storage_types(request):
 
 
 @as_root_path
-def get_directories(request, path):
+@pretty_print
+def get_directories(request, path, json_params):
     """
     JSON endpoint to query elasticsearch directories index
     :param request:
@@ -153,12 +118,14 @@ def get_directories(request, path):
             'result_count': results['hits']['total'],
             'results': hits,
             'render_titles': render_titles
-        }
+        },
+        json_dumps_params=json_params
     )
 
 
 @as_root_path
-def get_files(request, path):
+@pretty_print
+def get_files(request, path, json_params):
     """
     JSON endpoint to query elasticsearch files index
     :param request:
@@ -167,7 +134,7 @@ def get_files(request, path):
 
     hits = []
     first_result = {}
-    total = 0
+    total_results = 0
 
     dir_query = base_queries.dir_meta(path)
 
@@ -175,44 +142,42 @@ def get_files(request, path):
 
     results = es.search(index=settings.DIRECTORY_INDEX, body=dir_query)
 
+    # Check for show_all flag in query string
+    show_all = str2bool(request.GET.get('show_all'))
+
     if results['hits']['total'] == 1:
         first_result = results['hits']['hits'][0]['_source']
         archive_path = first_result['archive_path']
 
         file_query = base_queries.file_query(archive_path)
 
-        results = es.search(index=settings.FILE_INDEX, body=file_query)
-        hits = [hit['_source'] for hit in results['hits']['hits']]
-        total = results['hits']['total']
+        file_results = es.search(index=settings.FILE_INDEX, body=file_query)
+
+        total_results = file_results["hits"]["total"]
+
+        page_hits = file_results["hits"]["hits"]
+        hits.extend([hit['_source'] for hit in page_hits])
+
+        # Scroll the results
+        if total_results > settings.MAX_FILES_PER_PAGE and show_all:
+            scroll_count = math.floor(total_results / settings.MAX_FILES_PER_PAGE)
+
+            search_after = page_hits[-1]["sort"]
+
+            for search in range(scroll_count):
+                file_query["search_after"] = search_after
+
+                file_results = es.search(index="ceda-fbi", body=file_query)
+
+                page_hits = file_results["hits"]["hits"]
+                hits.extend([hit['_source'] for hit in page_hits])
+                search_after = page_hits[-1]["sort"]
 
     return JsonResponse(
         {
-            'result_count': total,
+            'result_count': total_results,
             'results': hits,
             'parent_dir': first_result
-        }
+        },
+        json_dumps_params=json_params
     )
-
-
-@as_root_path
-def get_collection(request, path):
-    """
-    Get the MOLES collection from Elasticsearch
-    :param request:
-    :return:
-    """
-
-    hits = []
-
-    collection_query = base_queries.dir_meta(path)
-
-    es = get_elasticsearch_client()
-
-    results = es.search(index=settings.DIRECTORY_INDEX, body=collection_query)
-
-    if results['hits']['total'] == 1:
-        hits = [results['hits']['hits'][0]['_source']]
-
-    return JsonResponse({
-        'results': hits
-    })

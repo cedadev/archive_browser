@@ -161,8 +161,8 @@ var ElasticBrowser = (function () {
         // Setup
         const path = $('#' + options.pathID).val();
 
-        dir_url = '/api/directories' + path;
-        file_url = '/api/files' + path;
+        dir_url = '/api/directory' + path;
+        file_url = '/api/file' + path;
 
         // Get directories
         dir_results_string = "";
@@ -395,7 +395,7 @@ var ElasticBrowser = (function () {
     const getAllResults = function getAllResults() {
 
         const path = $('#' + options.pathID).val();
-        let show_all_url = '/api/show_all' + path;
+        let show_all_url = '/api/file' + path + '?show_all=true';
         let file_results_string = "";
 
         // Show loading icon in button
