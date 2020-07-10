@@ -6,7 +6,6 @@ var ElasticBrowser = (function () {
 
     // Set default options
     const options = {
-        host: "https://jasmin-es1.ceda.ac.uk",
         customTags: ['<%', '%>'],
         resultsID: 'results',
         templateID: 'template',

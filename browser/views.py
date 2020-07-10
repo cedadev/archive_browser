@@ -13,7 +13,6 @@ import logging
 import os
 from browser.utils import as_root_path, get_elasticsearch_client, pretty_print, str2bool
 import browser.queries as base_queries
-from elasticsearch.helpers import scan
 
 
 class HttpResonseReadTimeout(HttpResponse):
