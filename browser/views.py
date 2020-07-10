@@ -2,21 +2,17 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render, HttpResponseRedirect
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 import math
 import requests
-from requests.exceptions import  Timeout, ConnectionError
+from requests.exceptions import Timeout, ConnectionError
 from django.contrib import messages
 import logging
 import os
 from browser.utils import as_root_path, get_elasticsearch_client, pretty_print, str2bool
 import browser.queries as base_queries
-
-
-class HttpResonseReadTimeout(HttpResponse):
-    status_code = 408
 
 
 @csrf_exempt
