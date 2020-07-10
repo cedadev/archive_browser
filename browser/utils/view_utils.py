@@ -9,6 +9,7 @@ __license__ = 'BSD - see LICENSE file in top-level package directory'
 __contact__ = 'richard.d.smith@stfc.ac.uk'
 
 from elasticsearch import Elasticsearch
+from ceda_elasticsearch_tools.elasticsearch import CEDAElasticsearchClient
 
 
 def str2bool(val):
@@ -53,4 +54,4 @@ def as_root_path(func):
 
 
 def get_elasticsearch_client():
-    return Elasticsearch(['https://jasmin-es1.ceda.ac.uk'])
+    return CEDAElasticsearchClient()
