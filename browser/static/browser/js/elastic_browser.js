@@ -230,7 +230,6 @@ var ElasticBrowser = (function () {
                             )
                         }
                     }
-
                 // Make sure dirs are before files
                 if (table_string === "") {
                     table_string = table_string + dir_results_string
@@ -242,8 +241,11 @@ var ElasticBrowser = (function () {
                 target.html(table_string);
 
                 // Add dir results count to table
-                $('#dir_count').html(data.result_count + " dirs")
-
+                if (data.result_count.relation === 'eq'){
+                    $('#dir_count').html(data.result_count.value + " dirs")
+                } else {
+                    $('#dir_count').html(">" + data.result_count.value + " dirs")
+                }
             },
             contentType: "application/json",
             error: function (data) {
@@ -255,7 +257,6 @@ var ElasticBrowser = (function () {
 
         $.get({
             url: file_url,
-            // data: JSON.stringify(file_query),
             success: function (data) {
 
                 if (!$.isEmptyObject(data.parent_dir)) {
@@ -302,11 +303,14 @@ var ElasticBrowser = (function () {
                     target.html(table_string);
 
                     // Update total results variable
-                    total_results = data.result_count;
+                    total_results = data.result_count.value;
 
                     // Add file results count to table
-                    $('#file_count').html(total_results + " files")
-
+                    if (data.result_count.relation === 'eq'){
+                        $('#file_count').html(total_results + " files")
+                    } else {
+                        $('#file_count').html(">" + total_results + " files")
+                    }
                     // Add the collection link above the results table
                     let collection = data.parent_dir;
       

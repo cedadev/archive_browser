@@ -13,6 +13,7 @@ import logging
 import os
 from browser.utils import as_root_path, get_elasticsearch_client, pretty_print, str2bool
 import browser.queries as base_queries
+from hashlib import sha1
 
 
 @csrf_exempt
@@ -35,7 +36,7 @@ def browse(request):
             r = None
             logging.error(e)
             if '.' in os.path.basename(thredds_path):
-                messages.error(request, f'Service has timed out. Try refreshing the page or click <a href="{thredds_path}">here</a> for direct download.')
+                messages.error(request, f'File download service has timed out. If you were trying to download a file, try refreshing the page or click <a href="{thredds_path}">here</a> for direct download.')
 
         # Check if successful
         if hasattr(r, 'status_code'):
@@ -131,17 +132,17 @@ def get_files(request, path, json_params):
     first_result = {}
     total_results = 0
 
-    dir_query = base_queries.dir_meta(path)
+    id = sha1(path.encode('utf-8')).hexdigest()
 
     es = get_elasticsearch_client()
 
-    results = es.search(index=settings.DIRECTORY_INDEX, body=dir_query)
+    results = es.get(index=settings.DIRECTORY_INDEX, id=id)
 
     # Check for show_all flag in query string
     show_all = str2bool(request.GET.get('show_all'))
 
-    if results['hits']['total'] == 1:
-        first_result = results['hits']['hits'][0]['_source']
+    if results['found']:
+        first_result = results['_source']
         archive_path = first_result['archive_path']
 
         file_query = base_queries.file_query(archive_path)
@@ -153,9 +154,14 @@ def get_files(request, path, json_params):
         page_hits = file_results["hits"]["hits"]
         hits.extend([hit['_source'] for hit in page_hits])
 
-        # Scroll the results
-        if total_results > settings.MAX_FILES_PER_PAGE and show_all:
-            scroll_count = math.floor(total_results / settings.MAX_FILES_PER_PAGE)
+        # Scroll the results using search after
+        if total_results['value'] > settings.MAX_FILES_PER_PAGE and show_all:
+            if total_results['relation'] != 'eq':
+                total_results = {
+                    'value': es.count(index=settings.FILE_INDEX, body=file_query)['count'],
+                    'relation': 'eq'
+                }
+            scroll_count = math.floor(total_results['value'] / settings.MAX_FILES_PER_PAGE)
 
             search_after = page_hits[-1]["sort"]
 
