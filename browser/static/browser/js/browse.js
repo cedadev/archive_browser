@@ -82,43 +82,36 @@ function Start(page) {
     OpenWin.focus();
 }
 
-function OpenHelpWin(page) {
-    win = this.open (page, "Help",
-    "toolbar=yes,menubar=no,location=no,scrollbars=yes,resizable=yes,width=600,height=500");
-    win.focus();
-}
-
 function pathManipulate(postfix, type){
     // Used to build the correct path in order to initiate actions in pydap
-    var path = window.location.pathname;
+    let path = window.location.pathname;
 
     if (USE_FTP){
-            var ftp_template = Mustache.render("{{{download_service}}}{{{ directory }}}/{{filename}}",
+            let ftp_template = Mustache.render("{{{download_service}}}{{{ directory }}}/{{filename}}",
         {
             download_service: DOWNLOAD_SERVICE,
             directory: path,
             filename: postfix
         });
 
-
         return ftp_template
     }
 
-    var download_template = Mustache.render("{{{download_service}}}/fileServer{{{ directory }}}/{{filename}}",
+    let download_template = Mustache.render("{{{download_service}}}/fileServer{{{ directory }}}/{{filename}}",
             {
                 download_service: DOWNLOAD_SERVICE,
                 directory: path,
                 filename: postfix
             });
 
-    var opendap_template = Mustache.render("{{{download_service}}}/dodsc/{{{ directory }}}/{{filename}}.html",
+    let opendap_template = Mustache.render("{{{download_service}}}/dodsc/{{{ directory }}}/{{filename}}.html",
         {
             download_service: DOWNLOAD_SERVICE,
             directory: path,
             filename: postfix
         });
 
-    var catalog_template  = Mustache.render("{{{download_service}}}/catalog/{{{ directory }}}/catalog.html",
+    let catalog_template  = Mustache.render("{{{download_service}}}/catalog/{{{ directory }}}/catalog.html",
         {
             download_service: DOWNLOAD_SERVICE,
             directory: path
@@ -138,6 +131,7 @@ function pathManipulate(postfix, type){
 }
 
 function formatNumber (num) {
+    // Comma separate thousands
     return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")
 }
 

@@ -123,11 +123,8 @@
             // Setup the page and load the data
             // Set options
             var options = {
-                dir_index: "{{ DIRECTORY_INDEX }}",
-                file_index: "{{ FILE_INDEX }}",
-                exceptions: ["/sparc", "/edc", "/bodc"],
                 path_prefix: DOWNLOAD_SERVICE,
-                max_files_per_page: 2000
+                max_files_per_page: "{{MAX_FILES_PER_PAGE}}"
             };
             // Load the data
             try {

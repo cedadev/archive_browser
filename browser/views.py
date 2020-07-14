@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.shortcuts import render, HttpResponse, HttpResponseRedirect
-from django.http import HttpResponseNotFound, HttpResponse
-from archive_browser.settings import THREDDS_SERVICE, DIRECTORY_INDEX, FILE_INDEX, USE_FTP, FTP_SERVICE
+from django.shortcuts import render, HttpResponseRedirect
+from django.http import JsonResponse
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from elasticsearch import Elasticsearch
-import json
 import math
 import requests
-from requests.exceptions import  Timeout, ConnectionError
+from requests.exceptions import Timeout, ConnectionError
 from django.contrib import messages
 import logging
 import os
+from browser.utils import as_root_path, get_elasticsearch_client, pretty_print, str2bool
+import browser.queries as base_queries
+from hashlib import sha1
 
-class HttpResonseReadTimeout(HttpResponse):
-    status_code = 408
 
 @csrf_exempt
 def browse(request):
@@ -25,10 +24,10 @@ def browse(request):
         path = path[:-1]
 
     # These checks don't work against the ftp server
-    if not USE_FTP:
+    if not settings.USE_FTP:
 
         # Check if the requested path is a file and serve
-        thredds_path = f'{THREDDS_SERVICE}/fileServer{path}'
+        thredds_path = f'{settings.THREDDS_SERVICE}/fileServer{path}'
 
         try:
             r = requests.head(thredds_path, timeout=5)
@@ -37,7 +36,7 @@ def browse(request):
             r = None
             logging.error(e)
             if '.' in os.path.basename(thredds_path):
-                messages.error(request, f'Service has timed out. Try refreshing the page or click <a href="{thredds_path}">here</a> for direct download.')
+                messages.error(request, f'File download service has timed out. If you were trying to download a file, try refreshing the page or click <a href="{thredds_path}">here</a> for direct download.')
 
         # Check if successful
         if hasattr(r, 'status_code'):
@@ -62,58 +61,124 @@ def browse(request):
     context = {
         "path": path,
         "index_list": index_list,
-        "DOWNLOAD_SERVICE": THREDDS_SERVICE if not USE_FTP else FTP_SERVICE,
-        "DIRECTORY_INDEX": DIRECTORY_INDEX,
-        "FILE_INDEX": FILE_INDEX,
-        "USE_FTP": USE_FTP,
+        "DOWNLOAD_SERVICE": settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE,
+        "USE_FTP": settings.USE_FTP,
+        "MAX_FILES_PER_PAGE": settings.MAX_FILES_PER_PAGE,
         "messages_": messages.get_messages(request)
     }
 
     return render(request, 'browser/browse.html', context)
 
 
-def show_all(request, path):
-    scroll_size = 10000
-
-    es = Elasticsearch(hosts=["https://jasmin-es1.ceda.ac.uk"])
-
-    results = []
-
-    query = {"query": {
-        "term": {
-            "info.directory": "/{}".format(path)
-        }
-    },
-        "sort": {
-            "info.name": {
-                "order": "asc"
-            }
-        },
-        "size": scroll_size
-    }
-
-    res = es.search(index="ceda-fbi", body=query)
-
-    total_results = res["hits"]["total"]
-
-    if total_results > 0:
-        scroll_count = math.floor(total_results / scroll_size)
-
-        hits = res["hits"]["hits"]
-
-        results.extend(hits)
-        search_after = hits[-1]["sort"]
-
-        for search in range(scroll_count):
-            query["search_after"] = search_after
-
-            res = es.search(index="ceda-fbi", body=query)
-
-            hits = res["hits"]["hits"]
-            results.extend(hits)
-            search_after = hits[-1]["sort"]
-
-    return HttpResponse(json.dumps({"results": results}), content_type="application/json")
-
 def storage_types(request):
+    """
+    Page to display information about different storage types
+    :param request:
+    :return:
+    """
     return render(request, 'browser/storage_types.html')
+
+
+@as_root_path
+@pretty_print
+def get_directories(request, path, json_params):
+    """
+    JSON endpoint to query elasticsearch directories index
+    :param request:
+    :return:
+    """
+
+    if path != '/' and not path.endswith('/'):
+        path = f'{path}/'
+
+    dir_query = base_queries.current_dir(path)
+
+    if path != '/':
+        dir_query['query']['bool']['must'].append({
+            'prefix': {
+                'path.keyword': path
+            }
+        })
+
+    es = get_elasticsearch_client()
+    results = es.search(index=settings.DIRECTORY_INDEX, body=dir_query)
+
+    # Reduce the nesting for the results
+    hits = [hit['_source'] for hit in results['hits']['hits']]
+
+    # If aggregations comes back with more than 1 hit, there are > 1 MOLES records linked from this directory
+    render_titles = len(results['aggregations']['descriptions']['buckets']) > 1
+
+    return JsonResponse(
+        {
+            'result_count': results['hits']['total'],
+            'results': hits,
+            'render_titles': render_titles
+        },
+        json_dumps_params=json_params
+    )
+
+
+@as_root_path
+@pretty_print
+def get_files(request, path, json_params):
+    """
+    JSON endpoint to query elasticsearch files index
+    :param request:
+    :return:
+    """
+
+    hits = []
+    first_result = {}
+    total_results = 0
+
+    id = sha1(path.encode('utf-8')).hexdigest()
+
+    es = get_elasticsearch_client()
+
+    results = es.get(index=settings.DIRECTORY_INDEX, id=id)
+
+    # Check for show_all flag in query string
+    show_all = str2bool(request.GET.get('show_all'))
+
+    if results['found']:
+        first_result = results['_source']
+        archive_path = first_result['archive_path']
+
+        file_query = base_queries.file_query(archive_path)
+
+        file_results = es.search(index=settings.FILE_INDEX, body=file_query)
+
+        total_results = file_results["hits"]["total"]
+
+        page_hits = file_results["hits"]["hits"]
+        hits.extend([hit['_source'] for hit in page_hits])
+
+        # Scroll the results using search after
+        if total_results['value'] > settings.MAX_FILES_PER_PAGE and show_all:
+            if total_results['relation'] != 'eq':
+                total_results = {
+                    'value': es.count(index=settings.FILE_INDEX, body=file_query)['count'],
+                    'relation': 'eq'
+                }
+            scroll_count = math.floor(total_results['value'] / settings.MAX_FILES_PER_PAGE)
+
+            search_after = page_hits[-1]["sort"]
+
+            for search in range(scroll_count):
+                file_query["search_after"] = search_after
+
+                file_results = es.search(index="ceda-fbi", body=file_query)
+
+                page_hits = file_results["hits"]["hits"]
+                hits.extend([hit['_source'] for hit in page_hits])
+                search_after = page_hits[-1]["sort"]
+
+    return JsonResponse(
+        {
+            'result_count': total_results,
+            'results': hits,
+            'parent_dir': first_result
+        },
+        json_dumps_params=json_params
+    )
