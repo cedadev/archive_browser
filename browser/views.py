@@ -14,6 +14,7 @@ import os
 from browser.utils import as_root_path, get_elasticsearch_client, pretty_print, str2bool
 import browser.queries as base_queries
 from hashlib import sha1
+from elasticsearch.exceptions import NotFoundError
 
 
 @csrf_exempt
@@ -136,7 +137,10 @@ def get_files(request, path, json_params):
 
     es = get_elasticsearch_client()
 
-    results = es.get(index=settings.DIRECTORY_INDEX, id=id)
+    try:
+        results = es.get(index=settings.DIRECTORY_INDEX, id=id)
+    except NotFoundError:
+        results = {'found': False}
 
     # Check for show_all flag in query string
     show_all = str2bool(request.GET.get('show_all'))
