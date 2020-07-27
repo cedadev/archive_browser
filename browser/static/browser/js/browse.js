@@ -86,41 +86,22 @@ function pathManipulate(postfix, type){
     // Used to build the correct path in order to initiate actions in pydap
     let path = window.location.pathname;
 
-    if (USE_FTP){
-            let ftp_template = Mustache.render("{{{download_service}}}{{{ directory }}}/{{filename}}",
-        {
-            download_service: DOWNLOAD_SERVICE,
-            directory: path,
-            filename: postfix
-        });
-
-        return ftp_template
-    }
-
-    let download_template = Mustache.render("{{{download_service}}}/fileServer{{{ directory }}}/{{filename}}",
+    let download_template = Mustache.render("{{{download_service}}}{{{ directory }}}/{{filename}}",
             {
                 download_service: DOWNLOAD_SERVICE,
                 directory: path,
                 filename: postfix
             });
 
-    let opendap_template = Mustache.render("{{{download_service}}}/dodsc/{{{ directory }}}/{{filename}}.html",
+    let opendap_template = Mustache.render("{{{download_service}}}/thredds/dodsC{{{ directory }}}/{{filename}}.html",
         {
             download_service: DOWNLOAD_SERVICE,
             directory: path,
             filename: postfix
         });
 
-    let catalog_template  = Mustache.render("{{{download_service}}}/catalog/{{{ directory }}}/catalog.html",
-        {
-            download_service: DOWNLOAD_SERVICE,
-            directory: path
-        });
-
     switch (type){
 
-        case "catalog":
-            return catalog_template;
         case "opendap":
             return opendap_template;
         default:

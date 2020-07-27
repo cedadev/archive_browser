@@ -80,7 +80,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-THREDDS_SERVICE = 'http://dap.ceda.ac.uk/thredds'
+THREDDS_SERVICE = 'http://dap-staging.ceda.ac.uk'
 FTP_SERVICE = 'ftp://ftp.ceda.ac.uk'
 USE_FTP = False
 DIRECTORY_INDEX = 'ceda-dirs'

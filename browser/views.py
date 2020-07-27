@@ -16,33 +16,18 @@ import browser.queries as base_queries
 from hashlib import sha1
 from elasticsearch.exceptions import NotFoundError
 
-
 @csrf_exempt
 def browse(request):
     path = request.path
 
-    if len(path) > 1 and path.endswith('/'):
-        path = path[:-1]
+    if len(path) > 1:
+        path = path.rstrip('/')
 
-    # These checks don't work against the ftp server
-    if not settings.USE_FTP:
-
-        # Check if the requested path is a file and serve
-        thredds_path = f'{settings.THREDDS_SERVICE}/fileServer{path}'
-
-        try:
-            r = requests.head(thredds_path, timeout=5)
-
-        except (Timeout, ConnectionError) as e:
-            r = None
-            logging.error(e)
-            if '.' in os.path.basename(thredds_path):
-                messages.error(request, f'File download service has timed out. If you were trying to download a file, try refreshing the page or click <a href="{thredds_path}">here</a> for direct download.')
-
-        # Check if successful
-        if hasattr(r, 'status_code'):
-                if r.status_code in [200, 302]:
-                    return HttpResponseRedirect(thredds_path)
+    # Check if the request is a file and redirect for direct download
+    es = get_elasticsearch_client()
+    if es.exists(index=settings.FILE_INDEX, id=sha1(path.encode('utf-8')).hexdigest()):
+        thredds_path = f'{settings.THREDDS_SERVICE}{path}'
+        return HttpResponseRedirect(thredds_path)
 
     index_list = []
 

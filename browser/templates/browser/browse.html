@@ -15,22 +15,11 @@
 
 {% block content %}
 
-{% if USE_FTP %}
     <div class="alert alert-info text-center" role="alert">
         This is a cached view of the archive, some more recent changes may not be displayed. <a
             href="{{ DOWNLOAD_SERVICE }}{{ request.path }}">View most recent listing.</a>
 
     </div>
-{% else %}
-    <div class="alert alert-info text-center" role="alert">
-        This is a cached view of the archive, some more recent changes may not be displayed. <a
-            href="{{ DOWNLOAD_SERVICE }}{% if request.path != '/' %}/catalog{{ request.path }}/catalog.html{% else %}/filesCatalog.html{% endif %}">View most recent listing.</a>
-
-    </div>
-{% endif %}
-
-
-
 
     {% for message in messages_ %}
         <div class="alert alert-with-icon alert-danger text-center" role="alert">
@@ -114,7 +103,7 @@
     </div>
 
     <script src="{% static 'browser/js/mustache.min.js' %}"></script>
-    <script src="{% static 'browser/js/browse.js' %}?version=1.0"></script>
+    <script src="{% static 'browser/js/browse.js' %}?version=1.1"></script>
     <script src="{% static 'browser/js/elastic_browser.js' %}?version=1.0"></script>
 
     <script>
