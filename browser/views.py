@@ -15,6 +15,7 @@ from browser.utils import as_root_path, get_elasticsearch_client, pretty_print, 
 import browser.queries as base_queries
 from hashlib import sha1
 from elasticsearch.exceptions import NotFoundError
+from django.views.generic import TemplateView
 
 @csrf_exempt
 def browse(request):
@@ -171,3 +172,8 @@ def get_files(request, path, json_params):
         },
         json_dumps_params=json_params
     )
+
+
+class RobotsTxt(TemplateView):
+    template_name='browser/robots.txt'
+    content_type = 'text/plain'
