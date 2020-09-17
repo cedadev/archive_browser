@@ -86,7 +86,7 @@ USE_FTP = False
 DIRECTORY_INDEX = 'ceda-dirs'
 FILE_INDEX = 'ceda-fbi'
 MAX_FILES_PER_PAGE = 2000
-ROOT_DIRECTORY_FILTER = ['/sparc','/edc','/bodc']
+ROOT_DIRECTORY_FILTER = ['/sparc','/edc']
 
 from archive_browser.settings_local import *
 
