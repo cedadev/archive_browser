@@ -13,7 +13,6 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
-
 setup(
     name='archive_browser',
 
@@ -33,6 +32,11 @@ setup(
 
     # Choose your license
     license='MIT',
+
+    setup_requires=[
+        'setuptools_scm'
+    ],
+    use_scm_version=True,
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
@@ -61,6 +65,7 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
+    include_package_data=True,
 
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's
