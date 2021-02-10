@@ -192,7 +192,7 @@ var ElasticBrowser = (function () {
                         let first_line_readme = dir_array[i].readme.split("\n")[0];
 
                         if (first_line_readme !== "HIDE DIRECTORY") {
-                            desc = '<i class="fab fa-readme" title="Description taken from 00README" data-toggle="tooltip"></i>&nbsp;' + dir_array[i]._source.readme.split("\n")[0]
+                            desc = '<i class="fab fa-readme" title="Description taken from 00README" data-toggle="tooltip"></i>&nbsp;' + first_line_readme
                         } else {
                             desc = first_line_readme
                         }
