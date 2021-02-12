@@ -172,6 +172,8 @@ var ElasticBrowser = (function () {
                 let dir_array = data.results;
 
                 for (let i = 0; i < dir_array.length; i++) {
+
+                    console.log(dir_array[i])
                     let desc = "";
                     let link_target = "";
                     let info_templ = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><span class='fa fa-{{icon}}'></span></a>",
@@ -187,7 +189,7 @@ var ElasticBrowser = (function () {
                                 icon: moles_icon(dir_array[i].record_type.toTitleCase())
 
                             })
-                    } else if (dir_array[i].readme !== undefined) {
+                    } else if (dir_array[i].readme !== undefined && dir_array[i].readme === undefined) {
                         // Use the top line of the readme if there is one
                         let first_line_readme = dir_array[i].readme.split("\n")[0];
 
