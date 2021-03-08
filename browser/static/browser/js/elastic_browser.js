@@ -307,9 +307,9 @@ var ElasticBrowser = (function () {
 
                     // Add file results count to table
                     if (data.result_count.relation === 'eq'){
-                        $('#file_count').html(total_results + " files")
+                        $('#file_count').html(formatNumber(total_results) + " files")
                     } else {
-                        $('#file_count').html(">" + total_results + " files")
+                        $('#file_count').html(">" + formatNumber(total_results) + " files")
                     }
                     // Add the collection link above the results table
                     let collection = data.parent_dir;
