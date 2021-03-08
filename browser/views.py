@@ -144,13 +144,22 @@ def get_files(request, path, json_params):
         page_hits = file_results["hits"]["hits"]
         hits.extend([hit['_source'] for hit in page_hits])
 
+        # Get the true count
+        if total_results['relation'] != 'eq':
+
+            # remove unaccepted keys from the count query
+            count_query = file_query.copy()
+            for key in {'size', 'sort', '_source'}:
+                count_query.pop(key)
+
+            total_results = {
+                'value': es.count(index=settings.FILE_INDEX, body=count_query)['count'],
+                'relation': 'eq'
+            }
+
         # Scroll the results using search after
         if total_results['value'] > settings.MAX_FILES_PER_PAGE and show_all:
-            if total_results['relation'] != 'eq':
-                total_results = {
-                    'value': es.count(index=settings.FILE_INDEX, body=file_query)['count'],
-                    'relation': 'eq'
-                }
+
             scroll_count = math.floor(total_results['value'] / settings.MAX_FILES_PER_PAGE)
 
             search_after = page_hits[-1]["sort"]
