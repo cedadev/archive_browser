@@ -15,11 +15,26 @@
 
 {% block content %}
 
-    <div class="alert alert-info text-center" role="alert">
-        This is a cached view of the archive, some more recent changes may not be displayed. <a
-            href="{{ DOWNLOAD_SERVICE }}{{ request.path }}">View most recent listing.</a>
 
-    </div>
+    <div class="collapse" id="collapseBulkDownload">
+        <div class="alert alert-info" role="alert">
+            <h3>Other ways to download</h3>
+            <p> 
+                <ul>
+                <li>Raw HTTP downloads: <a href="{{ DOWNLOAD_SERVICE }}{{ request.path }}">{{ DOWNLOAD_SERVICE }}{{ request.path }}</a> 
+                    (Tip: If our file indexing is behind for some reason, then this service may show more recent changes that 
+                    may not be displayed here)</li>
+                <li>Wget: <code>wget -e robots=off --mirror --no-parent -r {{ DOWNLOAD_SERVICE }}{{ request.path }}</code> 
+                    Great for bulk downloading.</li>
+                <li>FTP: <a href="ftp://ftp.ceda.ac.uk{{ request.path }}">ftp://ftp.ceda.ac.uk{{ request.path }}</a> 
+                    There are lots of tools that can use FTP to do bulk downloads 
+                    (e.g. <a href="https://filezilla-project.org/">Filezilla</a>")</li>
+                <li>DAP: If you need to just get a subset of NetCDF files have a look at  
+                    help page about interacting <a href="https://help.ceda.ac.uk/article/4442-ceda-opendap-scripted-interactions">
+                        programatically with the data</a></li>
+        </ul></p>
+        </div>
+      </div>
 
     {% for message in messages_ %}
         <div class="alert alert-with-icon alert-danger text-center" role="alert">
@@ -28,7 +43,7 @@
     {% endfor %}
 
     <div class="row">
-        <div class="col-11">
+        <div class="col-10">
             <div class="float-left">
 
                 <ol class="breadcrumb">
@@ -49,8 +64,12 @@
             </div>
         </div>
 
-        <div class="col-1">
+        <div class="col-2">
             <div class="float-right">
+                <button class="btn btn-primary mt-1" type="button" data-toggle="collapse" 
+                       data-target="#collapseBulkDownload" aria-expanded="false" aria-controls="collapseExample">
+                       <span class="fas fa-download"></span>
+                </button>
                 <button type="button" id="copy" class="btn btn-primary mt-1" data-toggle="tooltip"
                         data-original-title="Copy directory path" title="Copy directory path">
                     <i class="fas fa-copy" aria-hidden="true"></i>
