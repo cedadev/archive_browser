@@ -24,8 +24,8 @@
                 <li>Raw HTTP downloads: <a href="{{ DOWNLOAD_SERVICE }}{{ request.path }}">{{ DOWNLOAD_SERVICE }}{{ request.path }}</a>
                     (Tip: If our file indexing is behind for some reason, then this service may show more recent changes that
                     may not be displayed here)</li>
-                <li>Wget: <code class="bg-light">&nbsp;wget -e robots=off --mirror --no-parent -r {{ DOWNLOAD_SERVICE }}{{ request.path }}&nbsp;</code>
-                    Great for bulk downloading.</li>
+                <li>Wget: <code class="bg-light">&nbsp;wget -e robots=off --mirror --no-parent -r {{ DOWNLOAD_SERVICE }}{{ request.path }}/&nbsp;</code>
+                    <a href="https://www.gnu.org/software/wget/">Wget</a> is great for bulk downloading.</li>
                 <li>FTP: <a href="ftp://ftp.ceda.ac.uk{{ request.path }}">ftp://ftp.ceda.ac.uk{{ request.path }}</a>
                     There are lots of tools that can use FTP to do bulk downloads
                     (e.g. <a href="https://filezilla-project.org/">Filezilla</a>")</li>
