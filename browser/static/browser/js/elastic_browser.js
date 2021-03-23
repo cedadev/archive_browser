@@ -166,6 +166,9 @@ var ElasticBrowser = (function () {
         // Get directories
         dir_results_string = "";
 
+        // Set the API response counter
+        let results_returned = 0;
+
         $.get({
             url: dir_url,
             success: function (data) {
@@ -246,9 +249,17 @@ var ElasticBrowser = (function () {
                 } else {
                     $('#dir_count').html(">" + data.result_count.value + " dirs")
                 }
+
+                results_returned++;
             },
             contentType: "application/json",
+            complete: function (data) {
+                if (results_returned === 2) {
+                    $('#page_load').hide()
+                }
+            },
             error: function (data) {
+                $('#page_load').html("An error occured retrieving the directories")
             }
         });
 
@@ -264,7 +275,7 @@ var ElasticBrowser = (function () {
 
                     let i;
                     for (i = 0; i < file_array.length; i++) {
-                        
+
                         let file_name = file_array[i].info.name;
                         let ext = getExtension(file_name);
 
@@ -313,7 +324,7 @@ var ElasticBrowser = (function () {
                     }
                     // Add the collection link above the results table
                     let collection = data.parent_dir;
-      
+
                     // Make sure there is a title
                     if (collection.title !== undefined) {
 
@@ -353,6 +364,9 @@ var ElasticBrowser = (function () {
                         $('#readmeContent div').html(escapeHtml(readme_html))
                     }
 
+                    results_returned++
+                    console.log(results_returned)
+
 
                 } else if (path !== "/") {
                     // If there are no results in the directory index then we should revert
@@ -375,7 +389,7 @@ var ElasticBrowser = (function () {
             complete: function (data) {
 
                 if (total_results > options.max_files_per_page) {
-                    
+
                     // Render message at top and bottom of page to tell the user there are more results than shown
                     $(".messages").each(function () {
                         $(this).html(Mustache.render(
@@ -386,13 +400,15 @@ var ElasticBrowser = (function () {
                             }))
                     })
                 }
-                $('#page_load').hide()
+                if (results_returned === 2){
+                    $('#page_load').hide()
+                }
             },
             error: function (data) {
-                console.log(data)
+                $('#page_load').html("An error occured retrieving the files")
             }
         });
-        
+
     };
 
     const getAllResults = function getAllResults() {
