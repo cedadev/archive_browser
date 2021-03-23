@@ -49,7 +49,7 @@ var ElasticBrowser = (function () {
         let subset_templ = "";
 
         // Generate button for download action
-        let download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}' title='Download file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
+        let download_templ = Mustache.render("<a class='btn btn-lg' href='{{url}}?download=1' title='Download file' data-toggle='tooltip'><i class='fa fa-{{icon}}'></i></a>",
             {
                 url: pathManipulate(file_name),
                 icon: "download"
@@ -93,7 +93,7 @@ var ElasticBrowser = (function () {
             case "txt":
             case "pdf":
             case "html":
-                action_string = view_templ;
+                action_string = view_templ + download_templ;
                 break;
 
             default:
