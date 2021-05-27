@@ -76,6 +76,9 @@ var ElasticBrowser = (function () {
         switch (ext) {
 
             case "nc":
+            case "hdf":
+            case "h4":
+            case "hdf4":
                 action_string = download_templ + subset_templ;
                 break;
 
