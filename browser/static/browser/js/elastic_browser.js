@@ -178,14 +178,17 @@ var ElasticBrowser = (function () {
                 let dir_array = data.results;
 
                 for (let i = 0; i < dir_array.length; i++) {
+
+                    // Set defaults
                     let desc = "";
-                    let link_target = "";
                     let info_templ = Mustache.render("<a class='btn btn-lg' href = '{{url}}' title = 'See catalogue entry' data-toggle='tooltip'><span class='fa fa-{{icon}}'></span></a>",
                         {
                             url: dir_array[i].url,
                             icon: 'info-circle'
                         });
+                    let directory_icon = '<span class="fas fa-folder"></span>';
 
+                    // Template description column
                     if (dir_array[i].title !== undefined && data.render_titles) {
                         desc = Mustache.render("{{{icon}}}&nbsp;{{title}}",
                             {
@@ -204,18 +207,18 @@ var ElasticBrowser = (function () {
                         }
                     }
 
+                    // Change icon to display a link if the directory is a symlink
                     if (dir_array[i].link !== undefined && dir_array[i].link === true) {
-                        link_target = Mustache.render("<a href='?path={{target}}' target='_blank'><i class='fas fa-link'></i></a>",
-                            {
-                                target: dir_array[i].archive_path
-                            })
+                        directory_icon = '<span class="fas fa-link"></span>'
                     }
 
+                    // Where the directory is not hidden and there is MOLES information
                     if (desc !== "HIDE DIRECTORY" && dir_array[i].url !== undefined) {
                             dir_results_string = dir_results_string + Mustache.render(
                                 dir_template,
                                 {
-                                    path: dir_array[i].path,
+                                    path: dir_array[i].archive_path,
+                                    icon: directory_icon,
                                     item: dir_array[i].dir,
                                     description: desc,
                                     size: "",
@@ -223,11 +226,13 @@ var ElasticBrowser = (function () {
                                 }
                             )
                         }
+                    // All other cases where the directory is not hidden, these do not have moles info
                     else if (desc !== "HIDE DIRECTORY") {
                             dir_results_string = dir_results_string + Mustache.render(
                                 dir_template,
                                 {
-                                    path: dir_array[i].path,
+                                    path: dir_array[i].archive_path,
+                                    icon: directory_icon,
                                     item: dir_array[i].dir,
                                     description: desc,
                                     size: "",
@@ -236,6 +241,7 @@ var ElasticBrowser = (function () {
                             )
                         }
                     }
+
                 // Make sure dirs are before files
                 if (table_string === "") {
                     table_string = table_string + dir_results_string
