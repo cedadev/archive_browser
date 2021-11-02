@@ -152,36 +152,18 @@
 
 
     {# Mustache templates #}
-
-    <script id="dir_template" type="text/html">
-        <tr>
-            <td class="align-middle"><a href="<% path %>"><% &icon %>&nbsp;<% item %></a></td>
-            <td class="align-middle"><% &description %></td>
-            <td class="align-middle"><% size %></td>
-            <td class="align-middle"><% &actions %></td>
-        </tr>
+    <script id="row_template" type="text/html">
+    <tr <% &row_attrs %> >
+        <td class="align-middle"><% &icon %>&nbsp;<% &item %></td>
+        <td class="align-middle"><% &description %></td>
+        <td class="align-middle"><% size %></td>
+        <td class="align-middle"><% &actions %></td>
+    </tr>
     </script>
+
     <script>
         var DOWNLOAD_SERVICE = "{{ DOWNLOAD_SERVICE }}";
         var USE_FTP = {% if USE_FTP %}true;{% else %}false;{% endif %}
-    </script>
-
-    <script id="file_template" type="text/html">
-        <tr>
-            <td class="align-middle"><span class="<% icon %>"></span>&nbsp;<a href="<% download_link %>"><% item %></a> </td>
-            <td></td>
-            <td class="align-middle"><% size %></td>
-            <td class="align-middle"><% &actions %></td>
-        </tr>
-    </script>
-
-    <script id="muted_file_template" type="text/html">
-        <tr class="text-muted">
-            <td class="align-middle"><span class="<% icon %>"></span>&nbsp;<% item %></td>
-            <td></td>
-            <td class="align-middle"><% size %></td>
-            <td class="align-middle"><% &actions %></td>
-        </tr>
     </script>
 
 

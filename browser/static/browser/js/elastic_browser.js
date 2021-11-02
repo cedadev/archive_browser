@@ -8,14 +8,11 @@ var ElasticBrowser = (function () {
     const options = {
         customTags: ['<%', '%>'],
         resultsID: 'results',
-        templateID: 'template',
-        pathTitleID: 'path_title',
         pathID: 'path'
     };
 
-    let file_template;
-    let muted_file_template;
-    let dir_template;
+    let row_template;
+    let link_template;
     let table_string;
     let target;
     let total_results;
@@ -29,14 +26,12 @@ var ElasticBrowser = (function () {
         $.extend(options, user_options);
 
         // Load mustache templates
-        dir_template = $('#dir_' + options.templateID).html();
-        file_template = $('#file_template').html();
-        muted_file_template = $('#muted_file_template').html();
+        row_template = $('#row_template').html();
+        link_template = "<a href=\"{{path}}\">{{name}}</a>"
 
         // Speeds up future use
-        Mustache.parse(dir_template, options.customTags);
-        Mustache.parse(file_template, options.customTags);
-        Mustache.parse(muted_file_template, options.customTags);
+        Mustache.parse(row_template, options.customTags);
+        Mustache.parse(link_template)
 
         // Results variables
         table_string = "";
@@ -113,31 +108,37 @@ var ElasticBrowser = (function () {
     function getIcon(ext) {
         let icon;
         switch (ext) {
+            case "dir":
+                icon = "<span class=\"far fa-folder\"></span>"
+                break;
+            case "symlink":
+                icon = "<span class=\"fas fa-link\" data-toggle=\"tooltip\" title=\"Symbolic link\"></span>"
+                break;
             case "gz":
             case "zip":
             case "tar":
             case "tgz":
             case "bz2":
-                icon = "far fa-file-archive";
+                icon = "<span class=\"far fa-file-archive\"></span>";
                 break;
             case "png":
             case "gif":
             case "tif":
             case "TIF":
-                icon = "far fa-file-image";
+                icon = '<span class="far fa-file-image"></span>';
                 break;
             case "txt":
-                icon = "far fa-file-alt";
+                icon = '<span class="far fa-file-alt"></span>';
                 break;
             case "html":
             case "xml":
-                icon = "far fa-file-code";
+                icon = '<span class="far fa-file-code"></span>';
                 break;
             case "avi":
-                icon = "far fa-file-video";
+                icon = '<span class="far fa-file-video"></span>';
                 break;
             default:
-                icon = "far fa-file"
+                icon = '<span class="far fa-file"></span>'
 
         }
         return icon
@@ -186,7 +187,7 @@ var ElasticBrowser = (function () {
                             url: dir_array[i].url,
                             icon: 'info-circle'
                         });
-                    let directory_icon = '<span class="fas fa-folder"></span>';
+                    let directory_icon = getIcon("dir");
 
                     // Template description column
                     if (dir_array[i].title !== undefined && data.render_titles) {
@@ -209,38 +210,74 @@ var ElasticBrowser = (function () {
 
                     // Change icon to display a link if the directory is a symlink
                     if (dir_array[i].link !== undefined && dir_array[i].link === true) {
-                        directory_icon = '<span class="fas fa-link"></span>'
+                        directory_icon = getIcon("symlink")
                     }
 
-                    // Where the directory is not hidden and there is MOLES information
-                    if (desc !== "HIDE DIRECTORY" && dir_array[i].url !== undefined) {
-                            dir_results_string = dir_results_string + Mustache.render(
-                                dir_template,
-                                {
-                                    path: dir_array[i].archive_path,
-                                    icon: directory_icon,
-                                    item: dir_array[i].dir,
-                                    description: desc,
-                                    size: "",
-                                    actions: info_templ
-                                }
-                            )
-                        }
-                    // All other cases where the directory is not hidden, these do not have moles info
-                    else if (desc !== "HIDE DIRECTORY") {
-                            dir_results_string = dir_results_string + Mustache.render(
-                                dir_template,
-                                {
-                                    path: dir_array[i].archive_path,
-                                    icon: directory_icon,
-                                    item: dir_array[i].dir,
-                                    description: desc,
-                                    size: "",
-                                    actions: ""
-                                }
-                            )
+                    // Where the directory is not hidden and type is dir
+                    if (desc !== "HIDE DIRECTORY") {
+                        if (dir_array[i].type === "dir") {
+                            // Where there is MOLES information
+                            if (dir_array[i].url !== undefined) {
+                                dir_results_string = dir_results_string + Mustache.render(
+                                    row_template,
+                                    {
+                                        icon: directory_icon,
+                                        item: Mustache.render(link_template, {path: dir_array[i].archive_path, name: dir_array[i].dir}),
+                                        description: desc,
+                                        size: "",
+                                        actions: info_templ
+                                    }
+                                )
+                            }
+                            // All other cases where the directory is not hidden, these do not have moles info
+                            else {
+                                dir_results_string = dir_results_string + Mustache.render(
+                                    row_template,
+                                    {
+                                        icon: directory_icon,
+                                        item: Mustache.render(link_template, {path: dir_array[i].archive_path, name: dir_array[i].dir}),
+                                        description: desc,
+                                        size: "",
+                                        actions: ""
+                                    }
+                                )
+                            }
+                        } else if (dir_array[i].type === "file"){
+
+                            // Handle cases where it has been through the fast queue but not the slow
+                            if (dir_array[i].archive_path === undefined){
+                                desc = "This file is a symlink. The link will be populated shortly."
+                                dir_results_string = dir_results_string + Mustache.render(
+                                    row_template,
+                                    {
+                                        row_attrs: 'class="text-muted"',
+                                        icon: directory_icon,
+                                        item: dir_array[i].dir,
+                                        description: desc,
+                                        size: "",
+                                        actions: ""
+                                    }
+                                )
+                            } else {
+
+                                let file_name = dir_array[i].dir;
+                                let ext = getExtension(file_name);
+
+                                let row = Mustache.render(
+                                    row_template,
+                                    {
+                                        icon: directory_icon,
+                                        item: Mustache.render(link_template, {path: dir_array[i].archive_path, name: dir_array[i].dir}),
+                                        description: desc,
+                                        size: "",
+                                        actions: generate_actions(ext, file_name)
+                                    }
+                                )
+                                dir_results_string = dir_results_string + row
+                            }
                         }
                     }
+                }
 
                 // Make sure dirs are before files
                 if (table_string === "") {
@@ -291,26 +328,25 @@ var ElasticBrowser = (function () {
                         if (file_array[i].info.location === 'on_tape') {
 
                             file_results_string = file_results_string + Mustache.render(
-                                muted_file_template,
+                                row_template,
                                 {
+                                    row_attrs: 'class="text-muted"',
                                     icon: getIcon(ext),
                                     item: file_array[i].info.name,
                                     size: sizeText(file_array[i].info.size),
                                     actions: "<a class='btn btn-lg' href='/storage_types#on_tape' title='File on tape' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>",
-                                    download_link: pathManipulate(file_name)
 
                                 }
                             )
 
                         } else {
                             file_results_string = file_results_string + Mustache.render(
-                                file_template,
+                                row_template,
                                 {
                                     icon: getIcon(ext),
-                                    item: file_array[i].info.name,
+                                    item: Mustache.render(link_template, {path: pathManipulate(file_name), name:file_name}),
                                     size: sizeText(file_array[i].info.size),
                                     actions: generate_actions(ext, file_name),
-                                    download_link: pathManipulate(file_name)
 
                                 }
                             )
@@ -443,13 +479,12 @@ var ElasticBrowser = (function () {
                     let ext = getExtension(file_name);
 
                     file_results_string = file_results_string + Mustache.render(
-                        file_template,
+                        row_template,
                         {
                             icon: getIcon(ext),
-                            item: file_array[i].info.name,
+                            item: Mustache.render(link_template, {path: pathManipulate(file_name), name:file_name}),
                             size: sizeText(file_array[i].info.size),
                             actions: generate_actions(ext, file_name),
-                            download_link: pathManipulate(file_name)
                         }
                     )
                 }

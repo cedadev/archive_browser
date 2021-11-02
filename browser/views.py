@@ -170,6 +170,8 @@ def get_files(request, path, json_params):
                 file_results = es.search(index="ceda-fbi", body=file_query)
 
                 page_hits = file_results["hits"]["hits"]
+                if not page_hits:
+                    break
                 hits.extend([hit['_source'] for hit in page_hits])
                 search_after = page_hits[-1]["sort"]
 
