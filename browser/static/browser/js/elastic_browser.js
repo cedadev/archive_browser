@@ -210,7 +210,11 @@ var ElasticBrowser = (function () {
 
                     // Change icon to display a link if the directory is a symlink
                     if (dir_array[i].link !== undefined && dir_array[i].link === true) {
-                        directory_icon = getIcon("symlink")
+                        // Storage links are resolved in the index so that path (actual path) and archive_path (logical path)
+                        // are the same
+                        if (dir_array[i].path !== dir_array[i].archive_path){
+                            directory_icon = getIcon("symlink")
+                        }
                     }
 
                     // Where the directory is not hidden and type is dir
