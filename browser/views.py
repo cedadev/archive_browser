@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.shortcuts import render, HttpResponseRedirect
-from django.http import JsonResponse
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
 import math
-import requests
-from requests.exceptions import Timeout, ConnectionError
+from hashlib import sha1
+
+from django.conf import settings
 from django.contrib import messages
-import logging
-import os
+from django.http import JsonResponse
+from django.shortcuts import render, HttpResponseRedirect
+from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
+
+from elasticsearch.exceptions import NotFoundError
+
 from browser.utils import as_root_path, get_elasticsearch_client, pretty_print, str2bool
 import browser.queries as base_queries
-from hashlib import sha1
-from elasticsearch.exceptions import NotFoundError
-from django.views.generic import TemplateView
+
 
 @csrf_exempt
 def browse(request):
@@ -66,6 +67,7 @@ def storage_types(request):
     return render(request, 'browser/storage_types.html')
 
 
+@cache_page(120)
 @as_root_path
 @pretty_print
 def get_directories(request, path, json_params):
@@ -106,6 +108,7 @@ def get_directories(request, path, json_params):
     )
 
 
+@cache_page(120)
 @as_root_path
 @pretty_print
 def get_files(request, path, json_params):

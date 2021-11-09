@@ -37,6 +37,7 @@ def pretty_print(func):
 
     return wrapper
 
+
 def as_root_path(func):
     """
     Decorator to turn path into an absolute path
@@ -53,4 +54,4 @@ def as_root_path(func):
 
 
 def get_elasticsearch_client():
-    return CEDAElasticsearchClient()
+    return CEDAElasticsearchClient(timeout=30)
