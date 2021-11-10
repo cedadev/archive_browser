@@ -1,6 +1,12 @@
 {% extends "fwtheme_django/layout.html" %}
 {% load static %}
 
+{% block head_title %}CEDA Archive Web Browser{% endblock %}
+{% block extra_meta %}
+    <meta name="description" content="Web based directory browser for the CEDA Archive.
+    Provides download links and access to the relevant CEDA Catalogue record.">
+    <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
+{% endblock %}
 {% block page_title %}
 {% endblock %}
 

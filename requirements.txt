@@ -12,7 +12,7 @@ django-classy-tags==2.0.0
 django-cookie-law==2.0.3
 docopt==0.6.2
 elasticsearch==7.6.0
-git+https://github.com/cedadev/fwtheme-django.git#egg=fwtheme-django==0.2.1
+git+https://github.com/cedadev/fwtheme-django.git#egg=fwtheme-django==1.0.1
 git+https://github.com/cedadev/fwtheme-django-ceda-serv.git#egg=fwtheme-django-ceda-serv==1.4.1
 idna==2.10
 psycopg2-binary==2.8.6
