@@ -217,6 +217,12 @@ var ElasticBrowser = (function () {
                         }
                     }
 
+                    // Use path if archive_path is undefined
+                    let link_path = dir_array[i].archive_path
+                    if (!link_path) {
+                        link_path = dir_array[i].path
+                    }
+
                     // Where the directory is not hidden and type is dir
                     if (desc !== "HIDE DIRECTORY") {
                         if (dir_array[i].type === "dir") {
@@ -226,7 +232,7 @@ var ElasticBrowser = (function () {
                                     row_template,
                                     {
                                         icon: directory_icon,
-                                        item: Mustache.render(link_template, {path: dir_array[i].archive_path, name: dir_array[i].dir}),
+                                        item: Mustache.render(link_template, {path: link_path, name: dir_array[i].dir}),
                                         description: desc,
                                         size: "",
                                         actions: info_templ
@@ -239,7 +245,7 @@ var ElasticBrowser = (function () {
                                     row_template,
                                     {
                                         icon: directory_icon,
-                                        item: Mustache.render(link_template, {path: dir_array[i].archive_path, name: dir_array[i].dir}),
+                                        item: Mustache.render(link_template, {path: link_path, name: dir_array[i].dir}),
                                         description: desc,
                                         size: "",
                                         actions: ""
