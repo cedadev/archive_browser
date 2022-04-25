@@ -137,6 +137,8 @@ def get_files(request, path, json_params):
     if results['found']:
         first_result = results['_source']
         archive_path = first_result['archive_path']
+        if not archive_path:
+            archive_path = first_result['path']
 
         file_query = base_queries.file_query(archive_path)
 
