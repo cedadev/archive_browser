@@ -13,27 +13,20 @@ from django.conf import settings
 
 def file_query(path):
     return {
-        "_source": {"excludes":["info.phenomena"]},
+        "_source": {"excludes":["phenomena"]},
         "query": {
             "bool": {
                 "must": [
                     {
                         "term": {
-                            "info.directory": path
-                        }
-                    }
-                ],
-                "must_not": [
-                    {
-                        "regexp": {
-                            "info.name": "[.].*"
+                            "directory.keyword": path
                         }
                     }
                 ]
             }
         },
         "sort": {
-            "info.name": {
+            "name.keyword": {
                 "order": "asc"
             }
         },

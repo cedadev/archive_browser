@@ -32,7 +32,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'dj_security_middleware.middleware.DJSecurityMiddleware',
+#    'dj_security_middleware.middleware.DJSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 
@@ -83,8 +83,8 @@ STATIC_URL = '/static/'
 THREDDS_SERVICE = 'https://dap.ceda.ac.uk'
 FTP_SERVICE = 'ftp://ftp.ceda.ac.uk'
 USE_FTP = False
-DIRECTORY_INDEX = 'ceda-dirs'
-FILE_INDEX = 'ceda-fbi'
+DIRECTORY_INDEX = 'samtest6'
+FILE_INDEX = 'samtest6'
 MAX_FILES_PER_PAGE = 2000
 ROOT_DIRECTORY_FILTER = []
 

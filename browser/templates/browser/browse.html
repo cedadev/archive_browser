@@ -19,9 +19,8 @@
     <link rel="stylesheet" href="{% static 'browser/css/browser.css' %}"/>
 {% endblock %}
 
+
 {% block content %}
-
-
     <div class="collapse" id="collapseBulkDownload">
         <div class="alert alert-info" role="alert">
             <h3>Bulk Download Options</h3>
@@ -123,57 +122,25 @@
         </thead>
 
 
-        <tbody id="results"></tbody>
+        <tbody id="results">
+          
+                {% for item in items %}
+                <tr>
+                    <td class="align-middle">{{item.icon|safe}}&nbsp;<a href="{% if item.type == 'file' %}{{item.download}}{% else %}{{item.path}}{% endif %}">{{item.name}}</a></td>
+                    <td class="align-middle">{{item.description}}</td>
+                    <td class="align-middle">{{item.size|filesizeformat}}</td>
+                    <td class="align-middle">{{item.actions|safe}}</td>
+                </tr>
+                {% endfor %}
+               
+        </tbody>
     </table>
     <div class="row">
         <div class="col messages"></div>
     </div>
 
-    <script src="{% static 'browser/js/mustache.min.js' %}"></script>
-    <script src="{% static 'browser/js/browse.js' %}?version=1.2"></script>
-    <script src="{% static 'browser/js/elastic_browser.js' %}?version=2.0"></script>
-
-    <script>
-
-        $(document).ready(function () {
-            // Setup the page and load the data
-            // Set options
-            var options = {
-                path_prefix: DOWNLOAD_SERVICE,
-                max_files_per_page: "{{MAX_FILES_PER_PAGE}}"
-            };
-            // Load the data
-            try {
-                ElasticBrowser.setup(options);
-                ElasticBrowser.addResults();
-            } catch(err){
-                var page_load = $('#page_load')
-                page_load.html("An error occured. Some older browsers are unsupported, try a newer browser. If the problem continues, <a href='mailto:support@ceda.ac.uk'>contact support.</a>")
-                page_load.removeClass('alert-light text-dark')
-                page_load.addClass('alert-danger')
-                page_load.show()
-            }
-        })
-    </script>
-
-
-    {# Mustache templates #}
-    <script id="row_template" type="text/html">
-    <tr <% &row_attrs %> >
-        <td class="align-middle"><% &icon %>&nbsp;<% &item %></td>
-        <td class="align-middle"><% &description %></td>
-        <td class="align-middle"><% size %></td>
-        <td class="align-middle"><% &actions %></td>
-    </tr>
-    </script>
-
-    <script>
-        var DOWNLOAD_SERVICE = "{{ DOWNLOAD_SERVICE }}";
-        var USE_FTP = {% if USE_FTP %}true;{% else %}false;{% endif %}
-    </script>
-
-
 {% endblock %}
+
 {% block tail_js_extra %}
     <script>
         $('body').tooltip({

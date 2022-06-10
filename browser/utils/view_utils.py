@@ -9,7 +9,7 @@ __license__ = 'BSD - see LICENSE file in top-level package directory'
 __contact__ = 'richard.d.smith@stfc.ac.uk'
 
 from ceda_elasticsearch_tools.elasticsearch import CEDAElasticsearchClient
-
+import yaml
 
 def str2bool(val):
     string = str(val)
@@ -54,4 +54,6 @@ def as_root_path(func):
 
 
 def get_elasticsearch_client():
-    return CEDAElasticsearchClient(timeout=30)
+    #load api key  
+    api_key = yaml.load(open("/Users/sam.pepler/.elasticsearch.yml"), Loader=yaml.Loader)["api_key"]
+    return CEDAElasticsearchClient(headers={'x-api-key':api_key}, timeout=30)

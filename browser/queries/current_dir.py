@@ -20,27 +20,13 @@ def current_dir(path):
     """
     return {
         'sort': {
-            'dir.keyword': {
+            'directory.keyword': {
                 'order': 'asc'
             }
         },
         'query': {
             'bool': {
                 'must': [],
-                'must_not': generate_exceptions(settings.ROOT_DIRECTORY_FILTER),
-                'filter': {
-                    'term': {
-                        'depth': path.count('/')
-                    }
-                }
-            }
-        },
-        'aggs': {
-            'descriptions': {
-                'terms': {
-                    'field': 'title.keyword',
-                    'size': 2
-                }
             }
         },
         'size': 1000

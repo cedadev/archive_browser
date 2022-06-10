@@ -1,35 +1,73 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import math
 from hashlib import sha1
-
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import render, HttpResponseRedirect
-from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView
-
 from elasticsearch.exceptions import NotFoundError
-
+import os
 from browser.utils import as_root_path, get_elasticsearch_client, pretty_print, str2bool
 import browser.queries as base_queries
+
+def getIcon(type, extension):
+    if type == "dir":
+        return "<span class=\"far fa-folder\"></span>"
+    if type == "link":
+        return "<span class=\"fas fa-link\" data-toggle=\"tooltip\" title=\"Symbolic link\"></span>"
+    if extension in (".gz", ".zip", ".tar", ".tgz", ".bz2"):
+        return "<span class=\"far fa-file-archive\"></span>"
+    if extension in (".png", ".gif", ".tif", ".TIF"):
+        return '<span class="far fa-file-image"></span>'
+    if extension == "txt":
+        return '<span class="far fa-file-alt"></span>'
+    return '<span class="far fa-file"></span>'
+
+
+def generate_actions(ext, path, download_service):
+    #print("actions")
+    # Generate button for download action
+    download_link = f"<a class='btn btn-lg' href='{download_service}{path}?download=1' title='Download file' data-toggle='tooltip'><i class='fa fa-download'></i></a>"
+
+    # Generate button for view action
+    view_link = f'<a class="btn btn-lg" href="{download_service}{path}" title="View file" data-toggle="tooltip"><i class="fa fa-eye"></i></a>'
+
+
+    # Generate button for subset action
+    subset_link = f"<a class='btn btn-lg' href='{download_service}/thredds/dodsC{path}.html' title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i></a>",
+
+    if ext in (".nc", ".hdf", ".h4", ".hdf4"):
+        return download_link + subset_link
+    if ext in (".gif", ".jpg", ".jpeg", ".png", ".svg", ".svgz", ".wbmp", ".webp", ".ico", ".jng", ".bmp", ".txt", ".pdf", ".html"):
+        return view_link + download_link
+    if os.path.basename(path) == '00README':
+        return view_link
+    return download_link
 
 
 @csrf_exempt
 def browse(request):
+    print("xxx")
     path = request.path
+    download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
 
     if len(path) > 1:
         path = path.rstrip('/')
 
     # Check if the request is a file and redirect for direct download
     es = get_elasticsearch_client()
-    if es.exists(index=settings.FILE_INDEX, id=sha1(path.encode('utf-8')).hexdigest()):
-        thredds_path = f'{settings.THREDDS_SERVICE}{path}'
-        return HttpResponseRedirect(thredds_path)
+    try: 
+        result = es.get(index=settings.FILE_INDEX, id=sha1(path.encode('utf-8')).hexdigest())
+    except NotFoundError:
+        return render(request, 'browser/notfound.html', {"path": path}, status=404)
+    path_record = result["_source"]
+    if path_record["type"] == "file": 
+        return HttpResponseRedirect(f"{download_service}{path}")
+    if path_record["type"] == "link":
+        return HttpResponseRedirect(f'{path_record["target"]}')
+
 
     index_list = []
 
@@ -45,16 +83,40 @@ def browse(request):
                     "dir": dir,
                 }
             )
+ 
+    body = {"_source": {"excludes":["phenomena"]},
+            "sort": {"name.keyword": {"order": "asc"}}, 
+            "query": {"bool": {"must": [{"term": {"directory.keyword": path}}], 
+                    "must_not": [{"regexp": {"dir.keyword": "[.].*"}}]
+                    }}, "size": settings.MAX_FILES_PER_PAGE}
+    result = es.search(index=settings.FILE_INDEX, body=body)
+    items = [] 
+    
+    for hit in result["hits"]["hits"]:
+        item = hit["_source"]
+        item["download"] = f'{download_service}{item.get("path")}?download=1'
+        items.append(item)
+
+    if "json" in request.GET:
+        return JsonResponse({"items": items})
+
+    print(items)
+
+    for item in items:
+        item["icon"] = getIcon(item.get("type"), item.get("extension"))
+        item["actions"] = generate_actions(item.get("extension"), item.get("path"), download_service)
+
+    print(path_record)
 
     context = {
         "path": path,
+        "items": items,
         "index_list": index_list,
-        "DOWNLOAD_SERVICE": settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE,
-        "USE_FTP": settings.USE_FTP,
         "MAX_FILES_PER_PAGE": settings.MAX_FILES_PER_PAGE,
         "messages_": messages.get_messages(request)
     }
 
+    print(path_record)
     return render(request, 'browser/browse.html', context)
 
 
@@ -67,127 +129,5 @@ def storage_types(request):
     return render(request, 'browser/storage_types.html')
 
 
-@cache_page(120)
-@as_root_path
-@pretty_print
-def get_directories(request, path, json_params):
-    """
-    JSON endpoint to query elasticsearch directories index
-    :param request:
-    :return:
-    """
-
-    if path != '/' and not path.endswith('/'):
-        path = f'{path}/'
-
-    dir_query = base_queries.current_dir(path)
-
-    if path != '/':
-        dir_query['query']['bool']['must'].append({
-            'prefix': {
-                'path.keyword': path
-            }
-        })
-
-    es = get_elasticsearch_client()
-    results = es.search(index=settings.DIRECTORY_INDEX, body=dir_query)
-
-    # Reduce the nesting for the results
-    hits = [hit['_source'] for hit in results['hits']['hits']]
-
-    # If aggregations comes back with more than 1 hit, there are > 1 MOLES records linked from this directory
-    render_titles = len(results['aggregations']['descriptions']['buckets']) > 1
-
-    return JsonResponse(
-        {
-            'result_count': results['hits']['total'],
-            'results': hits,
-            'render_titles': render_titles
-        },
-        json_dumps_params=json_params
-    )
-
-
-@cache_page(120)
-@as_root_path
-@pretty_print
-def get_files(request, path, json_params):
-    """
-    JSON endpoint to query elasticsearch files index
-    :param request:
-    :return:
-    """
-
-    hits = []
-    first_result = {}
-    total_results = 0
-
-    id = sha1(path.encode('utf-8')).hexdigest()
-
-    es = get_elasticsearch_client()
-
-    try:
-        results = es.get(index=settings.DIRECTORY_INDEX, id=id)
-    except NotFoundError:
-        results = {'found': False}
-
-    # Check for show_all flag in query string
-    show_all = str2bool(request.GET.get('show_all'))
-
-    if results['found']:
-        first_result = results['_source']
-        archive_path = first_result['archive_path']
-
-        file_query = base_queries.file_query(archive_path)
-
-        file_results = es.search(index=settings.FILE_INDEX, body=file_query)
-
-        total_results = file_results["hits"]["total"]
-
-        page_hits = file_results["hits"]["hits"]
-        hits.extend([hit['_source'] for hit in page_hits])
-
-        # Get the true count
-        if total_results['relation'] != 'eq':
-
-            # remove unaccepted keys from the count query
-            count_query = file_query.copy()
-            for key in {'size', 'sort', '_source'}:
-                count_query.pop(key)
-
-            total_results = {
-                'value': es.count(index=settings.FILE_INDEX, body=count_query)['count'],
-                'relation': 'eq'
-            }
-
-        # Scroll the results using search after
-        if total_results['value'] > settings.MAX_FILES_PER_PAGE and show_all:
-
-            scroll_count = math.floor(total_results['value'] / settings.MAX_FILES_PER_PAGE)
-
-            search_after = page_hits[-1]["sort"]
-
-            for search in range(scroll_count):
-                file_query["search_after"] = search_after
-
-                file_results = es.search(index="ceda-fbi", body=file_query)
-
-                page_hits = file_results["hits"]["hits"]
-                if not page_hits:
-                    break
-                hits.extend([hit['_source'] for hit in page_hits])
-                search_after = page_hits[-1]["sort"]
-
-    return JsonResponse(
-        {
-            'result_count': total_results,
-            'results': hits,
-            'parent_dir': first_result
-        },
-        json_dumps_params=json_params
-    )
-
-
-class RobotsTxt(TemplateView):
-    template_name='browser/robots.txt'
-    content_type = 'text/plain'
+def robots(request):
+    return HttpResponseRedirect(f"/static/robots.txt")
