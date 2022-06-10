@@ -88,7 +88,7 @@
     <input class="hide" type="text" id="path" value="{{ path }}" style="display: none">
 
     <div class="row">
-        <div class="col" id="collection_link"></div>
+        <div class="col" id="collection_link">{{cat_info|safe}}</div>
     </div>
 
     <div class="row">
@@ -109,9 +109,11 @@
     <div class="row">
         <div class="col messages"></div>
     </div>
+
     <div class="alert alert-light text-center text-dark {% if path == "/" %} hide {% endif %}" id="page_load" role="alert">
         Loading...
     </div>
+
     <table class="table table-sm">
         <thead>
         <th style="width:25.3%"><span class="text-muted small" id="dir_count">0 dirs</span>&nbsp;<span
@@ -127,7 +129,7 @@
                 {% for item in items %}
                 <tr>
                     <td class="align-middle">{{item.icon|safe}}&nbsp;<a href="{% if item.type == 'file' %}{{item.download}}{% else %}{{item.path}}{% endif %}">{{item.name}}</a></td>
-                    <td class="align-middle">{{item.description}}</td>
+                    <td class="align-middle">{{item.description|safe}}</td>
                     <td class="align-middle">{{item.size|filesizeformat}}</td>
                     <td class="align-middle">{{item.actions|safe}}</td>
                 </tr>

@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from hashlib import sha1
+import re
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
@@ -9,8 +10,14 @@ from django.shortcuts import render, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from elasticsearch.exceptions import NotFoundError
 import os
-from browser.utils import as_root_path, get_elasticsearch_client, pretty_print, str2bool
-import browser.queries as base_queries
+import yaml
+from ceda_elasticsearch_tools.elasticsearch import CEDAElasticsearchClient
+from functools import lru_cache
+
+def get_elasticsearch_client():
+    #load api key  
+    api_key = yaml.load(open("/Users/sam.pepler/.elasticsearch.yml"), Loader=yaml.Loader)["api_key"]
+    return CEDAElasticsearchClient(headers={'x-api-key':api_key}, timeout=30)
 
 def getIcon(type, extension):
     if type == "dir":
@@ -29,6 +36,7 @@ def getIcon(type, extension):
 def generate_actions(ext, path, download_service):
     #print("actions")
     # Generate button for download action
+ 
     download_link = f"<a class='btn btn-lg' href='{download_service}{path}?download=1' title='Download file' data-toggle='tooltip'><i class='fa fa-download'></i></a>"
 
     # Generate button for view action
@@ -36,9 +44,9 @@ def generate_actions(ext, path, download_service):
 
 
     # Generate button for subset action
-    subset_link = f"<a class='btn btn-lg' href='{download_service}/thredds/dodsC{path}.html' title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i></a>",
+    subset_link = f"<a class='btn btn-lg' href='{download_service}/thredds/dodsC{path}.html' title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i></a>"
 
-    if ext in (".nc", ".hdf", ".h4", ".hdf4"):
+    if ext in ("nc", ".nc", ".hdf", ".h4", ".hdf4"):
         return download_link + subset_link
     if ext in (".gif", ".jpg", ".jpeg", ".png", ".svg", ".svgz", ".wbmp", ".webp", ".ico", ".jng", ".bmp", ".txt", ".pdf", ".html"):
         return view_link + download_link
@@ -46,10 +54,30 @@ def generate_actions(ext, path, download_service):
         return view_link
     return download_link
 
+@lru_cache(maxsize=1024)
+def moles_record(path):
+    import urllib.request, json 
+    with urllib.request.urlopen(settings.CAT_URL + path) as url:
+        data = json.loads(url.read().decode())
+    return data
+
+def moles_desc(path):
+    cat_info = moles_record(path)
+    if cat_info["record_type"] == "Dataset":
+        return f'''<i class="fas fa-database dataset" title="These records describe and link to the actual data in our archive. 
+                     They also provide spatial and temporal information, 
+                     access and usage information and link to background information on why and how the data were collected." data-toggle="tooltip">
+                     </i> {cat_info["title"]} 
+                     <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+    elif cat_info["record_type"] == "Dataset Collection":   
+        return f'''<i class="fas fa-copy collection" title="A collection of Datasets that share some common purpose, theme or association. 
+                   These collections link to one or more Dataset records." data-toggle="tooltip"></i> {cat_info["title"]} 
+                   <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+    return ""
+
 
 @csrf_exempt
 def browse(request):
-    print("xxx")
     path = request.path
     download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
 
@@ -68,7 +96,6 @@ def browse(request):
     if path_record["type"] == "link":
         return HttpResponseRedirect(f'{path_record["target"]}')
 
-
     index_list = []
 
     if path != '/':
@@ -83,40 +110,42 @@ def browse(request):
                     "dir": dir,
                 }
             )
- 
+
     body = {"_source": {"excludes":["phenomena"]},
             "sort": {"name.keyword": {"order": "asc"}}, 
             "query": {"bool": {"must": [{"term": {"directory.keyword": path}}], 
-                    "must_not": [{"regexp": {"dir.keyword": "[.].*"}}]
+                    "must_not": [{"regexp": {"name.keyword": "[.].*"}}]
                     }}, "size": settings.MAX_FILES_PER_PAGE}
     result = es.search(index=settings.FILE_INDEX, body=body)
     items = [] 
     
     for hit in result["hits"]["hits"]:
         item = hit["_source"]
-        item["download"] = f'{download_service}{item.get("path")}?download=1'
+        if item["type"] == "file":
+            item["download"] = f'{download_service}{item.get("path")}?download=1'
         items.append(item)
 
-    if "json" in request.GET:
-        return JsonResponse({"items": items})
+    cat_info = moles_record(path)
 
-    print(items)
+    if "json" in request.GET:
+        return JsonResponse({"path": path, "catalogue_info": cat_info, "items": items})
 
     for item in items:
-        item["icon"] = getIcon(item.get("type"), item.get("extension"))
-        item["actions"] = generate_actions(item.get("extension"), item.get("path"), download_service)
-
-    print(path_record)
+        item["icon"] = getIcon(item.get("type"), item.get("ext"))
+        item["actions"] = generate_actions(item.get("ext"), item.get("path"), download_service)
+    if cat_info["record_type"] != "Dataset":
+        for item in items:
+            item["description"] = moles_desc(item.get("path"))
 
     context = {
         "path": path,
         "items": items,
         "index_list": index_list,
         "MAX_FILES_PER_PAGE": settings.MAX_FILES_PER_PAGE,
-        "messages_": messages.get_messages(request)
+        "messages_": messages.get_messages(request),
+        "cat_info": moles_desc(path)
     }
 
-    print(path_record)
     return render(request, 'browser/browse.html', context)
 
 

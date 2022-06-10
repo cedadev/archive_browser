@@ -87,6 +87,7 @@ DIRECTORY_INDEX = 'samtest6'
 FILE_INDEX = 'samtest6'
 MAX_FILES_PER_PAGE = 2000
 ROOT_DIRECTORY_FILTER = []
+CAT_URL = "http://api.catalogue.ceda.ac.uk/api/v0/obs/get_info"
 
 from archive_browser.settings_local import *
 
