@@ -21,6 +21,7 @@ urlpatterns = [
     #re_path('^api/file/(?P<path>.*)', views.get_files, name='files'),
     path('storage_types', views.storage_types, name='storage_types'),
     path('robots.txt', views.robots, name='robots'),
+    path('moles_cache', views.moles_cache, name='cache'),
     re_path('.*', views.browse, name='browse' ),
 ]
 

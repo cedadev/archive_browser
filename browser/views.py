@@ -148,6 +148,11 @@ def browse(request):
 
     return render(request, 'browser/browse.html', context)
 
+def moles_cache(request):
+    cache_info = moles_record.cache_info()
+    if "clear" in request.GET:
+        moles_record.cache_clear()
+    return render(request, 'browser/moles_cache.html', {"cache_info": cache_info})
 
 def storage_types(request):
     """
