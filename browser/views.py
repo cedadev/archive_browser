@@ -142,7 +142,8 @@ def browse(request):
     body = {"_source": {"excludes":["phenomena"]},
             "sort": {"name.keyword": {"order": "asc"}}, 
             "query": {"bool": {"must": [{"term": {"directory.keyword": path}}], 
-                    "must_not": [{"regexp": {"name.keyword": "[.].*"}}]
+                    "must_not": [{"regexp": {"name.keyword": "[.].*"}},
+                                 {"exists": {"field": "removed"}}]
                     }}, "size": settings.MAX_FILES_PER_PAGE}
     result = es.search(index=settings.FILE_INDEX, body=body)
     items = [] 
