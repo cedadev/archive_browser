@@ -156,7 +156,7 @@ def browse(request):
     cat_info = moles_record(path)
 
     if "json" in request.GET:
-        return JsonResponse({"path": path, "catalogue_info": cat_info, "items": items})
+        return JsonResponse({"path": path, "items": items})
 
     for item in items:
         item["icon"] = getIcon(item.get("type"), item.get("ext"))

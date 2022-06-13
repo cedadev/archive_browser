@@ -13,6 +13,14 @@
 
 {% block head_js_extra %}
     <script src="//artefacts.ceda.ac.uk/themes/orgtheme/0.1/_vendor/jquery/dist/jquery.min.js"></script>
+    <script>
+        function copyPath() {
+            var copyText = document.getElementById("path_for_copy_button");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); /* For mobile devices */
+            navigator.clipboard.writeText(copyText.value);
+        }
+    </script>
 {% endblock head_js_extra %}
 
 {% block stylesheets_extra %}
@@ -22,6 +30,9 @@
 
 
 {% block content %}
+    <!-- For copy button -->
+    <div style="position: absolute; top: -1000px"><input type="text" value="{{request.path}}" id="path_for_copy_button"></div>
+
     <div class="collapse" id="collapseBulkDownload">
         <div class="alert alert-info" role="alert">
             <h3>Bulk Download Options</h3>
@@ -38,6 +49,7 @@
                 <li>DAP: If you need to just get a subset of NetCDF files have a look at
                     help page about interacting <a href="https://help.ceda.ac.uk/article/4442-ceda-opendap-scripted-interactions">
                         programmatically with the data</a></li>
+                <li>JSON listing: Use <a href="?json">json listing</a> of this directory to script download. </li>
         </ul></p>
         </div>
       </div>
@@ -78,7 +90,7 @@
                            <span class="fas fa-cart-arrow-down"></span>
                     </button>
                 </span>
-                <button type="button" id="copy" class="btn btn-primary mt-1" data-toggle="tooltip"
+                <button type="button" id="copy" class="btn btn-primary mt-1" data-toggle="tooltip" onclick="copyPath()"
                         data-original-title="Copy directory path" title="Copy directory path">
                     <i class="fas fa-copy" aria-hidden="true"></i>
                 </button>
@@ -127,10 +139,6 @@
     </div>
     <div class="row">
         <div class="col messages"></div>
-    </div>
-
-    <div class="alert alert-light text-center text-dark {% if path == "/" %} hide {% endif %}" id="page_load" role="alert">
-        Loading...
     </div>
 
     <table class="table table-sm">
