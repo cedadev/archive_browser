@@ -75,6 +75,34 @@ def moles_desc(path):
                    <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
     return ""
 
+@lru_cache(maxsize=1024)
+def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
+    query = {"query": {"term": {"directory.tree": path}}, "size": 0,
+             "aggs": {"size_stats":{"stats":{"field":"size"}},
+                      "types": {"terms": {"field": "type", "size": maxtypes}},
+                      "exts": {"terms": {"field": "ext", "size": max_ext}},
+                      "vars": {"terms": {"field": "phenomena.best_name.keyword", "size": vars_max}}}}
+    es = get_elasticsearch_client()
+    result = es.search(index=settings.FILE_INDEX, body=query)
+    result = result["aggregations"]
+    total_size = result["size_stats"]["sum"]
+    ave_size = result["size_stats"]["avg"]
+    item_types = []
+    for t in result["types"]["buckets"]:
+        item_types.append((t["key"], t["doc_count"]))
+    exts = []
+    for e in result["exts"]["buckets"]:
+        exts.append((e["key"], e["doc_count"]))      
+    
+    # only return vars is a short list
+    vars = []
+    if len(result["vars"]["buckets"]) < vars_max:
+        for v in result["vars"]["buckets"]:
+            vars.append(v["key"])
+    else:
+        vars = ["Many Variables detected..."]
+    return {"total_size": total_size, "ave_size": ave_size, "item_types": item_types, "exts": exts, "vars": vars}
+
 
 @csrf_exempt
 def browse(request):
@@ -143,7 +171,8 @@ def browse(request):
         "index_list": index_list,
         "MAX_FILES_PER_PAGE": settings.MAX_FILES_PER_PAGE,
         "messages_": messages.get_messages(request),
-        "cat_info": moles_desc(path)
+        "cat_info": moles_desc(path),
+        "agg_info": agg_info(path)
     }
 
     return render(request, 'browser/browse.html', context)

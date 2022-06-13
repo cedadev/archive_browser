@@ -1,5 +1,6 @@
 {% extends "fwtheme_django/layout.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block head_title %}CEDA Archive Web Browser{% endblock %}
 {% block extra_meta %}
@@ -48,7 +49,7 @@
     {% endfor %}
 
     <div class="row">
-        <div class="col-10">
+        <div class="col-8">
             <div class="float-left">
 
                 <ol class="breadcrumb">
@@ -69,7 +70,7 @@
             </div>
         </div>
 
-        <div class="col-2">
+        <div class="col-4">
             <div class="float-right">
                 <span data-toggle="tooltip" title="Bulk download options">
                     <button class="btn btn-primary mt-1" type="button" data-toggle="collapse"
@@ -81,6 +82,9 @@
                         data-original-title="Copy directory path" title="Copy directory path">
                     <i class="fas fa-copy" aria-hidden="true"></i>
                 </button>
+                <button type="button" class="btn btn-primary mt-1" data-toggle="collapse" data-target="#aggs">
+                    {{agg_info.total_size|filesizeformat}} {{agg_info.item_types.0.1 | intcomma}} files, mostly {{agg_info.exts.0.0}}
+                </button>
             </div>
         </div>
     </div>
@@ -89,7 +93,22 @@
 
     <div class="row">
         <div class="col" id="collection_link">{{cat_info|safe}}</div>
+      
     </div>
+
+    
+    <div id="aggs" class="collapse">
+        <div class="alert alert-info">
+           
+                <h5>Aggrigate information</h5>
+                <p>Average Size: {{agg_info.ave_size|filesizeformat}} </p>
+                <p>Item Types: {% for t, n in agg_info.item_types %} <span class="badge badge-warning">{{t}}: {{n}}</span> {% endfor %} </p>
+                <p>Commmon Extensions: {% for e, n in agg_info.exts %} <span class="badge badge-light">{{e}}: {{n}}</span> {% endfor %} </p>
+                <p>Variables: {% for v in agg_info.vars %}<span class="badge badge-primary">{{v}}</span> {% endfor %}</p>             
+         
+          </div>
+    </div>
+  
 
     <div class="row">
         <div class="col-3 hide mb-2" id="readmeButton">

@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.humanize',
     'fwtheme_django_ceda_serv',
     'fwtheme_django',
     'browser.apps.BrowserConfig',
