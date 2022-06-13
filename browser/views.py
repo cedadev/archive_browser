@@ -16,7 +16,7 @@ from functools import lru_cache
 
 def get_elasticsearch_client():
     #load api key  
-    api_key = yaml.load(open("/Users/sam.pepler/.elasticsearch.yml"), Loader=yaml.Loader)["api_key"]
+    api_key = yaml.load(open("/Users/sam.pepler/.fbi.yml"), Loader=yaml.Loader)["ES"]["api_key"]
     return CEDAElasticsearchClient(headers={'x-api-key':api_key}, timeout=30)
 
 def getIcon(type, extension):
