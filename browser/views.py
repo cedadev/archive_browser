@@ -162,9 +162,21 @@ def browse(request):
     for item in items:
         item["icon"] = getIcon(item.get("type"), item.get("ext"))
         item["actions"] = generate_actions(item.get("ext"), item.get("path"), download_service)
-    if cat_info["record_type"] != "Dataset":
+
+    # work out what to show in the description field
+    show_desc = True
+    if cat_info["record_type"] == "Dataset":
+        show_desc = False
+    else:
+        first_desc = None
+        desc_differ = False
         for item in items:
             item["description"] = moles_desc(item.get("path"))
+            if first_desc is None: 
+                first_desc = item["description"]
+            if item["description"] != first_desc:
+                desc_differ = True
+        show_desc =  desc_differ           
 
     context = {
         "path": path,
@@ -173,7 +185,8 @@ def browse(request):
         "MAX_FILES_PER_PAGE": settings.MAX_FILES_PER_PAGE,
         "messages_": messages.get_messages(request),
         "cat_info": moles_desc(path),
-        "agg_info": agg_info(path)
+        "agg_info": agg_info(path),
+        "show_desc": show_desc
     }
 
     return render(request, 'browser/browse.html', context)
