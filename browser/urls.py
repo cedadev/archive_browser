@@ -22,6 +22,7 @@ urlpatterns = [
     path('storage_types', views.storage_types, name='storage_types'),
     path('robots.txt', views.robots, name='robots'),
     path('moles_cache', views.moles_cache, name='cache'),
+    path('search', views.search, name='search'),
     re_path('.*', views.browse, name='browse' ),
 ]
 

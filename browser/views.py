@@ -139,7 +139,7 @@ def browse(request):
                 }
             )
 
-    body = {"_source": {"excludes":["phenomena"]},
+    body = {
             "sort": {"name.keyword": {"order": "asc"}}, 
             "query": {"bool": {"must": [{"term": {"directory.keyword": path}}], 
                     "must_not": [{"regexp": {"name.keyword": "[.].*"}},
@@ -200,3 +200,19 @@ def storage_types(request):
 
 def robots(request):
     return HttpResponseRedirect(f"/static/robots.txt")
+
+def search(request):
+    q = ''
+    results = []
+
+    if "q" in request.GET:
+        q = request.GET.get("q")
+        body = { 
+            "query": {"match": {"name": {"query": q}}}, 
+            "size": 10000}
+        es = get_elasticsearch_client()
+        result = es.search(index=settings.FILE_INDEX, body=body)
+        for r in result["hits"]["hits"]:
+            results.append(r["_source"])
+        
+    return render(request, 'browser/search.html', {"q": q, "results": results})
