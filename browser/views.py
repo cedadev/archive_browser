@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from elasticsearch.exceptions import NotFoundError
 import os
 import yaml
+import json
 from ceda_elasticsearch_tools.elasticsearch import CEDAElasticsearchClient
 from functools import lru_cache
 
@@ -33,9 +34,11 @@ def getIcon(type, extension):
     return '<span class="far fa-file"></span>'
 
 
-def generate_actions(ext, path, download_service):
+def generate_actions(ext, path, item_type, download_service):
     #print("actions")
     # Generate button for download action
+    if item_type == "dir":
+        return ""
  
     download_link = f"<a class='btn btn-lg' href='{download_service}{path}?download=1' title='Download file' data-toggle='tooltip'><i class='fa fa-download'></i></a>"
 
@@ -109,8 +112,9 @@ def browse(request):
     path = request.path
     download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
 
-    if len(path) > 1:
-        path = path.rstrip('/')
+    path = path.rstrip('/')
+    if path == "": 
+        path = "/"
 
     # Check if the request is a file and redirect for direct download
     es = get_elasticsearch_client()
@@ -145,6 +149,7 @@ def browse(request):
                     "must_not": [{"regexp": {"name.keyword": "[.].*"}},
                                  {"exists": {"field": "removed"}}]
                     }}, "size": settings.MAX_FILES_PER_PAGE}
+    print(json.dumps(body))
     result = es.search(index=settings.FILE_INDEX, body=body)
     items = [] 
     
@@ -152,7 +157,8 @@ def browse(request):
         item = hit["_source"]
         if item["type"] == "file":
             item["download"] = f'{download_service}{item.get("path")}?download=1'
-        items.append(item)
+        if item["path"] not in settings.DO_NOT_DISPLAY:
+            items.append(item)
 
     cat_info = moles_record(path)
 
@@ -161,7 +167,7 @@ def browse(request):
 
     for item in items:
         item["icon"] = getIcon(item.get("type"), item.get("ext"))
-        item["actions"] = generate_actions(item.get("ext"), item.get("path"), download_service)
+        item["actions"] = generate_actions(item.get("ext"), item.get("path"), item.get("type"), download_service)
 
     # work out what to show in the description field
     path_desc = moles_desc(path)
