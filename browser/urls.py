@@ -13,10 +13,18 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+
 from django.urls import path, re_path
+from django.shortcuts import HttpResponse
 from . import views
 
+
+def health_view(request):
+    return HttpResponse("OK")
+
+
 urlpatterns = [
+    path('health/', health_view, name='health'),
     #re_path('^api/directory/(?P<path>.*)', views.get_directories, name='directories'),
     #re_path('^api/file/(?P<path>.*)', views.get_files, name='files'),
     path('storage_types', views.storage_types, name='storage_types'),

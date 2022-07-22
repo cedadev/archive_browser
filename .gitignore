@@ -6,4 +6,7 @@ __pycache__
 ../Vagrantfile
 *venv
 *.egg-info
+.eggs
 .idea
+.vscode
+.static
