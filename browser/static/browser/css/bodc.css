@@ -53,10 +53,6 @@ body > .container {
     }
 }
 
-.row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
-    background: #13324D;
-}
-
 p {
  color: #fff
 }
@@ -68,6 +64,11 @@ p {
 
 .breadcrumb {
     background-color: #f1f1f9
+}
+
+/* footer */
+.row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
+    background: #13324D;
 }
 
 /* browser specific*/

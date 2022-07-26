@@ -53,11 +53,6 @@ a.navbar-brand {
     }
 }
 
-
-.row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
-    background: #000;
-}
-
 p {
  color: #fff
 }
@@ -69,6 +64,11 @@ p {
 
 .breadcrumb {
     background-color: #f0f0f1
+}
+
+/* footer */
+.row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
+    background: #000;
 }
 
 /* browser specific*/
