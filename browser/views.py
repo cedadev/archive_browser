@@ -187,6 +187,22 @@ def browse(request):
 
     return render(request, 'browser/browse.html', context)
 
+
+@csrf_exempt
+def item_info(request):
+    path = request.GET.get("p")
+    print("xxxxxx")
+    print(path)
+    es = get_elasticsearch_client()
+    try: 
+        result = es.get(index=settings.FILE_INDEX, id=sha1(path.encode('utf-8')).hexdigest())
+    except NotFoundError:
+        return render(request, 'browser/notfound.html', {"path": path}, status=404)
+    path_record = result["_source"]
+    return JsonResponse(path_record)
+
+ 
+
 def moles_cache(request):
     cache_info = moles_record.cache_info()
     if "clear" in request.GET:

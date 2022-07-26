@@ -31,6 +31,7 @@ urlpatterns = [
     path('robots.txt', views.robots, name='robots'),
     path('moles_cache', views.moles_cache, name='cache'),
     path('search', views.search, name='search'),
+    path('item_info', views.item_info, name='item_info'),
     re_path('.*', views.browse, name='browse' ),
 ]
 
