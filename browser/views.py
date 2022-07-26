@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from hashlib import sha1
 import re
+from typing import DefaultDict
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
@@ -163,7 +164,9 @@ def browse(request):
     if "json" in request.GET:
         return JsonResponse({"path": path, "items": items})
 
+    counts = DefaultDict(int)
     for item in items:
+        counts[item["type"]] += 1
         item["icon"] = getIcon(item.get("type"), item.get("ext"))
         item["actions"] = generate_actions(item.get("ext"), item.get("path"), item.get("type"), download_service)
 
@@ -183,6 +186,7 @@ def browse(request):
         "messages_": messages.get_messages(request),
         "cat_info": path_desc,
         "agg_info": agg_info(path),
+        "counts": counts
     }
 
     return render(request, 'browser/browse.html', context)
