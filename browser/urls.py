@@ -19,6 +19,7 @@ from . import views
 urlpatterns = [
     re_path('^api/directory/(?P<path>.*)', views.get_directories, name='directories'),
     re_path('^api/file/(?P<path>.*)', views.get_files, name='files'),
+    #url('^api/directory/(?<datacenter>[a-z-]+>/$','views.browser'),
     path('storage_types', views.storage_types, name='storage_types'),
     path('robots.txt', views.RobotsTxt.as_view(), name='robots'),
     re_path('.*', views.browse, name='browse' ),

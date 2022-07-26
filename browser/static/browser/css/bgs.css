@@ -1,0 +1,85 @@
+/* Org customisations of Grunt-produced theme */
+
+/* Change padding of top navbar to avoid overlapping page title text. Only for fixed-top navbar */
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 100px;
+}
+  
+body > .container {
+    padding-bottom: 100px;
+}
+   
+/* Match height of navbar to height of logo image */  
+.navbar-brand {
+    height: auto; /* Adjust this to the height of the logo image */
+}
+  
+/*
+* Start Bootstrap - Logo Nav (http://startbootstrap.com/)
+* Copyright 2013-2016 Start Bootstrap
+* Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
+*/
+  
+.navbar.bg-primary{
+    background: #002e40 !important;
+}
+
+.navbar.fixed-top {
+    padding: 4px 4px;
+}
+
+.nav .navbar-brand {
+    padding: 0 0;
+}
+  
+.navbar-brand {
+    padding: 0 0;
+}
+  
+@media(min-width:768px) {
+    body {
+        padding-top: 114px; /* Required padding for .navbar-fixed-top. Change if height of navigation changes. */
+    }
+
+    .navbar-fixed-top .nav .navbar-brand {
+        padding: 0 0;
+    }
+}
+
+/* footer colour */
+.row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
+    background: #dcdcd9;
+}
+
+
+p {
+    color: #fff
+}
+
+.btn-primary {
+    background-color: #002e40;
+    border-color: #002e40
+}
+
+.breadcrumb {
+    background-color: #F6F6F5
+}
+
+/* browser specific*/
+.dataset {
+    color: #4b4b4b;
+}
+
+.collection {
+    color: #717070
+}
+
+.hide {
+    display: none;
+}
