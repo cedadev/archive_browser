@@ -55,18 +55,13 @@ def browse(request):
         "messages_": messages.get_messages(request)
     }
 
-    nerc_dcs = ['badc','neodc', 'bodc', 'eich', 'ngdc', 'pdc', 'ukssdc']
-
     # default value - overwritten depending on datacenter selected
-    template = 'browse'
-    for dc in nerc_dcs:
+    template = 'browse.html'
+    for dc in settings.DATACENTRES:
         if dc in path:
-            if dc == 'badc' or dc == 'neodc':
-                template = 'browse'
-            else:
-                template = dc
+            template = settings.DATACENTRES[dc]
 
-    return render(request, f'browser/{template}.html', context)
+    return render(request, f'browser/{template}', context)
 
 
 def storage_types(request):
