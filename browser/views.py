@@ -106,6 +106,17 @@ def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     return {"total_size": total_size, "ave_size": ave_size, "item_types": item_types, "exts": exts, "vars": vars}
 
 
+def make_breadcrumbs(path):
+    index_list = [{"path": "", "dir": "archive"}]
+    if path == "/":
+        return index_list
+
+    split_target = path.split('/')[1:]
+    for i, dir in enumerate(split_target, 1):
+        subset = split_target[:i]
+        index_list.append({"path": '/'.join(subset), "dir": dir}) 
+    return index_list   
+
 @csrf_exempt
 def browse(request):
     path = request.path
@@ -127,27 +138,28 @@ def browse(request):
     if path_record["type"] == "link":
         return HttpResponseRedirect(f'{path_record["target"]}')
 
-    index_list = []
-
-    if path != '/':
-        split_target = path.split('/')[1:]
-
-        for i, dir in enumerate(split_target, 1):
-            subset = split_target[:i]
-
-            index_list.append(
-                {
-                    "path": '/'.join(subset),
-                    "dir": dir,
-                }
-            )
+    index_list = make_breadcrumbs(path)
+    print(index_list)
 
     body = {
             "sort": {"name.keyword": {"order": "asc"}}, 
             "query": {"bool": {"must": [{"term": {"directory.keyword": path}}], 
-                    "must_not": [{"regexp": {"name.keyword": "[.].*"}},
-                                 {"exists": {"field": "removed"}}]
+                    "must_not": []
                     }}, "size": settings.MAX_FILES_PER_PAGE}
+    
+    if "removed" not in request.GET:
+        body["query"]["bool"]["must_not"].append({"exists": {"field": "removed"}})
+    if "hidden" not in request.GET:
+        body["query"]["bool"]["must_not"].append({"regexp": {"name.keyword": "[.].*"}})
+    
+    hide_removed = []
+    if "removed" in request.GET: hide_removed.append("removed")
+    if "hidden" in request.GET: hide_removed.append("hidden")
+    if len(hide_removed) > 0:
+        hide_removed = "?" + "&".join(hide_removed)
+    else: 
+        hide_removed = ""
+
     print(json.dumps(body))
     result = es.search(index=settings.FILE_INDEX, body=body)
     items = [] 
@@ -186,7 +198,8 @@ def browse(request):
         "messages_": messages.get_messages(request),
         "cat_info": path_desc,
         "agg_info": agg_info(path),
-        "counts": counts
+        "counts": counts,
+        "hide_removed": hide_removed
     }
 
     return render(request, 'browser/browse.html', context)
