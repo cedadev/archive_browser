@@ -46,11 +46,12 @@ def browse(request):
                 }
             )
 
-    data_centre = "browser/browse.html"
+    data_centre = 'browser/ceda.html'
 
     for dc in settings.DATACENTRES:
         if dc in path:
             data_centre = f"browser/{settings.DATACENTRES[dc]}"
+
         
     context = {
         "path": path,
@@ -62,7 +63,7 @@ def browse(request):
         "data_centre": data_centre
     }
 
-    return render(request, 'browser/base.html', context)
+    return render(request, 'browser/browse.html', context)
     
     
 def storage_types(request):
