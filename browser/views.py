@@ -46,24 +46,25 @@ def browse(request):
                 }
             )
 
+    data_centre = "browser/browse.html"
+
+    for dc in settings.DATACENTRES:
+        if dc in path:
+            data_centre = f"browser/{settings.DATACENTRES[dc]}"
+        
     context = {
         "path": path,
         "index_list": index_list,
         "DOWNLOAD_SERVICE": settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE,
         "USE_FTP": settings.USE_FTP,
         "MAX_FILES_PER_PAGE": settings.MAX_FILES_PER_PAGE,
-        "messages_": messages.get_messages(request)
+        "messages_": messages.get_messages(request),
+        "data_centre": data_centre
     }
 
-    # default value - overwritten depending on datacenter selected
-    template = 'browse.html'
-    for dc in settings.DATACENTRES:
-        if dc in path:
-            template = settings.DATACENTRES[dc]
-
-    return render(request, f'browser/{template}', context)
-
-
+    return render(request, 'browser/base.html', context)
+    
+    
 def storage_types(request):
     """
     Page to display information about different storage types
