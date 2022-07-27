@@ -1,0 +1,58 @@
+{% extends "browser/browse_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block breadcrumbs %}
+<div class="col-8">
+    <div class="float-left">
+        <ol class="breadcrumb">
+            {% for dir in index_list %}
+                {% if forloop.last %}
+                <li class="breadcrumb-item active text-grey">{{ dir.dir }}</li>
+                {% else %}
+                <li class="breadcrumb-item"><a href="/{{ dir.path }}?hidden">{{ dir.dir }}</a></li>
+                {% endif %}
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block item_table %}
+<table class="table table-sm">
+    <thead>
+    <th style="width:25.3%"><span class="text-muted small" id="dir_count">{{counts.dir}} dirs</span>&nbsp;<span
+            class="text-muted small" id="file_count">{{counts.file}} files</span></th>
+    <th style="width:41.5%">Description</th>
+    <th style="width:8.3%">Size</th>
+    <th style="width:16.6%">Actions</th>
+    </thead>
+
+    <tbody id="results">
+      
+            {% for item in items %}
+            {% if item.location == 'on_tape' %}
+            <tr class="text-muted">
+                <td class="align-middle">{{item.icon|safe}}&nbsp;{{item.name}}</a></td>
+                <td class="align-middle">{{item.description|safe}}</td>
+                <td class="align-middle">{{item.size|filesizeformat}}</td>
+                <td class="align-middle"><a class="btn btn-lg" href="/storage_types#on_tape" 
+                    title="" data-toggle="tooltip" data-original-title="File on tape"><i class="fa fa-info-circle"></i></a></td>                 
+            </tr>
+            {% else %}
+            <tr>
+                <td class="align-middle">{{item.icon|safe}}&nbsp;
+                    <a href="{% if item.type == 'file' %}{{item.download}}{% else %}{{item.path}}?hidden{% endif %}">{{item.name}}</a></td>
+                <td class="align-middle">{{item.description|safe}}
+                    {% if item.type == 'link' %}<i class="fa fa-bullseye"></i>&nbsp;{{item.target}}{% endif %}
+                </td>
+                <td class="align-middle">{% if item.type == 'file' %}{{item.size|filesizeformat}}{% endif %}</td>
+                <td class="align-middle">{{item.actions|safe}}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+           
+    </tbody>
+</table>
+{% endblock %}

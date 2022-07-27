@@ -61,6 +61,8 @@
     {% endfor %}
 
     <div class="row">
+
+        {% block breadcrumbs %}
         <div class="col-8">
             <div class="float-left">
                 <ol class="breadcrumb">
@@ -68,12 +70,13 @@
                         {% if forloop.last %}
                         <li class="breadcrumb-item active text-grey">{{ dir.dir }}</li>
                         {% else %}
-                        <li class="breadcrumb-item"><a href="/{{ dir.path }}{{hide_removed}}">{{ dir.dir }}</a></li>
+                        <li class="breadcrumb-item"><a href="/{{ dir.path }}">{{ dir.dir }}</a></li>
                         {% endif %}
                     {% endfor %}
                 </ol>
             </div>
         </div>
+        {% endblock %}
 
         <div class="col-4">
             <div class="float-right">
@@ -132,6 +135,8 @@
         <div class="col messages"></div>
     </div>
 
+
+    {% block item_table %}
     <table class="table table-sm">
         <thead>
         <th style="width:25.3%"><span class="text-muted small" id="dir_count">{{counts.dir}} dirs</span>&nbsp;<span
@@ -140,7 +145,6 @@
         <th style="width:8.3%">Size</th>
         <th style="width:16.6%">Actions</th>
         </thead>
-
 
         <tbody id="results">
           
@@ -156,7 +160,7 @@
                 {% else %}
                 <tr>
                     <td class="align-middle">{{item.icon|safe}}&nbsp;
-                        <a href="{% if item.type == 'file' %}{{item.download}}{% else %}{{item.path}}{{hide_removed}}{% endif %}">{{item.name}}</a></td>
+                        <a href="{% if item.type == 'file' %}{{item.download}}{% else %}{{item.path}}{% endif %}">{{item.name}}</a></td>
                     <td class="align-middle">{{item.description|safe}}
                         {% if item.type == 'link' %}<i class="fa fa-bullseye"></i>&nbsp;{{item.target}}{% endif %}
                     </td>
@@ -168,6 +172,8 @@
                
         </tbody>
     </table>
+    {% endblock %}
+
     <div class="row">
         <div class="col messages"></div>
     </div>

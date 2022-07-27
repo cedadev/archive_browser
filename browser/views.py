@@ -147,18 +147,14 @@ def browse(request):
                     "must_not": []
                     }}, "size": settings.MAX_FILES_PER_PAGE}
     
-    if "removed" not in request.GET:
+    show_hidden = "hidden" in request.GET
+    show_removed = "removed" in request.GET
+    if show_removed: show_hidden = True
+
+    if not show_removed:
         body["query"]["bool"]["must_not"].append({"exists": {"field": "removed"}})
-    if "hidden" not in request.GET:
+    if not show_hidden:
         body["query"]["bool"]["must_not"].append({"regexp": {"name.keyword": "[.].*"}})
-    
-    hide_removed = []
-    if "removed" in request.GET: hide_removed.append("removed")
-    if "hidden" in request.GET: hide_removed.append("hidden")
-    if len(hide_removed) > 0:
-        hide_removed = "?" + "&".join(hide_removed)
-    else: 
-        hide_removed = ""
 
     print(json.dumps(body))
     result = es.search(index=settings.FILE_INDEX, body=body)
@@ -188,8 +184,16 @@ def browse(request):
         for item in items:
             item_desc = moles_desc(item.get("path"))
             if item_desc != path_desc:
-                item["description"] = moles_desc(item.get("path"))       
+                item["description"] = moles_desc(item.get("path"))
 
+    template = 'browser/browse_base.html'
+    if show_removed:
+        template = 'browser/browse_removed.html'
+        messages.warning(request, f'Viewing removed and hidden files. <a href="{path}">Normal view</a>')
+    elif show_hidden:
+        template = 'browser/browse_hidden.html'
+        messages.info(request, f'Viewing hidden files. <a href="{path}">Normal view</a>')
+    
     context = {
         "path": path,
         "items": items,
@@ -199,10 +203,9 @@ def browse(request):
         "cat_info": path_desc,
         "agg_info": agg_info(path),
         "counts": counts,
-        "hide_removed": hide_removed
     }
 
-    return render(request, 'browser/browse.html', context)
+    return render(request, template, context)
 
 
 @csrf_exempt
