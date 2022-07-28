@@ -63,7 +63,6 @@ class _LruCacheFunctionWrapper:
             return ret
         
         ret, last_run_time, expire_time = cache_values 
-        print (args, expire_time, time.time(), time.time() - expire_time)
         if expire_time < time.time():
             self.__expired += 1
             ret, run_time, expire_time = self._run_wrapped(*args, **kwargs)
