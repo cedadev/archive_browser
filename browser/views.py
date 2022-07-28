@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from elasticsearch.exceptions import NotFoundError
+from .lru_cache_expires import lru_cache_expires
 import os
 import yaml
 import json
@@ -56,13 +57,31 @@ def generate_actions(ext, path, item_type, download_service):
         return view_link
     return download_link
 
-@lru_cache(maxsize=1024)
+
+@lru_cache_expires(maxsize=1024, expire_period=8*3600)
 def moles_record(path):
     import urllib.request, json 
     with urllib.request.urlopen(settings.CAT_URL + path) as url:
         data = json.loads(url.read().decode())
     return data
 
+
+@lru_cache_expires(maxsize=1024, max_expire_period=3600)
+def readme_line(path):
+    """get readme line"""
+    es = get_elasticsearch_client()
+    readme_file = os.path.join(path, "00README") 
+    try: 
+        result = es.get(index=settings.FILE_INDEX, id=sha1(readme_file.encode('utf-8')).hexdigest())
+    except NotFoundError:
+        return None
+    readme_content = result["_source"]
+    if "content" in readme_content: 
+        first_chars = readme_content["content"][:500]
+        return first_chars.splitlines()[0]
+    else:
+        return None
+ 
 def moles_desc(path):
     cat_info = moles_record(path)
     if cat_info["record_type"] == "Dataset":
@@ -75,15 +94,22 @@ def moles_desc(path):
         return f'''<i class="fas fa-copy collection" title="A collection of Datasets that share some common purpose, theme or association. 
                    These collections link to one or more Dataset records." data-toggle="tooltip"></i> {cat_info["title"]} 
                    <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+    readme_info = readme_line(path)
+    if readme_info:
+        return readme_info
     return ""
 
-@lru_cache(maxsize=1024)
+@lru_cache_expires(maxsize=1024, max_expire_period=10*3600, min_call_time_for_caching=1.0)
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
-    query = {"query": {"term": {"directory.tree": path}}, "size": 0,
-             "aggs": {"size_stats":{"stats":{"field":"size"}},
+    if path != "/":
+        query = {"query": {"term": {"directory.tree": path}}}
+    else:
+        query = {"query": {"match_all": {}}}
+    query["size"] = 0
+    query["aggs"] = {"size_stats":{"stats":{"field":"size"}},
                       "types": {"terms": {"field": "type", "size": maxtypes}},
                       "exts": {"terms": {"field": "ext", "size": max_ext}},
-                      "vars": {"terms": {"field": "phenomena.best_name.keyword", "size": vars_max}}}}
+                      "vars": {"terms": {"field": "phenomena.best_name.keyword", "size": vars_max}}}
     es = get_elasticsearch_client()
     result = es.search(index=settings.FILE_INDEX, body=query)
     result = result["aggregations"]
@@ -223,11 +249,13 @@ def item_info(request):
 
  
 
-def moles_cache(request):
-    cache_info = moles_record.cache_info()
+def cache_control(request):
+    context = {"moles": moles_record.cache_info(), 
+               "agg": agg_info.cache_info(),
+               "readme": readme_line.cache_info()}
     if "clear" in request.GET:
         moles_record.cache_clear()
-    return render(request, 'browser/moles_cache.html', {"cache_info": cache_info})
+    return render(request, 'browser/cache.html', context)
 
 def storage_types(request):
     """
