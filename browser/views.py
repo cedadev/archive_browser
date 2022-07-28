@@ -43,7 +43,6 @@ def generate_actions(ext, path, item_type, download_service):
     # Generate button for view action
     view_link = f'<a class="btn btn-lg" href="{download_service}{path}" title="View file" data-toggle="tooltip"><i class="fa fa-eye"></i></a>'
 
-
     # Generate button for subset action
     subset_link = f"<a class='btn btn-lg' href='{download_service}/thredds/dodsC{path}.html' title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i></a>"
 
@@ -97,7 +96,6 @@ def directory_desc(path):
 
 @lru_cache_expires(maxsize=1024, max_expire_period=10*3600, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
-    print(f"In agg - {path}")
     if path != "/":
         query = {"query": {"term": {"directory.tree": path}}}
     else:
@@ -247,7 +245,7 @@ def item_info(request):
  
 
 def cache_control(request):
-    context = {"moles": directory_desc.cache_info(), 
+    context = {"directory_desc": directory_desc.cache_info(), 
                "agg": agg_info.cache_info()}
     if "clear_all" in request.GET:
         directory_desc.cache_clear()
