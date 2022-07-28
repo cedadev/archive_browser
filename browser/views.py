@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from hashlib import sha1
-import re
 from typing import DefaultDict
 from django.conf import settings
 from django.contrib import messages
@@ -12,7 +11,6 @@ from django.views.decorators.csrf import csrf_exempt
 from elasticsearch.exceptions import NotFoundError
 from .lru_cache_expires import lru_cache_expires
 import os
-import yaml
 import json
 from ceda_elasticsearch_tools.elasticsearch import CEDAElasticsearchClient
 from functools import lru_cache
@@ -58,15 +56,12 @@ def generate_actions(ext, path, item_type, download_service):
     return download_link
 
 
-@lru_cache_expires(maxsize=1024, expire_period=8*3600)
 def moles_record(path):
     import urllib.request, json 
     with urllib.request.urlopen(settings.CAT_URL + path) as url:
         data = json.loads(url.read().decode())
     return data
 
-
-@lru_cache_expires(maxsize=1024, max_expire_period=3600)
 def readme_line(path):
     """get readme line"""
     es = get_elasticsearch_client()
@@ -82,7 +77,8 @@ def readme_line(path):
     else:
         return None
  
-def moles_desc(path):
+@lru_cache_expires(maxsize=2048, max_expire_period=2*3600)
+def directory_desc(path):
     cat_info = moles_record(path)
     if cat_info["record_type"] == "Dataset":
         return f'''<i class="fas fa-database dataset" title="These records describe and link to the actual data in our archive. 
@@ -96,11 +92,12 @@ def moles_desc(path):
                    <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
     readme_info = readme_line(path)
     if readme_info:
-        return readme_info
+        return f'<i class="fab fa-readme" title="" data-toggle="tooltip" data-original-title="Description taken from 00README"></i> {readme_info}' 
     return ""
 
-@lru_cache_expires(maxsize=1024, max_expire_period=10*3600, min_call_time_for_caching=1.0)
+@lru_cache_expires(maxsize=1024, max_expire_period=10*3600, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
+    print(f"In agg - {path}")
     if path != "/":
         query = {"query": {"term": {"directory.tree": path}}}
     else:
@@ -205,12 +202,12 @@ def browse(request):
         item["actions"] = generate_actions(item.get("ext"), item.get("path"), item.get("type"), download_service)
 
     # work out what to show in the description field
-    path_desc = moles_desc(path)
+    path_desc = directory_desc(path)
     if cat_info["record_type"] != "Dataset":
         for item in items:
-            item_desc = moles_desc(item.get("path"))
+            item_desc = directory_desc(item.get("path"))
             if item_desc != path_desc:
-                item["description"] = moles_desc(item.get("path"))
+                item["description"] = item_desc
 
     template = 'browser/browse_base.html'
     if show_removed:
@@ -250,11 +247,14 @@ def item_info(request):
  
 
 def cache_control(request):
-    context = {"moles": moles_record.cache_info(), 
-               "agg": agg_info.cache_info(),
-               "readme": readme_line.cache_info()}
+    context = {"moles": directory_desc.cache_info(), 
+               "agg": agg_info.cache_info()}
+    if "clear_all" in request.GET:
+        directory_desc.cache_clear()
     if "clear" in request.GET:
-        moles_record.cache_clear()
+        path = request.GET.get("clear")
+        directory_desc.cache_clear_key(path)
+        agg_info.cache_clear_key(path)
     return render(request, 'browser/cache.html', context)
 
 def storage_types(request):

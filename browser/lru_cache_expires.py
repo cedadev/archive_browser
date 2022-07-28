@@ -63,6 +63,7 @@ class _LruCacheFunctionWrapper:
             return ret
         
         ret, last_run_time, expire_time = cache_values 
+        print (args, expire_time, time.time(), time.time() - expire_time)
         if expire_time < time.time():
             self.__expired += 1
             ret, run_time, expire_time = self._run_wrapped(*args, **kwargs)
@@ -103,7 +104,7 @@ class _LruCacheFunctionWrapper:
         self.__cache.clear_key(call_args)
   
 
-def lru_cache_expires(maxsize=1024, max_expire_period=3600 , min_call_time_for_caching=0.0, run_based_expire_factor=1000): 
+def lru_cache_expires(maxsize=1024, max_expire_period=3600 , min_call_time_for_caching=0.0, run_based_expire_factor=100000): 
     def decorator(func):
         return _LruCacheFunctionWrapper(func, maxsize, max_expire_period, min_call_time_for_caching, run_based_expire_factor)
     return decorator

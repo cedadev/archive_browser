@@ -91,7 +91,7 @@
                     <i class="fas fa-copy" aria-hidden="true"></i>
                 </button>
                 <button type="button" class="btn btn-primary mt-1" data-toggle="collapse" data-target="#aggs">
-                    {{agg_info.total_size|filesizeformat}} {{agg_info.item_types.0.1 | intcomma}} files, mostly {{agg_info.exts.0.0}}
+                    {{agg_info.total_size|filesizeformat}}, {{agg_info.item_types.0.1 | intword| intcomma}} files, mostly {{agg_info.exts.0.0}}
                 </button>
             </div>
         </div>
@@ -109,8 +109,8 @@
         <div class="alert alert-info">
                 <h5>Aggrigate information</h5>
                 <p>Average Size: {{agg_info.ave_size|filesizeformat}} </p>
-                <p>Item Types: {% for t, n in agg_info.item_types %} <span class="badge badge-warning">{{t}}: {{n}}</span> {% endfor %} </p>
-                <p>Commmon Extensions: {% for e, n in agg_info.exts %} <span class="badge badge-light">{{e}}: {{n}}</span> {% endfor %} </p>
+                <p>Item Types: {% for t, n in agg_info.item_types %} <span class="badge badge-warning">{{t}}: {{n|intcomma}}</span> {% endfor %} </p>
+                <p>Commmon Extensions: {% for e, n in agg_info.exts %} <span class="badge badge-light">{{e}}: {{n|intcomma}}</span> {% endfor %} </p>
                 <p>Variables: {% for v in agg_info.vars %}<span class="badge badge-primary">{{v}}</span> {% endfor %}</p>             
           </div>
     </div>
