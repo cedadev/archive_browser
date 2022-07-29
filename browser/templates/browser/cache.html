@@ -1,0 +1,33 @@
+{% extends "fwtheme_django/layout.html" %}
+{% load static %}
+
+{% block head_title %}CEDA Archive Web Browser{% endblock %}
+{% block extra_meta %}
+    <meta name="description" content="Web based directory browser for the CEDA Archive.
+    Provides download links and access to the relevant CEDA Catalogue record.">
+    <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
+{% endblock %}
+{% block page_title %}
+{% endblock %}
+
+{% block head_js_extra %}
+    <script src="//artefacts.ceda.ac.uk/themes/orgtheme/0.1/_vendor/jquery/dist/jquery.min.js"></script>
+{% endblock head_js_extra %}
+
+{% block stylesheets_extra %}
+    <link rel="shortcut icon" href="{% static 'browser/img/favicon.ico' %}"/>
+    <link rel="stylesheet" href="{% static 'browser/css/browser.css' %}"/>
+{% endblock %}
+
+
+{% block content %}
+
+<h2>Directory descriptions</h2>
+{{directory_desc}} 
+
+<h2>Aggrigations</h2>
+{{agg}}
+
+
+{% endblock %}
+
