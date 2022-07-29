@@ -3,6 +3,10 @@
 
 from typing import OrderedDict, NamedTuple
 import time
+import threading
+import queue
+import random
+import sys
 
 
 class CacheInfo(NamedTuple):
@@ -42,46 +46,48 @@ class LruCache:
 
 
 class _LruCacheFunctionWrapper:
-    def __init__(self, func, maxsize, max_expire_period, min_call_time_for_caching, run_based_expire_factor):
+    def __init__(self, func, maxsize, max_expire_period, default):
         self.__wrapped__ = func
         self.__cache = LruCache(capacity=maxsize)
         self.__hits = 0
         self.__misses = 0
         self.__expired = 0
+        self.default = default
         self.__max_expire_period = max_expire_period
-        self.__min_call_time_for_caching =  min_call_time_for_caching
-        self.__run_based_expire_factor = run_based_expire_factor
+        self.queue = queue.Queue(maxsize=1000)
+        self.run_thread = threading.Thread(target=self.run_queued, daemon=True)
+        self.run_thread.start()
 
-    def __call__(self, *args, **kwargs):
-        call_args = args + tuple(kwargs.items())
-        cache_values = self.__cache.get(call_args)
+
+    def __call__(self, arg):
+        cache_values = self.__cache.get(arg)
         if cache_values is None:
             self.__misses += 1
-            ret, run_time, expire_time = self._run_wrapped(*args, **kwargs)
-            if run_time > self.__min_call_time_for_caching: 
-                self.__cache.insert(call_args, (ret, run_time, expire_time))
-            return ret
-        
-        ret, last_run_time, expire_time = cache_values 
+            self.queue.put(arg)
+            return self.default
+
+        ret, expire_time = cache_values  
         if expire_time < time.time():
             self.__expired += 1
-            ret, run_time, expire_time = self._run_wrapped(*args, **kwargs)
-            self.__cache.insert(call_args, (ret, run_time, expire_time))
+            self.self.queue.put(arg)
         else:
             self.__hits += 1
+
         return ret
 
-    def expire_time(self, run_time):
-        run_based_expire_time = time.time() + run_time * self.__run_based_expire_factor
-        expire_time = time.time() + self.__max_expire_period
-        return min(run_based_expire_time, expire_time)
+    def run_queued(self):
+        while True:
+            arg = self.queue.get()   
+            try:      
+                ret = self.__wrapped__(arg)
+            except Exception as e:
+                sys.stderr.write(f"Excption running function {self.__wrapped__} with argument {arg}\n")
+                sys.stderr.write(f"{e}\n")
+                sys.stderr.write("continuing.\n")
+                continue
 
-    def _run_wrapped(self, *args, **kwargs):
-        start = time.time()
-        ret = self.__wrapped__(*args, **kwargs)
-        run_time = time.time() - start
-        expire_time = self.expire_time(run_time)
-        return ret, run_time, expire_time
+            expire_time = time.time() + self.__max_expire_period
+            self.__cache.insert(arg, (ret, expire_time))
 
     def cache_info(self) -> CacheInfo:
         return CacheInfo(
@@ -103,7 +109,7 @@ class _LruCacheFunctionWrapper:
         self.__cache.clear_key(call_args)
   
 
-def lru_cache_expires(maxsize=1024, max_expire_period=3600 , min_call_time_for_caching=0.0, run_based_expire_factor=100000): 
+def lru_cache_expires(maxsize=1024, max_expire_period=3600, default=None): 
     def decorator(func):
-        return _LruCacheFunctionWrapper(func, maxsize, max_expire_period, min_call_time_for_caching, run_based_expire_factor)
+        return _LruCacheFunctionWrapper(func, maxsize, max_expire_period, default)
     return decorator

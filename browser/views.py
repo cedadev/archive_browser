@@ -11,9 +11,9 @@ from django.views.decorators.csrf import csrf_exempt
 from elasticsearch.exceptions import NotFoundError
 from .lru_cache_expires import lru_cache_expires
 import os
-import json
+from functools import lru_cache 
 from ceda_elasticsearch_tools.elasticsearch import CEDAElasticsearchClient
-from functools import lru_cache
+
 
 def get_elasticsearch_client():
     return CEDAElasticsearchClient(timeout=30)
@@ -54,7 +54,7 @@ def generate_actions(ext, path, item_type, download_service):
         return view_link
     return download_link
 
-
+@lru_cache(maxsize=2048)
 def moles_record(path):
     import urllib.request, json 
     with urllib.request.urlopen(settings.CAT_URL + path) as url:
@@ -76,7 +76,7 @@ def readme_line(path):
     else:
         return None
  
-@lru_cache_expires(maxsize=2048, max_expire_period=2*3600)
+@lru_cache_expires(maxsize=2048, max_expire_period=2*3600, default="")
 def directory_desc(path):
     cat_info = moles_record(path)
     if cat_info["record_type"] == "Dataset":
@@ -87,14 +87,14 @@ def directory_desc(path):
                      <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
     elif cat_info["record_type"] == "Dataset Collection":   
         return f'''<i class="fas fa-copy collection" title="A collection of Datasets that share some common purpose, theme or association. 
-                   These collections link to one or more Dataset records." data-toggle="tooltip"></i> {cat_info["title"]} 
+                   " data-toggle="tooltip"></i> {cat_info["title"]} 
                    <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
     readme_info = readme_line(path)
     if readme_info:
         return f'<i class="fab fa-readme" title="" data-toggle="tooltip" data-original-title="Description taken from 00README"></i> {readme_info}' 
     return ""
 
-@lru_cache_expires(maxsize=1024, max_expire_period=10*3600, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
+@lru_cache_expires(maxsize=1024, max_expire_period=10*3600)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     if path != "/":
         query = {"query": {"term": {"directory.tree": path}}}
@@ -138,6 +138,19 @@ def make_breadcrumbs(path):
         index_list.append({"path": '/'.join(subset), "dir": dir}) 
     return index_list   
 
+def browse_query(path, show_hidden, show_removed):
+    body = {
+            "sort": {"name.keyword": {"order": "asc"}}, 
+            "query": {"bool": {"must": [{"term": {"directory.keyword": path}}], 
+                    "must_not": []
+                    }}, "size": settings.MAX_FILES_PER_PAGE}
+    
+    if not show_removed:
+        body["query"]["bool"]["must_not"].append({"exists": {"field": "removed"}})
+    if not show_hidden:
+        body["query"]["bool"]["must_not"].append({"regexp": {"name.keyword": "[.].*"}})    
+    return body
+
 @csrf_exempt
 def browse(request):
     path = request.path
@@ -160,24 +173,11 @@ def browse(request):
         return HttpResponseRedirect(f'{path_record["target"]}')
 
     index_list = make_breadcrumbs(path)
-    print(index_list)
-
-    body = {
-            "sort": {"name.keyword": {"order": "asc"}}, 
-            "query": {"bool": {"must": [{"term": {"directory.keyword": path}}], 
-                    "must_not": []
-                    }}, "size": settings.MAX_FILES_PER_PAGE}
-    
     show_hidden = "hidden" in request.GET
     show_removed = "removed" in request.GET
     if show_removed: show_hidden = True
-
-    if not show_removed:
-        body["query"]["bool"]["must_not"].append({"exists": {"field": "removed"}})
-    if not show_hidden:
-        body["query"]["bool"]["must_not"].append({"regexp": {"name.keyword": "[.].*"}})
-
-    print(json.dumps(body))
+    body = browse_query(path, show_hidden, show_removed)
+    print(body)
     result = es.search(index=settings.FILE_INDEX, body=body)
     items = [] 
     
@@ -203,9 +203,10 @@ def browse(request):
     path_desc = directory_desc(path)
     if cat_info["record_type"] != "Dataset":
         for item in items:
-            item_desc = directory_desc(item.get("path"))
-            if item_desc != path_desc:
-                item["description"] = item_desc
+            if item["type"] == "dir":
+                item_desc = directory_desc(item.get("path"))
+                if item_desc != path_desc:
+                    item["description"] = item_desc
 
     template = 'browser/browse_base.html'
     if show_removed:
