@@ -69,7 +69,7 @@ class _LruCacheFunctionWrapper:
         ret, expire_time = cache_values  
         if expire_time < time.time():
             self.__expired += 1
-            self.self.queue.put(arg)
+            self.queue.put(arg)
         else:
             self.__hits += 1
 
