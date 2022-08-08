@@ -86,7 +86,7 @@ class _LruCacheFunctionWrapper:
                 sys.stderr.write("continuing.\n")
                 continue
 
-            expire_time = time.time() + self.__max_expire_period
+            expire_time = time.time() + (1 + 0.2 * random.random()) * self.__max_expire_period 
             self.__cache.insert(arg, (ret, expire_time))
 
     def cache_info(self) -> CacheInfo:
