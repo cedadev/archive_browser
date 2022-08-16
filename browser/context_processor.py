@@ -18,10 +18,10 @@ def data_centre(request):
     by browse.html
     """
     
-    data_centre = 'browser/ceda.html' #default template
+    data_centre = 'browser/eds.html' #default template
 
     for dc in settings.DATACENTRES:
-        if dc in request.path:
+        if request.path.startswith(f"/{dc}"):
             data_centre = f"browser/{settings.DATACENTRES[dc]}"
 
     context = {
