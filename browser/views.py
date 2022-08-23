@@ -207,7 +207,7 @@ def browse(request):
             if item["type"] == "dir":
                 item_desc = directory_desc(item.get("path"))
                 if item_desc is None:
-                    item_desc = "refresh"
+                    item_desc = '<img src="/static/browser/img/loading.gif" width="20" >'
                     refresh = True
                 if item_desc != path_desc:
                     item["description"] = item_desc
