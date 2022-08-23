@@ -17,6 +17,7 @@ git+https://github.com/cedadev/fwtheme-django-ceda-serv.git#egg=fwtheme-django-c
 idna==2.10
 pycparser==2.20
 pytest-runner==5.2
+psycopg2-binary==2.8.6
 pytz==2020.1
 requests==2.26.0
 six==1.15.0
