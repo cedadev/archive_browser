@@ -76,7 +76,7 @@ def readme_line(path):
     else:
         return None
  
-@lru_cache_expires(maxsize=2048, max_expire_period=2*3600, default="")
+@lru_cache_expires(maxsize=2048, max_expire_period=2*3600, default=None)
 def directory_desc(path):
     cat_info = moles_record(path)
     if cat_info["record_type"] == "Dataset":
@@ -201,10 +201,14 @@ def browse(request):
 
     # work out what to show in the description field
     path_desc = directory_desc(path)
+    refresh = False
     if cat_info["record_type"] != "Dataset":
         for item in items:
             if item["type"] == "dir":
                 item_desc = directory_desc(item.get("path"))
+                if item_desc is None:
+                    item_desc = '<img src="/static/browser/img/loading.gif" width="20" >'
+                    refresh = True
                 if item_desc != path_desc:
                     item["description"] = item_desc
 
@@ -225,6 +229,7 @@ def browse(request):
         "cat_info": path_desc,
         "agg_info": agg_info(path),
         "counts": counts,
+        "refresh": refresh
     }
 
     return render(request, template, context)
