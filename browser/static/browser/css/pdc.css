@@ -53,25 +53,99 @@ a.navbar-brand {
     }
 }
 
+/* text */
 p {
- color: #fff
+ color: #000
 }
 
+/* buttons */
 .btn-primary {
     background-color: #212121;
     border-color: #212121
 }
 
-.breadcrumb {
-    background-color: #f0f0f1
+.btn-primary:hover {
+    color: #fff;
+    background-color: #95a5a6;
+    border-color: #95a5a6;
+}
+
+.btn-outline-primary {
+  color: #212121;
+  border-color: #212121;
+}
+
+.btn-outline-primary:hover {
+  color: #fff;
+  background-color: #95a5a6;
+  border-color: #95a5a6;
+}
+
+.btn-secondary {
+    color: #fff;
+    background-color: #212121;
+    border-color: #212121;
+  }
+
+.btn-secondary:hover {
+    color: #000;
+    background-color: #fff;
+    border-color: #000;
+}
+
+.btn-success {
+    color: #fff;
+    background-color: #212121;
+    border-color: #212121;
+}
+
+.btn-success:hover {
+    color: #fff;
+    background-color: #95a5a6;
+    border-color: #212121;
+}
+
+.btn-outline-success {
+  color: #212121;
+  border-color: #212121;
+}
+
+.btn-outline-success:hover {
+  color: #fff;
+  background-color: #95a5a6;
+  border-color: #95a5a6;
+}
+
+.btn-info {
+    color: #000;
+    background-color: #fff;
+    border-color: #212121;
+}
+
+.btn-info:hover {
+    color: #fff;
+    background-color: #212121;
+    border-color: #212121;
+}
+
+.btn-light {
+    color: #000;
+    background-color: #ecf0f1;
+    border-color: #ecf0f1;
+}
+
+.btn-light:hover {
+    color: #212529;
+    background-color: #d6dfe1;
+    border-color: #cfd9db;
 }
 
 /* footer */
 .row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
-    background: #000;
+    background: #fff;
 }
 
-/* browser specific*/
+/* data browser specific*/
 .dataset {
     color: #4f81bd;
 }
@@ -82,4 +156,23 @@ p {
 
 .hide {
     display: none;
+}
+
+.breadcrumb {
+    background-color: #f0f0f1
+}
+
+/* arrivals service specific - stream progress bar */
+.stream-progress:before,
+.stream-progress:after {
+  content: "";
+  position: absolute;
+  z-index:-1;
+  background: #333;
+}
+
+.stream-progress:hover:before,
+.stream-progress:hover:after {
+  background: #95a5a6;
+  text-decoration: none;
 }

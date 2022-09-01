@@ -1,4 +1,4 @@
-/* British Antarctic Survey */
+/* SPARC */
 /* Org customisations of Grunt-produced theme */
 
 /* Change padding of top navbar to avoid overlapping page title text. Only for fixed-top navbar */
@@ -28,7 +28,7 @@ a.navbar-brand {
 */
 
 .navbar.bg-primary{
-    background: #fff !important;
+    background: #144a91 !important;
 }
 
 .navbar.fixed-top {
@@ -45,7 +45,7 @@ a.navbar-brand {
 
 @media(min-width:768px) {
     body {
-        padding-top: 300px; /* Required padding for .navbar-fixed-top. Change if height of navigation changes. */
+        padding-top: 200px; /* Required padding for .navbar-fixed-top. Change if height of navigation changes. */
     }
 
     .navbar-fixed-top .nav .navbar-brand {
@@ -54,17 +54,98 @@ a.navbar-brand {
 }
 
 .navbar-dark .navbar-nav .nav-link {
-     color: #000;
+     color: #fff;
 }
 
+/* Text */
 p {
- color: #fff
+ color: #000
 }
+
+/* buttons */
 
 .btn-primary {
-    background-color: #2e2d62;
-    border-color: #2e2d62;
+    background-color: #144a91;
+    border-color: #144a91;
 }
+
+.btn-primary:hover {
+    color: #fff;
+    background-color: #b1bdcb;
+    border-color: #b1bdcb;
+}
+
+.btn-outline-primary {
+  color: #144a91;
+  border-color: #144a91;
+}
+
+.btn-outline-primary:hover {
+  color: #fff;
+  background-color: #144a91;
+  border-color: #144a91;
+}
+
+.btn-secondary {
+    color: #fff;
+    background-color: #144a91;
+    border-color: #144a91;
+  }
+
+.btn-secondary:hover {
+    color: #144a91;
+    background-color: #fff;
+    border-color: #144a91;
+}
+
+.btn-success {
+    color: #fff;
+    background-color: #144a91;
+    border-color: #144a91;
+}
+
+.btn-success:hover {
+    color: #fff;
+    background-color: #144a91;
+    border-color: #144a91;
+}
+
+.btn-outline-success {
+  color: #144a91;
+  border-color: #144a91;
+}
+
+.btn-outline-success:hover {
+  color: #fff;
+  background-color: #b1bdcb;
+  border-color: #b1bdcb;
+}
+
+.btn-info {
+    color: #144a91;
+    background-color: #fff;
+    border-color: #144a91;
+}
+
+.btn-info:hover {
+    color: #fff;
+    background-color: #144a91;
+    border-color: #144a91;
+}
+
+.btn-light {
+    color: #000;
+    background-color: #b1bdcb;
+    border-color: #b1bdcb;
+}
+
+.btn-light:hover {
+    color: #212529;
+    background-color: #d6dfe1;
+    border-color: #cfd9db;
+}
+
+
 
 /*
 .breadcrumb {
@@ -74,19 +155,34 @@ p {
 
 /* footer */
 .row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
-    background: #2e2d62;
-    background-image: url('footer_eds.png')
+    background: #fff;
+
 }
 
-/* browser specific*/
+/* data browser specific*/
 .dataset {
-    color: #4f81bd;
+    color: #144a91;
 }
 
 .collection {
-    color: #4807b3
+    color: #144a91;
 }
 
 .hide {
     display: none;
+}
+
+/* arrivals service specific - stream progress bar */
+.stream-progress:before,
+.stream-progress:after {
+  content: "";
+  position: absolute;
+  z-index:-1;
+  background: #144a91;
+}
+
+.stream-progress:hover:before,
+.stream-progress:hover:after {
+  background: #b1bdcb;
+  text-decoration: none;
 }

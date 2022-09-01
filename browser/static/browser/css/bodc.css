@@ -54,24 +54,108 @@ body > .container {
 }
 
 p {
- color: #fff
+ color: #000
 }
+
+a {
+    color: #2fd2ce;
+}
+
 
 .btn-primary {
     background-color: rgb(0,48,66);
     border-color: rgb(0,48,66)
 }
 
+.btn-primary:hover {
+    color: #fff;
+    background-color: #00628d;
+    border-color: #00628d;
+}
+
+.btn-outline-primary {
+  color:  rgb(0,48,66);
+  border-color:  rgb(0,48,66);
+}
+
+.btn-outline-primary:hover {
+  color: #fff;
+  background-color: #00628d;
+  border-color: #00628d;
+}
+
+.btn-secondary {
+    color: #fff;
+    background-color: rgb(0,48,66);
+    border-color: rgb(0,48,66);
+  }
+
+.btn-secondary:hover {
+    color: rgb(0,48,66);
+    background-color: #fff;
+    border-color: rgb(0,48,66);
+}
+
+.btn-success {
+    color: #fff;
+    background-color: rgb(0,48,66);
+    border-color: rgb(0,48,66);
+}
+
+.btn-success:hover {
+    color: #fff;
+    background-color: #00628d;
+    border-color: #00628d;
+}
+
+.btn-outline-success {
+  color: #00628d;
+  border-color: #00628d;
+}
+
+.btn-outline-success:hover {
+  color: #fff;
+  background-color: #00628d;
+  border-color: #00628d;
+}
+
+.btn-info {
+    color: rgb(0,48,66);
+    background-color: #fff;
+    border-color: rgb(0,48,66);
+}
+
+.btn-info:hover {
+    color: #fff;
+    background-color: #00628d;
+    border-color: #00628d;
+}
+
+.btn-light {
+    color: rgb(0,48,66);
+    background-color: #ecf0f1;
+    border-color: #ecf0f1;
+}
+
+.btn-light:hover {
+    color: rgb(0,48,66);
+    background-color: #d6dfe1;
+    border-color: #cfd9db;
+}
+
+
+
+
+/* footer */
+.row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
+    background: #fff;
+}
+
+/* data browser specific*/
 .breadcrumb {
     background-color: #f1f1f9
 }
 
-/* footer */
-.row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
-    background: #13324D;
-}
-
-/* browser specific*/
 .dataset {
     color: #5c5a5a;
 }
@@ -82,4 +166,19 @@ p {
 
 .hide {
     display: none;
+}
+
+/* arrivals service specific - stream progress bar */
+.stream-progress:before,
+.stream-progress:after {
+  content: "";
+  position: absolute;
+  z-index:-1;
+  background:  rgb(0,48,66);
+}
+
+.stream-progress:hover:before,
+.stream-progress:hover:after {
+  background: #00628d;
+  text-decoration: none;
 }
