@@ -11,9 +11,11 @@ from django.views.decorators.csrf import csrf_exempt
 from elasticsearch.exceptions import NotFoundError
 from .lru_cache_expires import lru_cache_expires
 import os
+import urllib.request
+import json 
 from functools import lru_cache 
-from ceda_elasticsearch_tools.elasticsearch import CEDAElasticsearchClient
-
+from ceda_es_client import CEDAElasticsearchClient
+from fbi_core import archive_summary, fbi_listdir
 
 def get_elasticsearch_client():
     return CEDAElasticsearchClient(timeout=30)
@@ -35,7 +37,7 @@ def getIcon(type, extension):
 def generate_actions(ext, path, item_type, download_service):
     #print("actions")
     # Generate button for download action
-    if item_type == "dir":
+    if item_type in ("dir", "link"):
         return ""
  
     download_link = f"<a class='btn btn-lg' href='{download_service}{path}?download=1' title='Download file' data-toggle='tooltip'><i class='fa fa-download'></i></a>"
@@ -55,8 +57,21 @@ def generate_actions(ext, path, item_type, download_service):
     return download_link
 
 @lru_cache(maxsize=2048)
+def get_access_rules(path):
+    if path == "/": 
+        return []
+    url = settings.ACCESSCTL_URL + path
+    print(url)
+    with urllib.request.urlopen(settings.ACCESSCTL_URL + path) as page:
+        data = json.loads(page.read().decode())
+    shortest = "x" * 1000    
+    for key in data:
+        if len(key) < len(shortest):
+            shortest = key 
+    return data[shortest]
+
+@lru_cache(maxsize=2048)
 def moles_record(path):
-    import urllib.request, json 
     with urllib.request.urlopen(settings.CAT_URL + path) as url:
         data = json.loads(url.read().decode())
     return data
@@ -94,34 +109,19 @@ def directory_desc(path):
         return f'<i class="fab fa-readme" title="" data-toggle="tooltip" data-original-title="Description taken from 00README"></i> {readme_info}' 
     return ""
 
-@lru_cache_expires(maxsize=1024, max_expire_period=10*3600)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
+@lru_cache_expires(maxsize=1024, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
-    if path != "/":
-        query = {"query": {"term": {"directory.tree": path}}}
-    else:
-        query = {"query": {"match_all": {}}}
-    query["size"] = 0
-    query["aggs"] = {"size_stats":{"stats":{"field":"size"}},
-                      "types": {"terms": {"field": "type", "size": maxtypes}},
-                      "exts": {"terms": {"field": "ext", "size": max_ext}},
-                      "vars": {"terms": {"field": "phenomena.best_name.keyword", "size": vars_max}}}
-    es = get_elasticsearch_client()
-    result = es.search(index=settings.FILE_INDEX, body=query)
-    result = result["aggregations"]
-    total_size = result["size_stats"]["sum"]
-    ave_size = result["size_stats"]["avg"]
-    item_types = []
-    for t in result["types"]["buckets"]:
-        item_types.append((t["key"], t["doc_count"]))
-    exts = []
-    for e in result["exts"]["buckets"]:
-        exts.append((e["key"], e["doc_count"]))      
-    
+    summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, max_exts=max_ext)
+    total_size = summary["size_stats"]["sum"]
+    ave_size = summary["size_stats"]["avg"]
+    item_types = summary["types"]
+    exts = summary["exts"]
+      
     # only return vars is a short list
     vars = []
-    if len(result["vars"]["buckets"]) < vars_max:
-        for v in result["vars"]["buckets"]:
-            vars.append(v["key"])
+    if len(summary["vars"]) < vars_max:
+        for v in summary["vars"]:
+            vars.append(v[0])
     else:
         vars = ["Many Variables detected..."]
     return {"total_size": total_size, "ave_size": ave_size, "item_types": item_types, "exts": exts, "vars": vars}
@@ -176,13 +176,9 @@ def browse(request):
     show_hidden = "hidden" in request.GET
     show_removed = "removed" in request.GET
     if show_removed: show_hidden = True
-    body = browse_query(path, show_hidden, show_removed)
-    print(body)
-    result = es.search(index=settings.FILE_INDEX, body=body)
-    items = [] 
     
-    for hit in result["hits"]["hits"]:
-        item = hit["_source"]
+    items = []
+    for item in fbi_listdir(path, removed=show_removed, hidden=show_hidden):
         if item["type"] == "file":
             item["download"] = f'{download_service}{item.get("path")}?download=1'
         if item["path"] not in settings.DO_NOT_DISPLAY:
@@ -192,6 +188,8 @@ def browse(request):
 
     if "json" in request.GET:
         return JsonResponse({"path": path, "items": items})
+
+    access_rules = get_access_rules(path)
 
     counts = DefaultDict(int)
     for item in items:
@@ -207,10 +205,14 @@ def browse(request):
             if item["type"] == "dir":
                 item_desc = directory_desc(item.get("path"))
                 if item_desc is None:
-                    item_desc = '<img src="/static/browser/img/loading.gif" width="20" >'
+                    item_desc = '<img src="/static/browser/img/loading.gif" width="25" >'
                     refresh = True
                 if item_desc != path_desc:
                     item["description"] = item_desc
+ 
+    summary = agg_info(path)
+    if summary is None: 
+        refresh = True
 
     template = 'browser/browse_base.html'
     if show_removed:
@@ -219,7 +221,7 @@ def browse(request):
     elif show_hidden:
         template = 'browser/browse_hidden.html'
         messages.info(request, f'Viewing hidden files. <a href="{path}">Normal view</a>')
-    
+ 
     context = {
         "path": path,
         "items": items,
@@ -227,11 +229,12 @@ def browse(request):
         "MAX_FILES_PER_PAGE": settings.MAX_FILES_PER_PAGE,
         "messages_": messages.get_messages(request),
         "cat_info": path_desc,
-        "agg_info": agg_info(path),
+        "agg_info": summary,
         "counts": counts,
-        "refresh": refresh
+        "refresh": refresh,
+        "access_rules": access_rules
     }
-
+ 
     return render(request, template, context)
 
 

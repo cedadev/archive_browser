@@ -86,6 +86,8 @@ MAX_FILES_PER_PAGE = 2000
 ROOT_DIRECTORY_FILTER = []
 CAT_URL = "http://api.catalogue.ceda.ac.uk/api/v0/obs/get_info"
 DO_NOT_DISPLAY = ["/edc", "/sparc"]
+ACCESSCTL_URL = "https://accessctl.ceda.ac.uk/api/v1/rules/bypath/?format=json&path="
+
 
 from archive_browser.settings_local import *
 
