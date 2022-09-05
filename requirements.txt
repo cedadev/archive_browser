@@ -1,5 +1,4 @@
 asgiref==3.4.1
-git+https://github.com/cedadev/ceda-elasticsearch-client.git
 git+https://github.com/cedadev/fbi-core.git
 certifi==2020.6.20
 cffi==1.14.3
