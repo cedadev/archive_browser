@@ -99,13 +99,13 @@
                 </small></button>
             </div>
         </div>
-    </div>
+    </div>  
 
     <!-- for copy path function -->
     <input class="hide" type="text" id="path" value="{{ path }}" style="display: none">
 
     <div class="row">
-        <div class="col" id="collection_link">{{cat_info|safe}}</div>
+        <div class="col" id="collection_link">{% if cat_info %}{{cat_info|safe}}{% endif %}</div>
     </div>
 
     <div>{% for rule in access_rules %}<span class="badge badge-primary">Licence: 
