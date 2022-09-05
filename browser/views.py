@@ -75,15 +75,12 @@ def moles_record(path):
 
 def readme_line(path):
     """get readme line"""
-    es = get_elasticsearch_client()
     readme_file = os.path.join(path, "00README") 
-    try: 
-        result = es.get(index=settings.FILE_INDEX, id=sha1(readme_file.encode('utf-8')).hexdigest())
-    except NotFoundError:
+    readme_record = get_record(readme_file)
+    if readme_record is None:
         return None
-    readme_content = result["_source"]
-    if "content" in readme_content: 
-        first_chars = readme_content["content"][:500]
+    if "content" in readme_record: 
+        first_chars = readme_record["content"][:500]
         return first_chars.splitlines()[0]
     else:
         return None
