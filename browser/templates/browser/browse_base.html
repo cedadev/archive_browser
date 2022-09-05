@@ -108,7 +108,8 @@
         <div class="col" id="collection_link">{{cat_info|safe}}</div>
     </div>
 
-    <div>{% for rule in access_rules %}Licence: <a href="{{rule.licence.url_link}}">{{rule.licence.title}}</a> {{rule.rule_type}} {{rule.group.name}}
+    <div>{% for rule in access_rules %}<span class="badge badge-primary">Licence: 
+        <a href="{{rule.licence.url_link}}">{{rule.licence.title}}</a> </span>
         {% endfor %}</div>    
     
     <div id="aggs" class="collapse">
@@ -121,22 +122,6 @@
           </div>
     </div>
   
-
-    <div class="row">
-        <div class="col-3 hide mb-2" id="readmeButton">
-            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#readmeContent"
-                    aria-expanded="false" aria-controls="readmeContent">
-                00README
-            </button>
-        </div>
-    </div>
-    <div class="row">
-        <div class="collapse col mb-2" id="readmeContent">
-            <div class="card card-body">
-
-            </div>
-        </div>
-    </div>
     <div class="row">
         <div class="col messages"></div>
     </div>

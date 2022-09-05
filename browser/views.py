@@ -14,11 +14,8 @@ import os
 import urllib.request
 import json 
 from functools import lru_cache 
-from ceda_es_client import CEDAElasticsearchClient
-from fbi_core import archive_summary, fbi_listdir
+from fbi_core import archive_summary, fbi_listdir, get_record, ls_query
 
-def get_elasticsearch_client():
-    return CEDAElasticsearchClient(timeout=30)
 
 def getIcon(type, extension):
     if type == "dir":
@@ -78,15 +75,12 @@ def moles_record(path):
 
 def readme_line(path):
     """get readme line"""
-    es = get_elasticsearch_client()
     readme_file = os.path.join(path, "00README") 
-    try: 
-        result = es.get(index=settings.FILE_INDEX, id=sha1(readme_file.encode('utf-8')).hexdigest())
-    except NotFoundError:
+    readme_record = get_record(readme_file)
+    if readme_record is None:
         return None
-    readme_content = result["_source"]
-    if "content" in readme_content: 
-        first_chars = readme_content["content"][:500]
+    if "content" in readme_record: 
+        first_chars = readme_record["content"][:500]
         return first_chars.splitlines()[0]
     else:
         return None
@@ -161,12 +155,10 @@ def browse(request):
         path = "/"
 
     # Check if the request is a file and redirect for direct download
-    es = get_elasticsearch_client()
-    try: 
-        result = es.get(index=settings.FILE_INDEX, id=sha1(path.encode('utf-8')).hexdigest())
-    except NotFoundError:
+    path_record = get_record(path)
+    print(path_record)
+    if path_record is None:
         return render(request, 'browser/notfound.html', {"path": path}, status=404)
-    path_record = result["_source"]
     if path_record["type"] == "file": 
         return HttpResponseRedirect(f"{download_service}{path}")
     if path_record["type"] == "link":
@@ -241,17 +233,11 @@ def browse(request):
 @csrf_exempt
 def item_info(request):
     path = request.GET.get("p")
-    print("xxxxxx")
-    print(path)
-    es = get_elasticsearch_client()
-    try: 
-        result = es.get(index=settings.FILE_INDEX, id=sha1(path.encode('utf-8')).hexdigest())
-    except NotFoundError:
-        return render(request, 'browser/notfound.html', {"path": path}, status=404)
-    path_record = result["_source"]
+    path_record = get_record(path)
+    if path_record is None:
+        render(request, 'browser/notfound.html', {"path": path}, status=404)
     return JsonResponse(path_record)
 
- 
 
 def cache_control(request):
     context = {"directory_desc": directory_desc.cache_info(), 
@@ -278,16 +264,15 @@ def robots(request):
 
 def search(request):
     q = ''
-    results = []
+    files = []
+    if "under" in request.GET:
+        under = request.GET.get("under")
+    else: 
+        under="/"
 
     if "q" in request.GET:
         q = request.GET.get("q")
-        body = { 
-            "query": {"match": {"name": {"query": q}}}, 
-            "size": 10000}
-        es = get_elasticsearch_client()
-        result = es.search(index=settings.FILE_INDEX, body=body)
-        for r in result["hits"]["hits"]:
-            results.append(r["_source"])
-        
-    return render(request, 'browser/search.html', {"q": q, "results": results})
+        files = ls_query(under, name_regex=q)
+    return render(request, 'browser/search.html', {"q": q, "results": files})
+
+    
