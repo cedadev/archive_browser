@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.humanize',
     'fwtheme_django_ceda_serv',
     'fwtheme_django',
     'browser.apps.BrowserConfig',
@@ -32,7 +33,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'dj_security_middleware.middleware.DJSecurityMiddleware',
+#    'dj_security_middleware.middleware.DJSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 
@@ -70,25 +71,37 @@ LANGUAGE_CODE = 'en-gb'
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-
 THREDDS_SERVICE = 'https://dap.ceda.ac.uk'
 FTP_SERVICE = 'ftp://ftp.ceda.ac.uk'
 USE_FTP = False
-DIRECTORY_INDEX = 'ceda-dirs'
-FILE_INDEX = 'ceda-fbi'
+FILE_INDEX = 'fbi-2022'
 MAX_FILES_PER_PAGE = 2000
 ROOT_DIRECTORY_FILTER = []
+CAT_URL = "http://api.catalogue.ceda.ac.uk/api/v0/obs/get_info"
+DO_NOT_DISPLAY = ["/edc", "/sparc"]
+ACCESSCTL_URL = "https://accessctl.ceda.ac.uk/api/v1/rules/bypath/?format=json&path="
+
+CONTAINER_FLUID = False
 
 from archive_browser.settings_local import *
 
 CONTAINER_FLUID = False
+
+#NERC Datacentres - non CEDA Data Centres
+DATACENTRES = {
+    'pdc': 'pdc.html',
+    'bodc': 'bodc.html',
+    'eich': 'eich.html',
+    'ngdc': 'ngdc.html',
+    'ssdc': 'ssdc.html',
+    'sparc': 'sparc.html',
+    'edc': 'edc.html',
+    'eds': 'eds.html'
+}

@@ -18,13 +18,15 @@ def data_centre(request):
     by browse.html
     """
     
-    data_centre = 'browser/eds.html' #default template
-
+    data_centre = "fwtheme_django/layout.html" #default template
+    dc_css = "browser/css/browser.css"
     for dc in settings.DATACENTRES:
         if request.path.startswith(f"/{dc}"):
-            data_centre = f"browser/{settings.DATACENTRES[dc]}"
+            data_centre = f"browser/data_centres/{settings.DATACENTRES[dc]}"
+            dc_css = f"browser/css/{dc}.css"
 
     context = {
-        "data_centre": data_centre
+        "data_centre": data_centre,
+        "dc_css": dc_css
     }
     return context
