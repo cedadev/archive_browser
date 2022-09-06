@@ -8,7 +8,6 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import render, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
-from elasticsearch.exceptions import NotFoundError
 from .lru_cache_expires import lru_cache_expires
 import os
 import urllib.request
