@@ -2,6 +2,7 @@ asgiref==3.4.1
 git+https://github.com/cedadev/ceda-elasticsearch-client.git
 git+https://github.com/cedadev/fbi-core.git
 elasticsearch==8.4.0
+elastic-transport==8.4.0
 certifi==2020.6.20
 cffi==1.14.3
 chardet==3.0.4
