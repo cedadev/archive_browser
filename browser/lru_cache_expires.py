@@ -64,7 +64,7 @@ class _LruCacheFunctionWrapper:
             self.queue.put(arg)
             return self.default
 
-        ret, expire_time = cache_values
+        ret, expire_time = cache_values  
         if expire_time < time.time():
             self.__expired += 1
             self.queue.put(arg)
@@ -75,8 +75,8 @@ class _LruCacheFunctionWrapper:
 
     def run_queued(self):
         while True:
-            arg = self.queue.get()
-            try:
+            arg = self.queue.get()   
+            try:      
                 ret = self.__wrapped__(arg)
             except Exception as e:
                 sys.stderr.write(f"Excption running function {self.__wrapped__} with argument {arg}\n")
@@ -84,7 +84,7 @@ class _LruCacheFunctionWrapper:
                 sys.stderr.write("continuing.\n")
                 continue
 
-            expire_time = time.time() + (1 + 0.2 * random.random()) * self.__max_expire_period
+            expire_time = time.time() + (1 + 0.2 * random.random()) * self.__max_expire_period 
             self.__cache.insert(arg, (ret, expire_time))
 
     def cache_info(self) -> CacheInfo:
@@ -99,16 +99,15 @@ class _LruCacheFunctionWrapper:
     def cache_clear(self) -> None:
         self.__cache.clear()
         self.__hits = 0
-        self.__misses = 0
-        self.__expired = 0
+        self.__misses = 0 
+        self.__expired = 0 
 
     def cache_clear_key(self, *args, **kwargs):
         call_args = args + tuple(kwargs.items())
         self.__cache.clear_key(call_args)
+  
 
-
-def lru_cache_expires(maxsize=1024, max_expire_period=3600, default=None):
+def lru_cache_expires(maxsize=1024, max_expire_period=3600, default=None): 
     def decorator(func):
         return _LruCacheFunctionWrapper(func, maxsize, max_expire_period, default)
-
     return decorator
