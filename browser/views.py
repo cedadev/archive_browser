@@ -52,7 +52,7 @@ def generate_actions(ext, path, item_type, download_service):
         return view_link
     return download_link
 
-@lru_cache(maxsize=2048)
+@lru_cache_expires(maxsize=2048, max_expire_period=2*3600, default=None)
 def get_access_rules(path):
     if path == "/": 
         return []
