@@ -223,7 +223,8 @@ def browse(request):
         "agg_info": summary,
         "counts": counts,
         "refresh": refresh,
-        "access_rules": access_rules
+        "access_rules": access_rules,
+        "DOWNLOAD_SERVICE": download_service
     }
  
     return render(request, template, context)
