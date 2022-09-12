@@ -1,0 +1,87 @@
+{% extends "fwtheme_django/layout.html" %}
+{% load static %}
+
+{% block head_title %}Data - British Oceanography Data Centre{% endblock %}
+{% block extra_meta %}
+    <meta name="description" content="Web based directory browser for the British Oceanographic Data Centre.
+    Provides download links and access to the relevant CEDA Catalogue record.">
+    <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
+{% endblock %}
+{% block page_title %}
+{% endblock %}
+
+{% block head_js_extra %}
+    <script src="//artefacts.ceda.ac.uk/themes/orgtheme/0.1/_vendor/jquery/dist/jquery.min.js"></script>
+{% endblock head_js_extra %}
+
+{% block stylesheets_extra %}
+    <link rel="shortcut icon" href="{% static 'browser/img/favicon.ico' %}"/>
+    <link rel="stylesheet" href="{% static 'browser/css/bodc.css' %}"/>
+{% endblock %}
+
+{% block navbar_main %}
+    <div class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+        <div class="container">
+            <a href="https://www.bodc.ac.uk/" class="navbar-brand">
+                <img src="{% static 'browser/img/bodc.png' %}"  style="height:60%; width: 60%" alt="BODC logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://catalogue.ceda.ac.uk">Search Catalogue</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://data.ceda.ac.uk">Get Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://help.ceda.ac.uk">Help</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://archive.ceda.ac.uk/tools">Tools</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://arrivals.ceda.ac.uk">Deposit</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://www.ceda.ac.uk/blog/">News</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="dropdown">
+                <a href="" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                    <i class="far fa-fw fa-user"></i> Sign in <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu px-2">
+                    <li><a href="https://auth.ceda.ac.uk/account/signin?r=http%3A%2F%2F127.0.0.1%3A8000%2F"><i class="fa fa-fw fa-sign-in-alt"></i> Sign in</a></li>
+                    <li><a href="https://services.ceda.ac.uk/cedasite/register/info/"><i class="fa fa-fw fa-user"></i> Register</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock navbar_main %}
+
+{% block footer %}
+    <footer>
+        <div class="container">
+            <div class="row d-flex justify-content-around border border-light border-bottom-0 border-left-0 border-right-0 pt-5 pb-2 mt-5">
+                <div class="col col-md-4 text-center ">
+                </div>
+                <div class="col-md-4">
+                    <p class="text-center small">
+                        Copyright © 2018 <a href="http://www.stfc.ac.uk">STFC</a>
+                        All Rights Reserved <br>
+                        <a href="http://www.ceda.ac.uk/accessibility" target="_blank">Accessibility</a> |
+                        <a href="http://www.ceda.ac.uk/disclaimer" target="_blank">Disclaimer</a> |
+                        <a href="http://www.ceda.ac.uk/privacy-and-cookies/" target="_blank">Privacy and Cookies</a><br/>
+                        <a href="http://www.ceda.ac.uk" target="_blank">CEDA</a>
+                    </p>
+                </div>
+                <div class="col col-md-4 text-center">
+                </div>
+            </div>
+        </div>
+    </footer>
+{% endblock footer %}

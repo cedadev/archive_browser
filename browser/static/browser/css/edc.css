@@ -1,0 +1,108 @@
+/* Energy Data Centre */
+/* Org customisations of Grunt-produced theme */
+
+/* Change padding of top navbar to avoid overlapping page title text. Only for fixed-top navbar */
+html {
+    position: relative;
+    min-height: 100%;
+  }
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 100px;
+}
+
+body > .container {
+    padding-bottom: 100px;
+}
+
+/* Match height of navbar to height of logo image */
+a.navbar-brand {
+    height: auto; /* Adjust this to the height of the logo image */
+}
+
+/*
+* Start Bootstrap - Logo Nav (http://startbootstrap.com/)
+* Copyright 2013-2016 Start Bootstrap
+* Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
+*/
+
+.navbar.bg-primary{
+    background-image: linear-gradient(to right, #01aa74, #007eb8);
+}
+
+.navbar.fixed-top {
+    padding: 10px 4px;
+}
+
+.nav .navbar-brand {
+    padding: 0 0;
+}
+
+.navbar-brand {
+    padding: 0 0;
+}
+
+@media(min-width:768px) {
+    body {
+        padding-top: 120px; /* Required padding for .navbar-fixed-top. Change if height of navigation changes. */
+    }
+
+    .navbar-fixed-top .nav .navbar-brand {
+        padding: 0 0;
+    }
+}
+
+
+p {
+ color: #000
+}
+
+
+/* buttons */
+.btn-primary {
+    background-color: #007eb8;
+    border-color: #007eb8;
+}
+/* uses CEDA Theme for all other buttons */
+
+/* footer */
+.row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
+    background-image: linear-gradient(to right, #01aa74, #007eb8);
+
+}
+
+/* data browser specific*/
+/*
+.breadcrumb {
+    background-color: #f0f0f1
+}
+*/
+
+.dataset {
+    color: #4f81bd;
+}
+
+.collection {
+    color: #4807b3
+}
+
+.hide {
+    display: none;
+}
+
+/* arrivals service - specific - stream progress bar */
+/* use CEDA theme */
+.stream-progress:before,
+.stream-progress:after {
+  content: "";
+  position: absolute;
+  z-index:-1;
+  background: #b9bc2d;
+}
+
+.stream-progress:hover:before,
+.stream-progress:hover:after {
+  background: #9b9d26;
+  text-decoration: none;
+}

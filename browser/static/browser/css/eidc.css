@@ -1,0 +1,183 @@
+/* EIDC */
+/*Environmental Information Data Centre - UK CEH */
+
+/* Org customisations of Grunt-produced theme */
+
+/* Change padding of top navbar to avoid overlapping page title text. Only for fixed-top navbar */
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 100px;
+}
+
+body > .container {
+    padding-bottom: 100px;
+}  
+
+/* Match height of navbar to height of logo image */  
+.navbar-brand {
+    height: auto; /* Adjust this to the height of the logo image */
+}
+  
+/*
+* Start Bootstrap - Logo Nav (http://startbootstrap.com/)
+* Copyright 2013-2016 Start Bootstrap
+* Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
+*/
+  
+.navbar.bg-primary{
+    background: #327085E6 !important;
+}
+
+.navbar-toggler { 
+ background-color: #327085E6
+}
+
+.navbar.fixed-top {
+    padding: 4px 4px;
+}
+
+.nav .navbar-brand {
+    padding: 0 0;
+}
+  
+.navbar-brand {
+    padding: 0 0;
+}
+  
+@media(min-width:768px) {
+    body {
+        padding-top: 94px; /* Required padding for .navbar-fixed-top. Change if height of navigation changes. */
+    }
+
+    .navbar-fixed-top .nav .navbar-brand {
+        padding: 0 0;
+    }
+}
+
+p {
+ color: #000
+}
+
+/* buttons */
+.btn-primary {
+    background-color: #327085E6;
+    border-color: #327085E6
+}
+
+.btn-primary:hover {
+    color: #327085E6;
+    background-color: #fff;
+    border-color: #327085E6;
+}
+
+.btn-outline-primary {
+  color: #327085E6;
+  border-color: #327085E6;
+}
+
+.btn-outline-primary:hover {
+  color: #fff;
+  background-color: #327085E6;
+  border-color: #327085E6;
+}
+
+.btn-secondary {
+    color: #fff;
+    background-color: #327085E6;
+    border-color: #327085E6;
+  }
+
+.btn-secondary:hover {
+    color: #327085E6;
+    background-color: #fff;
+    border-color: #327085E6;
+}
+
+.btn-success {
+  color: #212529;
+  background-color: #b9bc2d;
+  border-color: #b9bc2d;
+}
+
+.btn-success:hover {
+  color: #fff;
+  background-color: #9b9d26;
+  border-color: #919323;
+}
+
+.btn-outline-success {
+  color: #b9bc2d;
+  border-color: #b9bc2d;
+}
+
+.btn-outline-success:hover {
+  color: #212529;
+  background-color: #b9bc2d;
+  border-color: #b9bc2d;
+}
+
+.btn-info {
+  color: #fff;
+  background-color: #3498DB;
+  border-color: #3498DB;
+}
+
+.btn-info:hover {
+  color: #fff;
+  background-color: #2384c6;
+  border-color: #217dbb;
+}
+
+.btn-light {
+  color: #212529;
+  background-color: #ecf0f1;
+  border-color: #ecf0f1;
+}
+
+.btn-light:hover {
+  color: #212529;
+  background-color: #d6dfe1;
+  border-color: #cfd9db;
+}
+
+/* footer */
+.row.d-flex.justify-content-around.border.border-light.border-bottom-0.border-left-0.border-right-0.pt-5.pb-2.mt-5{
+    background: #fff;
+}
+
+/* data browser specific*/
+.breadcrumb {
+    background-color: #bfebf9e6
+}
+
+.dataset {
+    color: grey;
+}
+
+.collection {
+    color: grey
+}
+
+.hide {
+    display: none;
+}
+
+/* arrivals service specific - stream progress bar */
+.stream-progress:before,
+.stream-progress:after {
+  content: "";
+  position: absolute;
+  z-index:-1;
+  background: #327085E6;
+}
+
+.stream-progress:hover:before,
+.stream-progress:hover:after {
+  background: #9b9d26;
+  text-decoration: none;
+}

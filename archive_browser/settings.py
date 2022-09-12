@@ -52,6 +52,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'browser.context_processor.data_centre'
             ],
         },
     },
@@ -73,7 +74,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
@@ -92,3 +92,15 @@ ACCESSCTL_URL = "https://accessctl.ceda.ac.uk/api/v1/rules/bypath/?format=json&p
 from archive_browser.settings_local import *
 
 CONTAINER_FLUID = False
+
+#NERC Datacentres - non CEDA Data Centres
+DATACENTRES = {
+    'pdc': 'pdc.html',
+    'bodc': 'bodc.html',
+    'eich': 'eich.html',
+    'ngdc': 'ngdc.html',
+    'ssdc': 'ssdc.html',
+    'sparc': 'sparc.html',
+    'edc': 'edc.html',
+    'eds': 'eds.html'
+}

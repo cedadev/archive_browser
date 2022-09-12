@@ -1,4 +1,4 @@
-{% extends "fwtheme_django/layout.html" %}
+{% extends data_centre %}
 {% load static %}
 
 {% block head_title %}CEDA Archive Web Browser{% endblock %}
@@ -16,7 +16,7 @@
 
 {% block stylesheets_extra %}
     <link rel="shortcut icon" href="{% static 'browser/img/favicon.ico' %}"/>
-    <link rel="stylesheet" href="{% static 'browser/css/browser.css' %}"/>
+    <link rel="stylesheet" href="{% static dc_css %}"/>
 {% endblock %}
 
 

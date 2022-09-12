@@ -1,4 +1,3 @@
-
 # adapted from https://jellis18.github.io/post/2021-11-25-lru-cache/
 
 from typing import OrderedDict, NamedTuple
@@ -57,7 +56,6 @@ class _LruCacheFunctionWrapper:
         self.queue = queue.Queue(maxsize=1000)
         self.run_thread = threading.Thread(target=self.run_queued, daemon=True)
         self.run_thread.start()
-
 
     def __call__(self, arg):
         cache_values = self.__cache.get(arg)
