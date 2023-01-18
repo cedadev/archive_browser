@@ -196,7 +196,7 @@ def browse(request):
             if item["type"] == "dir":
                 item_desc = directory_desc(item.get("path"))
                 if item_desc is None:
-                    item_desc = '<img src="/static/browser/img/loading.gif" width="25" >'
+                    item_desc = '<img src="/staticfiles/browser/img/loading.gif" width="25" >'
                     refresh = True
                 if item_desc != path_desc:
                     item["description"] = item_desc
@@ -260,7 +260,7 @@ def storage_types(request):
 
 
 def robots(request):
-    return HttpResponseRedirect(f"/static/robots.txt")
+    return HttpResponseRedirect(f"/staticfiles/robots.txt")
 
 def search(request):
     q = ''

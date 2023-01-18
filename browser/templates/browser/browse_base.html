@@ -1,4 +1,4 @@
-{% extends data_centre %}
+{% extends data_centre_template %}
 {% load static %}
 {% load humanize %}
 
@@ -23,13 +23,6 @@
         }
     </script>
 {% endblock head_js_extra %}
-
-{% block stylesheets_extra %}
-    <link rel="shortcut icon" href="{% static 'browser/img/favicon.ico' %}"/>
-    <link rel="stylesheet" href="{% static dc_css %}"/>
-
-{% endblock %}
-
 
 {% block content %}
     <!-- For copy button -->
@@ -95,7 +88,7 @@
                 <button type="button" class="btn btn-primary mt-1" data-toggle="collapse" data-target="#aggs"><small>
                     {% if  agg_info %}
                     {{agg_info.total_size|filesizeformat}} | {{agg_info.item_types.0.1 | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}
-                    {% else %} <img src="/static/browser/img/loading.gif" width="25" > Calculating...
+                    {% else %} <img src="{% static 'browser/img/loading.gif' %}" width="25" > Calculating...
                     {% endif %}
                 </small></button>
             </div>
@@ -107,11 +100,7 @@
 
     <div class="row">
         <div class="col" id="collection_link">{% if cat_info %}{{cat_info|safe}}{% endif %}</div>
-    </div>
-
-    <div>{% if access_rules %}{% for rule in access_rules %}<span class="badge badge-primary">Licence: 
-        <a href="{{rule.licence.url_link}}">{{rule.licence.title}}</a> </span>
-        {% endfor %}{% endif %}</div>    
+    </div>  
     
     <div id="aggs" class="collapse">
         <div class="alert alert-info">
