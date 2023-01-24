@@ -1,8 +1,8 @@
-{% extends data_centre %}
+{% extends data_centre_template %}
 {% load static %}
 {% load humanize %}
 
-{% block head_title %}CEDA Archive Web Browser{% endblock %}
+{% block head_title %}CEDA Archive Web browser{% endblock %}
 {% block extra_meta %}
     <meta name="description" content="Web based directory browser for the CEDA Archive.
     Provides download links and access to the relevant CEDA Catalogue record.">
@@ -23,13 +23,6 @@
         }
     </script>
 {% endblock head_js_extra %}
-
-{% block stylesheets_extra %}
-    <link rel="shortcut icon" href="{% static 'browser/img/favicon.ico' %}"/>
-    <link rel="stylesheet" href="{% static dc_css %}"/>
-
-{% endblock %}
-
 
 {% block content %}
     <!-- For copy button -->
@@ -95,7 +88,7 @@
                 <button type="button" class="btn btn-primary mt-1" data-toggle="collapse" data-target="#aggs"><small>
                     {% if  agg_info %}
                     {{agg_info.total_size|filesizeformat}} | {{agg_info.item_types.0.1 | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}
-                    {% else %} <img src="/static/browser/img/loading.gif" width="25" > Calculating...
+                    {% else %} <img src="{% static 'browser/img/loading.gif' %}" width="25" > Calculating...
                     {% endif %}
                 </small></button>
             </div>
@@ -113,6 +106,7 @@
         <a href="{{rule.licence.url_link}}">{{rule.licence.title}}</a> </span>
         {% endfor %}{% endif %}</div>    
    -->     
+
     
     <div id="aggs" class="collapse">
         <div class="alert alert-info">
@@ -145,22 +139,34 @@
                     {% if item.location == 'on_tape' %}
                         <tr class="text-muted">
                             <td class="align-middle">{{item.icon|safe}}&nbsp;{{item.name}}</a></td>
-                            <td class="align-middle">{{item.description|safe}}</td>
+                            {% if item.description == '' %}
+                                <td class="align-middle">
+                                    <img src="{% static '/browser/img/bodc.png' %}" width="25" >
+                                </td>
+                            {% else %}
+                                <td class="align-middle">{{item.description|safe}}</td>
+                            {% endif %}
                             <td class="align-middle">{{item.size|filesizeformat}}</td>
                             <td class="align-middle"><a class="btn btn-lg" href="/storage_types#on_tape" 
                                 title="" data-toggle="tooltip" data-original-title="File on tape"><i class="fa fa-info-circle"></i></a></td>                 
                         </tr>
-                {% else %}
-                <tr>
-                    <td class="align-middle">{{item.icon|safe}}&nbsp;
-                        <a href="{% if item.type == 'file' %}{{item.download}}{% else %}{{item.path}}{% endif %}">{{item.name}}</a></td>
-                    <td class="align-middle">{{item.description|safe}}
-                        {% if item.type == 'link' %}<i class="fa fa-bullseye"></i>&nbsp;{{item.target}}{% endif %}
-                    </td>
-                    <td class="align-middle">{% if item.type == 'file' %}{{item.size|filesizeformat}}{% endif %}</td>
-                    <td class="align-middle">{{item.actions|safe}}</td>
-                </tr>
-                {% endif %}
+                    {% else %}
+                    <tr>
+                        <td class="align-middle">{{item.icon|safe}}&nbsp;
+                            <a href="{% if item.type == 'file' %}{{item.download}}{% else %}{{item.path}}{% endif %}">{{item.name}}</a></td>
+                        {% if item.description == '' %}
+                            <td class="align-middle">
+                                <img src="{% static '/browser/img/loading.gif' %}" width="25" >
+                            </td>
+                        {% else %}
+                            <td class="align-middle">{{item.description|safe}}
+                                {% if item.type == 'link' %}<i class="fa fa-bullseye"></i>&nbsp;{{item.target}}{% endif %}
+                            </td>
+                        {% endif %}
+                        <td class="align-middle">{% if item.type == 'file' %}{{item.size|filesizeformat}}{% endif %}</td>
+                        <td class="align-middle">{{item.actions|safe}}</td>
+                    </tr>
+                    {% endif %}
                 {% endfor %}
                
         </tbody>

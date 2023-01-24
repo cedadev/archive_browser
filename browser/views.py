@@ -199,10 +199,11 @@ def browse(request):
     refresh = False
     if cat_info is not None and cat_info["record_type"] != "Dataset":
         for item in items:
+            item_desc = ''
             if item["type"] == "dir":
                 item_desc = directory_desc(item.get("path"))
                 if item_desc is None:
-                    item_desc = '<img src="/static/browser/img/loading.gif" width="25" >'
+                    item_desc = '' # '<img src="/staticfiles/browser/img/bodc.png" width="25" >' # loading.gif
                     refresh = True
                 if item_desc != path_desc:
                     item["description"] = item_desc
@@ -218,6 +219,8 @@ def browse(request):
     elif show_hidden:
         template = 'browser/browse_hidden.html'
         messages.info(request, f'Viewing hidden files. <a href="{path}">Normal view</a>')
+
+    print(template)
  
     context = {
         "path": path,
@@ -266,7 +269,7 @@ def storage_types(request):
 
 
 def robots(request):
-    return HttpResponseRedirect(f"/static/robots.txt")
+    return HttpResponseRedirect(f"/staticfiles/robots.txt")
 
 def search(request):
     q = ''
