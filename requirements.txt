@@ -11,7 +11,7 @@ crypto-cookie==0.3.1
 cryptography==3.4.6
 Django==4.0.7
 django-classy-tags==2.0.0
-django-cookie-law==2.0.3
+django-cookie-law==2.2.0
 git+https://github.com/cedadev/fwtheme-django.git#egg=fwtheme-django==1.0.1
 git+https://github.com/cedadev/fwtheme-django-ceda-serv.git@3e4da6c#egg=fwtheme-django-ceda-serv
 idna==2.10
