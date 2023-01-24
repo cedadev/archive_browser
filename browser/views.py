@@ -32,7 +32,6 @@ def getIcon(type, extension):
 
 
 def generate_actions(ext, path, item_type, download_service):
-    #print("actions")
     # Generate button for download action
     if item_type in ("dir", "link"):
         return ""
@@ -58,7 +57,6 @@ def get_access_rules(path):
     if path == "/": 
         return []
     url = settings.ACCESSCTL_URL + path
-    print(url)
     with urllib.request.urlopen(settings.ACCESSCTL_URL + path) as page:
         data = json.loads(page.read().decode())
     shortest = "x" * 1000    
@@ -220,8 +218,6 @@ def browse(request):
         template = 'browser/browse_hidden.html'
         messages.info(request, f'Viewing hidden files. <a href="{path}">Normal view</a>')
 
-    print(template)
- 
     context = {
         "path": path,
         "items": items,
