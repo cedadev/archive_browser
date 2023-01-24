@@ -1,4 +1,7 @@
 venv
+local
+src
+staticfiles
 archive_browser/settings_local.py
 __pycache__
 *.pyc
