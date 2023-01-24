@@ -79,7 +79,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_URL = '/staticfiles/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR + "/browser/static"]
+STATIC_ROOT = BASE_DIR + "/staticfiles"
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
 THREDDS_SERVICE = 'https://dap.ceda.ac.uk'
 FTP_SERVICE = 'ftp://ftp.ceda.ac.uk'
 USE_FTP = False
