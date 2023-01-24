@@ -62,6 +62,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'archive_browser.wsgi.application'
 
+SECURITY_SHAREDSECRET=''
+
 
 SECURITY_LOGIN_SERVICE = "https://auth.ceda.ac.uk/account/signin"
 
