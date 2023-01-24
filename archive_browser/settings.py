@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
+from archive_browser.settings_local import *
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -77,7 +79,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/staticfiles/'
 THREDDS_SERVICE = 'https://dap.ceda.ac.uk'
 FTP_SERVICE = 'ftp://ftp.ceda.ac.uk'
 USE_FTP = False
@@ -89,18 +91,4 @@ DO_NOT_DISPLAY = ["/edc", "/sparc"]
 ACCESSCTL_URL = "https://accessctl.ceda.ac.uk/api/v1/rules/bypath/?format=json&path="
 
 
-from archive_browser.settings_local import *
-
 CONTAINER_FLUID = False
-
-#NERC Datacentres - non CEDA Data Centres
-DATACENTRES = {
-    'pdc': 'pdc.html',
-    'bodc': 'bodc.html',
-    'eich': 'eich.html',
-    'ngdc': 'ngdc.html',
-    'ssdc': 'ssdc.html',
-    'sparc': 'sparc.html',
-    'edc': 'edc.html',
-    'eds': 'eds.html'
-}
