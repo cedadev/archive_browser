@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .lru_cache_expires import lru_cache_expires
 import os
 import urllib.request
+import urllib.error
 import json 
 from functools import lru_cache 
 from fbi_core import archive_summary, fbi_listdir, get_record, ls_query
@@ -68,9 +69,14 @@ def get_access_rules(path):
 
 @lru_cache(maxsize=2048)
 def moles_record(path):
-    with urllib.request.urlopen(settings.CAT_URL + path) as url:
-        data = json.loads(url.read().decode())
-    return data
+    for CAT_URL in settings.CAT_URLS:
+        try:
+            with urllib.request.urlopen(CAT_URL + path) as url:
+                data = json.loads(url.read().decode())
+            return data
+        except (ConnectionResetError, urllib.error.HTTPError):
+            continue
+    return None
 
 def readme_line(path):
     """get readme line"""
@@ -87,13 +93,13 @@ def readme_line(path):
 @lru_cache_expires(maxsize=2048, max_expire_period=2*3600, default=None)
 def directory_desc(path):
     cat_info = moles_record(path)
-    if cat_info["record_type"] == "Dataset":
+    if cat_info is not None and cat_info["record_type"] == "Dataset":
         return f'''<i class="fas fa-database dataset" title="These records describe and link to the actual data in our archive. 
                      They also provide spatial and temporal information, 
                      access and usage information and link to background information on why and how the data were collected." data-toggle="tooltip">
                      </i> {cat_info["title"]} 
                      <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
-    elif cat_info["record_type"] == "Dataset Collection":   
+    elif cat_info is not None and cat_info["record_type"] == "Dataset Collection":   
         return f'''<i class="fas fa-copy collection" title="A collection of Datasets that share some common purpose, theme or association. 
                    " data-toggle="tooltip"></i> {cat_info["title"]} 
                    <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
@@ -191,7 +197,7 @@ def browse(request):
     # work out what to show in the description field
     path_desc = directory_desc(path)
     refresh = False
-    if cat_info["record_type"] != "Dataset":
+    if cat_info is not None and cat_info["record_type"] != "Dataset":
         for item in items:
             item_desc = ''
             if item["type"] == "dir":
