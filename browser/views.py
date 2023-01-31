@@ -183,7 +183,7 @@ def browse(request):
             if item["path"] not in settings.DO_NOT_DISPLAY:
                 items.append(item)
     except ScanError: 
-        return HttpResponseRedirect(f"{download_service}{path}")
+        return HttpResponseRedirect(f"{download_service}{path}/")
 
     cat_info = moles_record(path)
 
