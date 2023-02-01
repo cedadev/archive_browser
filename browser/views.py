@@ -15,6 +15,7 @@ import urllib.error
 import json 
 from functools import lru_cache 
 from fbi_core import archive_summary, fbi_listdir, get_record, ls_query
+from elasticsearch.helpers import ScanError
 
 
 def getIcon(type, extension):
@@ -173,11 +174,14 @@ def browse(request):
     if show_removed: show_hidden = True
     
     items = []
-    for item in fbi_listdir(path, removed=show_removed, hidden=show_hidden):
-        if item["type"] == "file":
-            item["download"] = f'{download_service}{item.get("path")}?download=1'
-        if item["path"] not in settings.DO_NOT_DISPLAY:
-            items.append(item)
+    try:
+        for item in fbi_listdir(path, removed=show_removed, hidden=show_hidden):
+            if item["type"] == "file":
+                item["download"] = f'{download_service}{item.get("path")}?download=1'
+            if item["path"] not in settings.DO_NOT_DISPLAY:
+                items.append(item)
+    except ScanError: 
+        return HttpResponseRedirect(f"{download_service}{path}/")
 
     cat_info = moles_record(path)
 
