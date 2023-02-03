@@ -35,7 +35,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-#    'dj_security_middleware.middleware.DJSecurityMiddleware',
+    'dj_security_middleware.middleware.DJSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 
@@ -63,6 +63,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'archive_browser.wsgi.application'
 
 SECURITY_LOGIN_SERVICE = "https://auth.ceda.ac.uk/account/signin"
+ACCOUNT_COOKIE_NAME = 'ceda.session.1'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
