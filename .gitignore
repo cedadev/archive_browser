@@ -2,6 +2,7 @@ venv
 local
 src
 staticfiles
+db.sqlite3
 archive_browser/settings_local.py
 __pycache__
 *.pyc
