@@ -21,13 +21,16 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 INSTALLED_APPS = [
     'django.contrib.staticfiles',
+    'django.contrib.contenttypes',
+    'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.humanize',
     'fwtheme_django_ceda_serv',
     'fwtheme_django',
     'browser.apps.BrowserConfig',
-    'cookielaw'
+    'cookielaw',
+    'mozilla_django_oidc',
 ]
 
 MIDDLEWARE = [
@@ -35,8 +38,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'dj_security_middleware.middleware.DJSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 
 ]
@@ -62,8 +65,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'archive_browser.wsgi.application'
 
-SECURITY_LOGIN_SERVICE = "https://auth.ceda.ac.uk/account/signin"
-ACCOUNT_COOKIE_NAME = 'ceda.session.1'
+#SECURITY_LOGIN_SERVICE = "https://auth.ceda.ac.uk/account/signin"
+#SECURITY_LOGOUT_SERVICE = 'logout'
+#ACCOUNT_COOKIE_NAME = 'ceda.session.1'
 
 
 # Internationalization
@@ -81,9 +85,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR + "/browser/static"]
-STATIC_ROOT = BASE_DIR + "/staticfiles"
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+#STATICFILES_DIRS = [BASE_DIR + "/browser/static"]
+#STATIC_ROOT = BASE_DIR + "/staticfiles"#
+#STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 THREDDS_SERVICE = 'https://dap.ceda.ac.uk'
 FTP_SERVICE = 'ftp://ftp.ceda.ac.uk'
@@ -98,3 +102,15 @@ ACCESSCTL_URL = "https://accessctl.ceda.ac.uk/api/v1/rules/bypath/?format=json&p
 
 
 CONTAINER_FLUID = False
+
+# Added a temporary database - not used but required
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'USER': 'dwest77',
+        'PASSWORD':'alphagamma44',
+        'HOST':'db',
+        'PORT':8000,
+    }
+}
