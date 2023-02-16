@@ -14,7 +14,7 @@ git+https://github.com/cedadev/dj-security-middleware.git#egg=dj-security-middle
 django-classy-tags==2.0.0
 django-cookie-law==2.2.0
 git+https://github.com/cedadev/fwtheme-django.git@1b39b17e795a354bda2583cb18c82a9ad7bcd538#egg=fwtheme_django
-git+https://github.com/cedadev/fwtheme-django-ceda-serv.git@189cd42#egg=fwtheme-django-ceda-serv
+git+https://github.com/cedadev/fwtheme-django-ceda-serv.git@455239f#egg=fwtheme-django-ceda-serv
 idna==2.10
 pycparser==2.20
 pytest-runner==5.2
