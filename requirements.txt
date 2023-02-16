@@ -9,12 +9,12 @@ chardet==3.0.4
 charset-normalizer==2.0.7
 crypto-cookie==0.3.1
 cryptography==3.4.6
-git+https://github.com/cedadev/dj-security-middleware.git#egg=dj-security-middleware==0.5.0
 Django==4.0.7
+git+https://github.com/cedadev/dj-security-middleware.git#egg=dj-security-middleware==0.5.0
 django-classy-tags==2.0.0
-django-cookie-law==2.0.3
-git+https://github.com/cedadev/fwtheme-django.git#egg=fwtheme-django==1.0.1
-git+https://github.com/cedadev/fwtheme-django-ceda-serv.git#egg=fwtheme-django-ceda-serv==1.5.0
+django-cookie-law==2.2.0
+git+https://github.com/cedadev/fwtheme-django.git@1b39b17e795a354bda2583cb18c82a9ad7bcd538#egg=fwtheme_django
+git+https://github.com/cedadev/fwtheme-django-ceda-serv.git@455239f#egg=fwtheme-django-ceda-serv
 idna==2.10
 pycparser==2.20
 pytest-runner==5.2

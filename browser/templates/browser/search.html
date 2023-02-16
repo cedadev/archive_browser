@@ -1,4 +1,4 @@
-{% extends data_centre %}
+{% extends data_centre_template %}
 {% load static %}
 {% load humanize %}
 
@@ -24,7 +24,7 @@
 {% endblock head_js_extra %}
 
 {% block stylesheets_extra %}
-    <link rel="shortcut icon" href="{% static 'browser/img/favicon.ico' %}"/>
+    <link rel="shortcut icon" href="{% static 'common/img/favicon.ico' %}"/>
     <link rel="stylesheet" href="{% static dc_css %}"/>
 {% endblock %}
 

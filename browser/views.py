@@ -33,7 +33,6 @@ def getIcon(type, extension):
 
 
 def generate_actions(ext, path, item_type, download_service):
-    #print("actions")
     # Generate button for download action
     if item_type in ("dir", "link"):
         return ""
@@ -59,7 +58,6 @@ def get_access_rules(path):
     if path == "/": 
         return []
     url = settings.ACCESSCTL_URL + path
-    print(url)
     with urllib.request.urlopen(settings.ACCESSCTL_URL + path) as page:
         data = json.loads(page.read().decode())
     shortest = "x" * 1000    
@@ -203,10 +201,11 @@ def browse(request):
     refresh = False
     if cat_info is not None and cat_info["record_type"] != "Dataset":
         for item in items:
+            item_desc = ''
             if item["type"] == "dir":
                 item_desc = directory_desc(item.get("path"))
                 if item_desc is None:
-                    item_desc = '<img src="/static/browser/img/loading.gif" width="25" >'
+                    item_desc = '' # '<img src="/staticfiles/browser/img/bodc.png" width="25" >' # loading.gif
                     refresh = True
                 if item_desc != path_desc:
                     item["description"] = item_desc
@@ -222,7 +221,7 @@ def browse(request):
     elif show_hidden:
         template = 'browser/browse_hidden.html'
         messages.info(request, f'Viewing hidden files. <a href="{path}">Normal view</a>')
- 
+
     context = {
         "path": path,
         "items": items,
@@ -270,7 +269,7 @@ def storage_types(request):
 
 
 def robots(request):
-    return HttpResponseRedirect(f"/static/robots.txt")
+    return HttpResponseRedirect(f"/staticfiles/robots.txt")
 
 def search(request):
     q = ''

@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
+from archive_browser.settings_local import *
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -33,7 +35,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-#    'dj_security_middleware.middleware.DJSecurityMiddleware',
+    'dj_security_middleware.middleware.DJSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 
@@ -52,7 +54,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
-                'browser.context_processor.data_centre'
+                'fwtheme_django_ceda_serv.context_processors.data_centre',
             ],
         },
     },
@@ -60,8 +62,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'archive_browser.wsgi.application'
 
-
 SECURITY_LOGIN_SERVICE = "https://auth.ceda.ac.uk/account/signin"
+ACCOUNT_COOKIE_NAME = 'ceda.session.1'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
@@ -78,6 +81,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR + "/browser/static"]
+STATIC_ROOT = BASE_DIR + "/staticfiles"
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
 THREDDS_SERVICE = 'https://dap.ceda.ac.uk'
 FTP_SERVICE = 'ftp://ftp.ceda.ac.uk'
 USE_FTP = False
@@ -90,18 +97,4 @@ DO_NOT_DISPLAY = ["/edc", "/sparc"]
 ACCESSCTL_URL = "https://accessctl.ceda.ac.uk/api/v1/rules/bypath/?format=json&path="
 
 
-from archive_browser.settings_local import *
-
 CONTAINER_FLUID = False
-
-#NERC Datacentres - non CEDA Data Centres
-DATACENTRES = {
-    'pdc': 'pdc.html',
-    'bodc': 'bodc.html',
-    'eich': 'eich.html',
-    'ngdc': 'ngdc.html',
-    'ssdc': 'ssdc.html',
-    'sparc': 'sparc.html',
-    'edc': 'edc.html',
-    'eds': 'eds.html'
-}
