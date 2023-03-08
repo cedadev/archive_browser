@@ -69,6 +69,7 @@ setup(
     install_requires=[
         'django',
         'pyyaml',
+        'django-cors-headers',
     ]
 
 )
