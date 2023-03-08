@@ -25,18 +25,19 @@ INSTALLED_APPS = [
     'fwtheme_django_ceda_serv',
     'fwtheme_django',
     'browser.apps.BrowserConfig',
+    'corsheaders',
     'cookielaw'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 #    'dj_security_middleware.middleware.DJSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-
 ]
 
 DJ_SECURITY_FILTER = ['.*']
@@ -60,6 +61,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'archive_browser.wsgi.application'
 
+CORS_ALLOWED_ORIGINS = ["https://radiantearth.github.io"]
 
 SECURITY_LOGIN_SERVICE = "https://auth.ceda.ac.uk/account/signin"
 
