@@ -241,8 +241,7 @@ def browse(request):
 
 
 @csrf_exempt
-def stac(request):
-    path = request.GET.get("p")
+def stac(request, path="/"):
     download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
 
     path = path.rstrip('/')
