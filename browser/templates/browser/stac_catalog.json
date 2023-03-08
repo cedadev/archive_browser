@@ -7,13 +7,13 @@
     "links": [
       {
         "rel": "root",
-        "href": "/stac?p=/",
+        "href": "/stac/",
         "type": "application/json"
       },
       {% for directory in directories %}
       {
         "rel": "child",
-        "href": "/stac?p={{directory}}",
+        "href": "/stac{{directory}}",
         "type": "application/json",
         "title": "Catalog for {{directory}}"
       },
@@ -21,14 +21,14 @@
       {% for item_path in item_paths %}
       {
         "rel": "item",
-        "href": "/stac?p={{item_path}}",
+        "href": "/stac{{item_path}}",
         "type": "application/json",
         "title": "Item for {{item_path}}"
       },
       {% endfor %}
       {
         "rel": "self",
-        "href": "/stac?p={{path}}",
+        "href": "/stac{{path}}",
         "type": "application/json"
       }
     ]
