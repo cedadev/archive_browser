@@ -9,13 +9,13 @@
     "links": [
       {
         "rel": "collection",
-        "href": "/stac?p={{directory}}",
+        "href": "/stac{{directory}}",
         "type": "application/json",
         "title": "Collection: {{directory}}"
       },
       {
         "rel": "root",
-        "href": "/stac?p=/",
+        "href": "/stac/",
         "type": "application/json",
         "title": "Root Collection"
       }
