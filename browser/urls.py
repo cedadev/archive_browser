@@ -32,6 +32,7 @@ urlpatterns = [
     path('cache', views.cache_control, name='cache'),
     path('search', views.search, name='search'),
     path('item_info', views.item_info, name='item_info'),
+    path('stac', views.stac, name='stac'),
     re_path('.*', views.browse, name='browse' ),
 ]
 

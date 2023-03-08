@@ -1,0 +1,35 @@
+{
+    "id": "{{path}}",
+    "type": "Catalog",
+    "title": "STAC Catalog for {{cat_info.title}}",
+    "stac_version": "1.0.0",
+    "description": "STAC Catalog for {{path}}",
+    "links": [
+      {
+        "rel": "root",
+        "href": "/stac?p=/",
+        "type": "application/json"
+      },
+      {% for directory in directories %}
+      {
+        "rel": "child",
+        "href": "/stac?p={{directory}}",
+        "type": "application/json",
+        "title": "Catalog for {{directory}}"
+      },
+      {% endfor %}
+      {% for item_path in item_paths %}
+      {
+        "rel": "item",
+        "href": "/stac?p={{item_path}}",
+        "type": "application/json",
+        "title": "Item for {{item_path}}"
+      },
+      {% endfor %}
+      {
+        "rel": "self",
+        "href": "/stac?p={{path}}",
+        "type": "application/json"
+      }
+    ]
+  }
