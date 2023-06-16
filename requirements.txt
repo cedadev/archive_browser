@@ -15,7 +15,7 @@ django-classy-tags==2.0.0
 django-cookie-law==2.0.3
 django-cors-headers==3.14.0
 git+https://github.com/cedadev/fwtheme-django.git#egg=fwtheme-django==1.0.1
-git+https://github.com/cedadev/fwtheme-django-ceda-serv.git#egg=fwtheme-django-ceda-serv==1.5.0
+git+https://github.com/cedadev/fwtheme-django-ceda-serv.git
 idna==2.10
 pycparser==2.20
 pytest-runner==5.2
