@@ -53,7 +53,8 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
-                'browser.context_processor.data_centre'
+                'browser.context_processor.data_centre',
+                'fwtheme_django_ceda_serv.context_processors.beacon',
             ],
         },
     },
