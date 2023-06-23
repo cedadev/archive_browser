@@ -8,7 +8,7 @@ colorama==0.4.6
 crypto-cookie==0.3.1
 cryptography==41.0.1
 git+https://github.com/cedadev/dj-security-middleware.git@a274146198848db1684c366400d57376509b52d9#egg=dj_security_middleware
-Django==4.2.2
+Django==4.0.7
 django-classy-tags==4.0.0
 django-cookie-law==2.2.0
 django-cors-headers==4.1.0
