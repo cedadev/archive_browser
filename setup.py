@@ -71,6 +71,8 @@ setup(
         'pyyaml',
         'django-cors-headers',
         'six',
+        'pytest-runner',
+        'requests',
     ]
 
 )
