@@ -24,13 +24,6 @@
     </script>
 {% endblock head_js_extra %}
 
-{% block stylesheets_extra %}
-    <link rel="shortcut icon" href="{% static 'browser/img/favicon.ico' %}"/>
-    <link rel="stylesheet" href="{% static dc_css %}"/>
-
-{% endblock %}
-
-
 {% block content %}
     <!-- For copy button -->
     <div style="position: absolute; top: -1000px"><input type="text" value="{{request.path}}" id="path_for_copy_button"></div>
