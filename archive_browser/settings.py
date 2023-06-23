@@ -35,7 +35,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-#    'dj_security_middleware.middleware.DJSecurityMiddleware',
+    'dj_security_middleware.middleware.DJSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
@@ -77,6 +77,8 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+DISABLE_LOGIN=True
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
@@ -95,7 +97,7 @@ CAT_URLS = ["http://api.catalogue.ceda.ac.uk/api/v0/obs/get_info",
             "http://catalogue.ceda.ac.uk/api/v0/obs/get_info"]
 DO_NOT_DISPLAY = ["/edc", "/sparc"]
 ACCESSCTL_URL = "https://accessctl.ceda.ac.uk/api/v1/rules/bypath/?format=json&path="
-
+ACCOUNT_COOKIE_NAME=''
 
 from archive_browser.settings_local import *
 
