@@ -70,6 +70,7 @@ setup(
         'django',
         'pyyaml',
         'django-cors-headers',
+        'six',
     ]
 
 )
