@@ -18,7 +18,7 @@ git+https://github.com/cedadev/fbi-core.git@921413ecdbcc3fed085501fb9f0474788c59
 git+https://github.com/cedadev/fwtheme-django@1b39b17e795a354bda2583cb18c82a9ad7bcd538#egg=fwtheme_django
 git+https://github.com/cedadev/fwtheme-django-ceda-serv@4e509202d60def625d023c07bd5160b0aa58a60b#egg=fwtheme_django_ceda_serv
 idna==3.4
-psycopg2-binary==2.9.6
+psycopg2-binary==2.8.6
 pycparser==2.21
 pytest-runner==6.0.0
 PyYAML==6.0
