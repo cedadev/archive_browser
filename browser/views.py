@@ -95,13 +95,13 @@ def readme_line(path):
 def directory_desc(path):
     cat_info = moles_record(path)
     if cat_info is not None and cat_info["record_type"] == "Dataset":
-        return f'''<i class="fas fa-database dataset" title="These records describe and link to the actual data in our archive. 
+        return f'''<i class="fa-lg fa fa-database" style="color: #4f81bd" title="These records describe and link to the actual data in our archive. 
                      They also provide spatial and temporal information, 
                      access and usage information and link to background information on why and how the data were collected." data-toggle="tooltip">
                      </i> {cat_info["title"]} 
                      <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
     elif cat_info is not None and cat_info["record_type"] == "Dataset Collection":   
-        return f'''<i class="fas fa-copy collection" title="A collection of Datasets that share some common purpose, theme or association. 
+        return f'''<i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets that share some common purpose, theme or association. 
                    " data-toggle="tooltip"></i> {cat_info["title"]} 
                    <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
     readme_info = readme_line(path)
