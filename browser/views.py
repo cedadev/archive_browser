@@ -222,7 +222,13 @@ def browse(request):
     elif show_hidden:
         template = 'browser/browse_hidden.html'
         messages.info(request, f'Viewing hidden files. <a href="{path}">Normal view</a>')
- 
+
+    status = 200
+    if "forbidden" in request.GET:
+        messages.error(request, f'''You don't have premission to access files in this directory. You need to 
+                <a href="{moles_record(path)['url']}">apply for access</a>.''')
+        status = 403
+
     context = {
         "path": path,
         "items": items,
@@ -237,7 +243,7 @@ def browse(request):
         "DOWNLOAD_SERVICE": download_service
     }
  
-    return render(request, template, context)
+    return render(request, template, context, status=status)
 
 
 @csrf_exempt
