@@ -74,6 +74,13 @@ def moles_record(path):
         try:
             with urllib.request.urlopen(CAT_URL + path) as url:
                 data = json.loads(url.read().decode())
+            if data.get("record_type") == 'Dataset':
+                uuid = os.path.basename(data["url"])
+                full_record_url  = f"http://api.catalogue.ceda.ac.uk/api/v2/observations/?uuid={uuid}"
+                with urllib.request.urlopen(full_record_url) as full_record_page:
+                    full_record = json.loads(full_record_page.read().decode())
+                data["status"] = full_record["results"][0]["status"]
+                data["status_warning"] = data["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated')
             return data
         except (ConnectionResetError, urllib.error.HTTPError):
             continue
@@ -95,10 +102,14 @@ def readme_line(path):
 def directory_desc(path):
     cat_info = moles_record(path)
     if cat_info is not None and cat_info["record_type"] == "Dataset":
+        if cat_info["status_warning"]:
+            status_badge = f'<span class="badge badge-danger">{cat_info["status"]}</span>'
+        else:
+            status_badge = ""
         return f'''<i class="fa-lg fa fa-database" style="color: #4f81bd" title="These records describe and link to the actual data in our archive. 
                      They also provide spatial and temporal information, 
                      access and usage information and link to background information on why and how the data were collected." data-toggle="tooltip">
-                     </i> {cat_info["title"]} 
+                     </i> {status_badge} {cat_info["title"]} 
                      <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
     elif cat_info is not None and cat_info["record_type"] == "Dataset Collection":   
         return f'''<i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets that share some common purpose, theme or association. 
@@ -228,6 +239,9 @@ def browse(request):
         messages.error(request, f'''You don't have premission to access files in this directory. You need to 
                 <a href="{moles_record(path)['url']}">apply for access</a>.''')
         status = 403
+
+    if cat_info.get("status_warning"):
+        messages.warning(request, f'''This data is {cat_info["status"]}! See <a href="{moles_record(path)['url']}">catalogue</a>''')
 
     context = {
         "path": path,
