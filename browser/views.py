@@ -316,17 +316,19 @@ def jsonlist(request, path="/"):
     if path_record["type"] == "link":
         return HttpResponseRedirect(f'/jsonlist{path_record["target"]}')
 
-    item_paths = []
     file_recs = ls_query(path, item_type="file", size=10000)
-
-    cat_info = moles_record(path)
-    print(cat_info)
-    template = 'browser/jsonlist.json'
-    context = {"download_service":download_service, "path": path, "cat_info": cat_info,
-               "file_recs": file_recs}
-    return render(request, template, context, content_type="application/json")
     
+    asset_records = {}
+    for rec in file_recs:
+        asset_records[rec["path"]] = {
+            "href": f"{download_service}{rec['path']}?download=1",
+      	    "type": "application/data",
+            "role": ["data"],
+            "size": rec.get("size"),
+            "last_modified": rec.get("last_modified")
+            }
 
+    return JsonResponse({"filelist": asset_records}, json_dumps_params={"indent": 4})
 
 
 @csrf_exempt
