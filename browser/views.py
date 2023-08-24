@@ -300,6 +300,33 @@ def stac(request, path="/"):
     return render(request, template, context)
     
 
+@csrf_exempt
+def jsonlist(request, path="/"):
+    download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
+    path = path.rstrip('/')
+    if path == "": 
+        path = "/"
+
+    # Check if the request is a file and redirect for direct download
+    path_record = get_record(path)
+    print(path_record)
+    if path_record is None:
+        return render(request, 'browser/notfound.html', {"path": path}, status=404)
+
+    if path_record["type"] == "link":
+        return HttpResponseRedirect(f'/jsonlist{path_record["target"]}')
+
+    item_paths = []
+    file_recs = ls_query(path, item_type="file", size=10000)
+
+    cat_info = moles_record(path)
+    print(cat_info)
+    template = 'browser/jsonlist.json'
+    context = {"download_service":download_service, "path": path, "cat_info": cat_info,
+               "file_recs": file_recs}
+    return render(request, template, context, content_type="application/json")
+    
+
 
 
 @csrf_exempt
