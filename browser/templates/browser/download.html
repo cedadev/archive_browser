@@ -1,0 +1,92 @@
+{% extends data_centre_template %}
+{% load static %}
+{% load humanize %}
+
+{% block head_title %}CEDA Archive Web Browser{% endblock %}
+{% block extra_meta %}
+    <meta name="description" content="Web based directory browser for the CEDA Archive.
+    Provides download links and access to the relevant CEDA Catalogue record.">
+    <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
+{% endblock %}
+{% block page_title %}
+
+<script src="//artefacts.ceda.ac.uk/themes/orgtheme/0.1/_vendor/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.min.js" integrity="sha512-TFp7JOp8so/oHJrngLI0kn9diZrc0YDr1NrGj1YbzbvSBdGfligjYVRp1xtqlmNCPWpx4xJDhiWSGgUYvqCbBg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" referrerpolicy="no-referrer"></script>
+
+<script>
+    
+  
+    const parser = new DOMParser();
+    const decodedData = parser.parseFromString("{{ dapDirectory }}", 'text/html').body.textContent;
+
+    console.log(decodedData)
+
+    const regex = /'path': '(.*?)'/g;
+    const paths = [];
+    let match;
+
+    while ((match = regex.exec(decodedData)) !== null) {
+      paths.push('https://dap.ceda.ac.uk'+match[1]);
+    }
+
+    console.log(paths)
+    /*
+    // Replace single quotes with double quotes and remove extra double quotes around array elements
+    let cleanedData = decodedData.replace(/'/g, '"');
+    cleanedData = cleanedData.replace(/""+/g, '"');
+    cleanedData = cleanedData.replace(/:/g, ': ');
+    console.log(cleanedData);
+
+
+    // Parse the cleaned JSON data
+    const jsonData = JSON.parse(cleanedData);
+
+    // Extract paths from cleaned data
+    const urls = jsonData.map(file => file.path);
+    */
+
+    const download = url => {
+          return fetch(url).then(resp => resp.blob());
+        };
+        
+        const downloadByGroup = (urls, files_per_group=5) => {
+          return Promise.map(
+            urls, 
+            async url => {
+              return await download(url);
+            },
+            {concurrency: files_per_group}
+          );
+        }
+        
+        const exportZip = blobs => {
+          const zip = JSZip();
+          blobs.forEach((blob, i) => {
+	        const url = paths[i]; 
+            const filename = url.substring(url.lastIndexOf('/') + 1); 
+            zip.file(filename, blob); // Use the extracted filename
+          });
+          zip.generateAsync({type: 'blob',  
+                             compression: "DEFLATE",
+                             compressionOptions: {level: 9}
+            }).then(zipFile => {
+		      const currentDate = new Date().getTime();
+		      // TODO: better name for zip file? <dirname>.zip  
+            const fileName = `combined-${currentDate}.zip`;
+            return saveAs(zipFile, fileName);
+          });
+        }
+        
+        const downloadAndZip = paths => {
+          return downloadByGroup(paths, 5).then(exportZip);
+        }
+</script>
+<h2 id="on_tape">Download</h2>
+
+<button id="download-button" class="btn btn-primary mt-1" data-original-title="Download ZIP" title="Download ZIP" onclick="downloadAndZip(paths)">
+    <i class="fa-solid fa-arrow-down"> Download ZIP</i>
+</button>
+{% endblock %}
+

@@ -347,4 +347,12 @@ def search(request):
         files = ls_query(under, name_regex=q)
     return render(request, 'browser/search.html', {"q": q, "results": files})
 
+def download(request):
+    directory = request.get_full_path()
+    directory = directory.partition('download?path=')[2]
+    dapDirectory = '/' + directory + '/'
+    print(ls_query(dapDirectory))
+    dapDirectory = ls_query(dapDirectory)
+    return render(request, 'browser/download.html', {'dapDirectory': dapDirectory})
+
     

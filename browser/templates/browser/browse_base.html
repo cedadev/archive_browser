@@ -14,6 +14,9 @@
 
 {% block head_js_extra %}
     <script src="//artefacts.ceda.ac.uk/themes/orgtheme/0.1/_vendor/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.min.js" integrity="sha512-TFp7JOp8so/oHJrngLI0kn9diZrc0YDr1NrGj1YbzbvSBdGfligjYVRp1xtqlmNCPWpx4xJDhiWSGgUYvqCbBg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" referrerpolicy="no-referrer"></script>
     <script>
         function copyPath() {
             var copyText = document.getElementById("path_for_copy_button");
@@ -21,6 +24,89 @@
             copyText.setSelectionRange(0, 99999); /* For mobile devices */
             navigator.clipboard.writeText(copyText.value);
         }
+        /*
+        const fetchFiles = url => {
+            fetch(url)
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+        
+                const files = doc.getElementsByTagName("a");
+                console.log(files)
+                const urls = [];
+
+                for (let i=0; i < files.length; i++){
+                    const file = files[i];
+                    const href = file.getAttribute("href");
+                    urls.push(href);
+                }
+                console.log(urls);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        */
+
+        const download = url => {
+          return fetch(url).then(resp => resp.blob());
+        };
+        
+        const downloadByGroup = (urls, files_per_group=5) => {
+          return Promise.map(
+            urls, 
+            async url => {
+              return await download(url);
+            },
+            {concurrency: files_per_group}
+          );
+        }
+        
+        const exportZip = blobs => {
+          const zip = JSZip();
+          blobs.forEach((blob, i) => {
+	        const url = urls[i]; 
+            const filename = url.substring(url.lastIndexOf('/') + 1); 
+            zip.file(filename, blob); // Use the extracted filename
+          });
+          zip.generateAsync({type: 'blob',  
+                             compression: "DEFLATE",
+                             compressionOptions: {level: 9}
+            }).then(zipFile => {
+		const currentDate = new Date().getTime();
+		// TODO: better name for zip file? <dirname>.zip  
+            const fileName = `combined-${currentDate}.zip`;
+            return saveAs(zipFile, fileName);
+          });
+        }
+        
+        const downloadAndZip = urls => {
+          return downloadByGroup(urls, 5).then(exportZip);
+        }
+
+        var url = ["https://dap.ceda.ac.uk/badc/acsoe/data/ease-97/macehead/"]
+
+        document.addEventListener('DOMContentLoaded', function() {
+    var downloadButton = document.getElementById('download-button');
+
+    if (downloadButton) {
+        downloadButton.addEventListener('click', function() {
+            var currentUrl = window.location.href;
+            var downloadUrl = "{% url 'download' %}";
+
+            // Extract the path from the current URL
+            var pathSegments = currentUrl.split('/');
+            var downloadPath = pathSegments.slice(3).join('/');  // Adjust the slice index based on your URL structure
+            console.log(downloadPath)
+            // Append the path as a parameter to the download URL
+            var downloadUrlWithParams = downloadUrl + '?path=' + downloadPath;
+
+            window.location.href = downloadUrlWithParams;
+        });
+    }
+});
+
     </script>
 {% endblock head_js_extra %}
 
@@ -45,7 +131,8 @@
                     help page about interacting <a href="https://help.ceda.ac.uk/article/4442-ceda-opendap-scripted-interactions">
                         programmatically with the data</a></li>
                 <li>JSON listing: Use <a href="?json">json listing</a> of this directory to script download. </li>
-        </ul></p>
+        </ul>
+    </p>
         </div>
       </div>
 
@@ -70,6 +157,20 @@
                     {% endfor %}
                 </ol>
             </div>
+            {% if agg_info %}
+                {% if agg_info.total_size <= 1073741824 %} 
+                    {% if agg_info.item_types.0.1 <= 10000 %}   
+                        <div>
+                            <div class="float-left">
+                                <button id="download-button" class="btn btn-primary mt-1" data-original-title="Download ZIP" title="Download ZIP">
+                                    <i class="fa-solid fa-arrow-down"></i>
+                                </button>
+                            </div>                            
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+
         </div>
         {% endblock %}
 
@@ -117,7 +218,7 @@
           </div>
     </div>
   
-    <div class="row">
+    <div class="row"> 
         <div class="col messages"></div>
     </div>
 
