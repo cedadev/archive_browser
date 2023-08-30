@@ -16,39 +16,36 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" referrerpolicy="no-referrer"></script>
 
 <script>
-    
-  
-    const parser = new DOMParser();
-    const decodedData = parser.parseFromString("{{ dapDirectory }}", 'text/html').body.textContent;
+        const parser = new DOMParser();
+        const decodedData = parser.parseFromString("{{ dapDirectory }}", 'text/html').body.textContent;
 
-    console.log(decodedData)
+        console.log(decodedData)
 
-    const regex = /'path': '(.*?)'/g;
-    const paths = [];
-    let match;
+        const regex = /'path': '(.*?)'/g;
+        const paths = [];
+        let match;
 
-    while ((match = regex.exec(decodedData)) !== null) {
-      paths.push('https://dap.ceda.ac.uk'+match[1]);
-    }
+        while ((match = regex.exec(decodedData)) !== null) {
+          paths.push('https://dap.ceda.ac.uk'+match[1]);
+        }
 
-    console.log(paths)
-    /*
-    // Replace single quotes with double quotes and remove extra double quotes around array elements
-    let cleanedData = decodedData.replace(/'/g, '"');
-    cleanedData = cleanedData.replace(/""+/g, '"');
-    cleanedData = cleanedData.replace(/:/g, ': ');
-    console.log(cleanedData);
+        console.log(paths)
 
-
-    // Parse the cleaned JSON data
-    const jsonData = JSON.parse(cleanedData);
-
-    // Extract paths from cleaned data
-    const urls = jsonData.map(file => file.path);
-    */
-
-    const download = url => {
-          return fetch(url).then(resp => resp.blob());
+        const download = async (url) => {
+          try {
+            const response = await fetch(url);
+            if (response.ok) {
+              return response.blob();
+            } else if (response.status === 404) {
+              console.error(`File not found: ${url}`);
+              return null; // Skip this URL if not found
+            } else {
+              throw new Error(`Error downloading ${url}: ${response.statusText}`);
+            }
+          } catch (error) {
+            console.error(`Error downloading ${url}: ${error.message}`);
+            return null; // Handle other errors
+          }
         };
         
         const downloadByGroup = (urls, files_per_group=5) => {
@@ -62,22 +59,33 @@
         }
         
         const exportZip = blobs => {
-          const zip = JSZip();
+          const zip = new JSZip();
+
           blobs.forEach((blob, i) => {
-	        const url = paths[i]; 
-            const filename = url.substring(url.lastIndexOf('/') + 1); 
-            zip.file(filename, blob); // Use the extracted filename
+            const url = paths[i];
+            const filename = url.substring(url.lastIndexOf('/') + 1);
+            const pathParts = url.split('/').slice(3, -1); 
+
+            let folder = zip.folder(); // Start with the root folder
+
+            // Create nested folders
+            pathParts.forEach(part => {
+              folder = folder.folder(part);
+            });
+
+            folder.file(filename, blob); // Add the file to the appropriate folder
           });
-          zip.generateAsync({type: 'blob',  
-                             compression: "DEFLATE",
-                             compressionOptions: {level: 9}
-            }).then(zipFile => {
-		      const currentDate = new Date().getTime();
-		      // TODO: better name for zip file? <dirname>.zip  
+
+          zip.generateAsync({
+            type: 'blob',
+            compression: 'DEFLATE',
+            compressionOptions: { level: 9 }
+          }).then(zipFile => {
+            const currentDate = new Date().getTime();
             const fileName = `combined-${currentDate}.zip`;
             return saveAs(zipFile, fileName);
           });
-        }
+        };
         
         const downloadAndZip = paths => {
           return downloadByGroup(paths, 5).then(exportZip);
