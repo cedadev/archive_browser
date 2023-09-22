@@ -240,7 +240,7 @@ def browse(request):
                 <a href="{moles_record(path)['url']}">apply for access</a>.''')
         status = 403
 
-    if cat_info.get("status_warning"):
+    if cat_info and cat_info.get("status_warning"):
         messages.warning(request, f'''This data is {cat_info["status"]}! See <a href="{moles_record(path)['url']}">catalogue</a>''')
 
     context = {
