@@ -17,10 +17,10 @@
 
 <script>
         const parser = new DOMParser();
-        const decodedData = parser.parseFromString("{{ dapDirectory }}", 'text/html').body.textContent;
+        const decodedData = "{{ dapDirectory | safe }}"
 
         console.log(decodedData)
-
+        
         const regex = /'path': '(.*?)'/g;
         const paths = [];
         let match;

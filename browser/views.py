@@ -352,7 +352,7 @@ def download(request):
     directory = directory.partition('download?path=')[2]
     dapDirectory = '/' + directory + '/'
     print(ls_query(dapDirectory))
-    dapDirectory = ls_query(dapDirectory)
+    dapDirectory = ls_query(dapDirectory, item_type='file')
     return render(request, 'browser/download.html', {'dapDirectory': dapDirectory})
 
     
