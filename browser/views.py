@@ -348,11 +348,10 @@ def search(request):
     return render(request, 'browser/search.html', {"q": q, "results": files})
 
 def download(request):
-    directory = request.get_full_path()
-    directory = directory.partition('download?path=')[2]
-    dapDirectory = '/' + directory + '/'
-    print(ls_query(dapDirectory))
-    dapDirectory = ls_query(dapDirectory, item_type='file')
-    return render(request, 'browser/download.html', {'dapDirectory': dapDirectory})
+    directory = request.GET.get("path")
+    paths = []
+    for record in ls_query(directory, item_type='file'):
+        paths.append(record["path"])
+    return render(request, 'browser/download.html', {'download_paths': paths})
 
     

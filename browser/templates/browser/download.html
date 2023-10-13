@@ -14,87 +14,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.min.js" integrity="sha512-TFp7JOp8so/oHJrngLI0kn9diZrc0YDr1NrGj1YbzbvSBdGfligjYVRp1xtqlmNCPWpx4xJDhiWSGgUYvqCbBg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" referrerpolicy="no-referrer"></script>
-
+<script src="/static/browser/js/downloader.js"></script>
 <script>
-        const parser = new DOMParser();
-        const decodedData = "{{ dapDirectory | safe }}"
-
-        console.log(decodedData)
-        
-        const regex = /'path': '(.*?)'/g;
-        const paths = [];
-        let match;
-
-        while ((match = regex.exec(decodedData)) !== null) {
-          paths.push('https://dap.ceda.ac.uk'+match[1]);
-        }
-
-        console.log(paths)
-
-        const download = async (url) => {
-          try {
-            const response = await fetch(url);
-            if (response.ok) {
-              return response.blob();
-            } else if (response.status === 404) {
-              console.error(`File not found: ${url}`);
-              return null; // Skip this URL if not found
-            } else {
-              throw new Error(`Error downloading ${url}: ${response.statusText}`);
-            }
-          } catch (error) {
-            console.error(`Error downloading ${url}: ${error.message}`);
-            return null; // Handle other errors
-          }
-        };
-        
-        const downloadByGroup = (urls, files_per_group=5) => {
-          return Promise.map(
-            urls, 
-            async url => {
-              return await download(url);
-            },
-            {concurrency: files_per_group}
-          );
-        }
-        
-        const exportZip = blobs => {
-          const zip = new JSZip();
-
-          blobs.forEach((blob, i) => {
-            const url = paths[i];
-            const filename = url.substring(url.lastIndexOf('/') + 1);
-            const pathParts = url.split('/').slice(3, -1); 
-
-            let folder = zip.folder(); // Start with the root folder
-
-            // Create nested folders
-            pathParts.forEach(part => {
-              folder = folder.folder(part);
-            });
-
-            folder.file(filename, blob); // Add the file to the appropriate folder
-          });
-
-          zip.generateAsync({
-            type: 'blob',
-            compression: 'DEFLATE',
-            compressionOptions: { level: 9 }
-          }).then(zipFile => {
-            const currentDate = new Date().getTime();
-            const fileName = `combined-${currentDate}.zip`;
-            return saveAs(zipFile, fileName);
-          });
-        };
-        
-        const downloadAndZip = paths => {
-          return downloadByGroup(paths, 5).then(exportZip);
-        }
+  const paths = {{download_paths | safe }};
 </script>
-<h2 id="on_tape">Download</h2>
+<h2>Download</h2>
 
 <button id="download-button" class="btn btn-primary mt-1" data-original-title="Download ZIP" title="Download ZIP" onclick="downloadAndZip(paths)">
     <i class="fa-solid fa-arrow-down"> Download ZIP</i>
 </button>
+
+<div id="progress">
+  
+</div>
 {% endblock %}
 
