@@ -350,8 +350,17 @@ def search(request):
 def download(request):
     directory = request.GET.get("path")
     paths = []
+    ai = agg_info(directory)
+    if ai is not None:
+        size = ai["total_size"]
+    else:
+        size = 0
     for record in ls_query(directory, item_type='file'):
         paths.append(record["path"])
-    return render(request, 'browser/download.html', {'download_paths': paths})
+    nfiles = len(paths)
+    return render(request, 'browser/download.html', {'download_paths': paths, 
+                                                     "size": size, 
+                                                     "nfiles": nfiles, 
+                                                     "directory": directory})
 
     

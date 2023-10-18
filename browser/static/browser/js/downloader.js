@@ -41,6 +41,7 @@ const downloadByGroup = (paths, files_per_group=5) => {
     },
     {concurrency: files_per_group}
   );
+  $('#progress').text("Zipping");
 }
 
 const exportZip = blobs => {

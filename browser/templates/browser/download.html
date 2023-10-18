@@ -16,16 +16,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" referrerpolicy="no-referrer"></script>
 <script src="/static/browser/js/downloader.js"></script>
 <script>
-  const paths = {{download_paths | safe }};
+  const paths = {{download_paths | safe }}; 
 </script>
 <h2>Download</h2>
 
-<button id="download-button" class="btn btn-primary mt-1" data-original-title="Download ZIP" title="Download ZIP" onclick="downloadAndZip(paths)">
-    <i class="fa-solid fa-arrow-down"> Download ZIP</i>
-</button>
+<p>{{directory}}</p>
+<p>Total size: {{size|filesizeformat}} in {{nfiles}} files</p>
 
-<div id="progress">
-  
+
+<button id="download-button" class="btn btn-primary mt-1" data-original-title="Download ZIP" title="Download ZIP" onclick="downloadAndZip(paths)">
+    <i class="fa-solid fa-download"></i> Download ZIP
+</button>
+<p></p>
+<div>
+  <pre id="progress"> </pre>
 </div>
+
+
+<div class="alert alert-warning">
+  Note: This type of download only work for directories where all the files fit in your browsers memory. 
+  Not recomended for more than 1GB or more than a few thousand files.
+</div>
+
 {% endblock %}
 
