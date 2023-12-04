@@ -22,6 +22,7 @@
             navigator.clipboard.writeText(copyText.value);
         }
     </script>
+    
 {% endblock head_js_extra %}
 
 {% block content %}
@@ -45,7 +46,8 @@
                     help page about interacting <a href="https://help.ceda.ac.uk/article/4442-ceda-opendap-scripted-interactions">
                         programmatically with the data</a></li>
                 <li>JSON listing: Use <a href="?json">json listing</a> of this directory to script download. </li>
-        </ul></p>
+        </ul>
+    </p>
         </div>
       </div>
 
@@ -70,6 +72,20 @@
                     {% endfor %}
                 </ol>
             </div>
+            {% if agg_info %}
+                {% if agg_info.total_size <= 1000000000 %} 
+                    {% if agg_info.item_types.0.1 <= 5000 %}   
+                        <div>
+                            <div class="float-left">
+                                <a href="{% url 'download' %}?path={{request.path}}" class="btn btn-primary mt-1" role="button" title="This is a small directory - Download as a ZIP file?">
+                                    <i class="fa-solid fa-download"></i>
+                                </a>
+                            </div>                            
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+
         </div>
         {% endblock %}
 
@@ -117,7 +133,7 @@
           </div>
     </div>
   
-    <div class="row">
+    <div class="row"> 
         <div class="col messages"></div>
     </div>
 
