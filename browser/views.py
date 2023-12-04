@@ -214,8 +214,14 @@ def browse(request):
     refresh = False
     if cat_info is not None and cat_info["record_type"] != "Dataset":
         for item in items:
-            if item["type"] == "dir":
-                item_desc = directory_desc(item.get("path"))
+            if item["type"] in ("dir", "link"):
+                if item["type"] == "dir":
+                    item_desc = directory_desc(item.get("path"))
+                elif item["type"] == "link":
+                    item_desc = directory_desc(item.get("path"))
+                    if not item_desc:
+                        item_desc = directory_desc(item.get("target"))
+
                 if item_desc is None:
                     item_desc = '<img src="/static/browser/img/loading.gif" width="25" >'
                     refresh = True
