@@ -77,9 +77,10 @@
                     {% if agg_info.item_types.0.1 <= 5000 %}   
                         <div>
                             <div class="float-left">
-                                <a href="{% url 'download' %}?path={{request.path}}" class="btn btn-primary mt-1" role="button" title="This is a small directory - Download as a ZIP file?">
-                                    <i class="fa-solid fa-download"></i>
-                                </a>
+                            <button type="button" id="copy" class="btn btn-outline-primary mt-1 ml-1" data-toggle="tooltip" onclick="copyPath()"
+                                    data-original-title="Copy directory path" title="Copy directory path">
+                                <i class="fa-regular fa-copy" aria-hidden="true"></i>
+                            </button>
                             </div>                            
                         </div>
                     {% endif %}
@@ -91,16 +92,15 @@
 
         <div class="col-4">
             <div class="float-right">
+                <a href="{% url 'download' %}?path={{request.path}}" class="btn btn-primary mt-1" role="button" title="This is a small directory - Download as a ZIP file?">
+                    <i class="fa-solid fa-download"></i>
+                </a>
                 <span data-toggle="tooltip" title="Bulk download options">
                     <button class="btn btn-primary mt-1" type="button" data-toggle="collapse"
                            data-target="#collapseBulkDownload" aria-expanded="false" aria-controls="collapseExample">
                            <span class="fas fa-cart-arrow-down"></span>
                     </button>
                 </span>
-                <button type="button" id="copy" class="btn btn-primary mt-1" data-toggle="tooltip" onclick="copyPath()"
-                        data-original-title="Copy directory path" title="Copy directory path">
-                    <i class="fa-regular fa-copy" aria-hidden="true"></i>
-                </button>
                 <button type="button" class="btn btn-primary mt-1" data-toggle="collapse" data-target="#aggs"><small>
                     {% if  agg_info %}
                     {{agg_info.total_size|filesizeformat}} | {{agg_info.item_types.0.1 | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}

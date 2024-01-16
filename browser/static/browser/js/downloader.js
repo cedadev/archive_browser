@@ -15,6 +15,12 @@
 
 const download = async (url) => {
     $('#progress').text(url);
+    var count = Number(document.getElementById('count').innerHTML);
+    document.getElementById('count').textContent=count + 1;
+    var total = document.getElementById('total').innerHTML;
+    var pcg = Math.ceil(count/total*100) + 1;
+    document.getElementsByClassName('progress-bar').item(0).setAttribute('aria-valuenow',pcg);
+    document.getElementsByClassName('progress-bar').item(0).setAttribute('style','width:'+Number(pcg)+'%');
   try {
     const response = await fetch(url);
     if (response.ok) {
@@ -34,6 +40,7 @@ const download = async (url) => {
 const downloadByGroup = (paths, files_per_group=5) => {
   var urls = new Array(); 
   paths.forEach(path => {urls.push("https://dap.ceda.ac.uk"+path)})  
+  document.getElementById('total').textContent=paths.length;
   return Promise.map(
     urls, 
     async url => {
