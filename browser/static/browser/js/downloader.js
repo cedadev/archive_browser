@@ -40,6 +40,7 @@ const download = async (url) => {
 const downloadByGroup = (paths, files_per_group=5) => {
   var urls = new Array(); 
   paths.forEach(path => {urls.push("https://dap.ceda.ac.uk"+path)})  
+  document.getElementById('count').textContent=0;
   document.getElementById('total').textContent=paths.length;
   return Promise.map(
     urls, 
