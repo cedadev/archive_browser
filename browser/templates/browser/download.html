@@ -18,17 +18,37 @@
 <script>
   const paths = {{download_paths | safe }}; 
 </script>
-<h2>Download</h2>
 
-<p>{{directory}}</p>
+{% endblock %}
+{% block content %}
+
+<div class="alert alert-info" role="alert">
+  Be aware that this downloader currently only supports open access files.
+</div>
+
+<h2>
+  ZIP File Download
+</h2>
+
+<p><a href="{{directory}}">{{directory}}<a></p>
 <p>Total size: {{size|filesizeformat}} in {{nfiles}} files</p>
 
-
-<button id="download-button" class="btn btn-primary mt-1" data-original-title="Download ZIP" title="Download ZIP" onclick="downloadAndZip(paths)">
+<div class="mb-2">
+<button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="downloadAndZip(paths)">
     <i class="fa-solid fa-download"></i> Download ZIP
 </button>
-<p></p>
+<a class="btn btn-outline-primary" title="Back" href="{{directory}}">
+    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to archive
+</a>
+</div>
+
 <div>
+  <div>
+    <strong>Download progress:</strong> <span id="count">0</span>/<span id="total">20</span>
+  </div>
+  <div class="progress">
+    <div class="progress-bar" role="progressbar" style="" aria-valuenow="" aria-valuemin="0" aria-valuemax="100"></div>
+  </div>
   <pre id="progress"> </pre>
 </div>
 
