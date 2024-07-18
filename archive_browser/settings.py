@@ -93,8 +93,7 @@ USE_FTP = False
 FILE_INDEX = 'fbi-2022'
 MAX_FILES_PER_PAGE = 2000
 ROOT_DIRECTORY_FILTER = []
-CAT_URLS = ["http://api.catalogue.ceda.ac.uk/api/v0/obs/get_info", 
-            "http://catalogue.ceda.ac.uk/api/v0/obs/get_info"]
+CAT_URLS = ["https://catalogue.ceda.ac.uk/api/v0/obs/get_info"]
 DO_NOT_DISPLAY = ["/edc", "/sparc"]
 ACCESSCTL_URL = "https://accessctl.ceda.ac.uk/api/v1/rules/bypath/?format=json&path="
 ACCOUNT_COOKIE_NAME=''
