@@ -227,9 +227,9 @@ def browse(request):
                     refresh = True
                 if item_desc != path_desc:
                     item["description"] = item_desc
- 
+
     summary = agg_info(path)
-    if summary is None: 
+    if summary is None:
         refresh = True
 
     template = 'browser/browse_base.html'
