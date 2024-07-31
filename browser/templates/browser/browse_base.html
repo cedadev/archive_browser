@@ -101,12 +101,11 @@
                            <span class="fas fa-cart-arrow-down"></span>
                     </button>
                 </span>
+                {% if  agg_info %}
                 <button type="button" class="btn btn-primary mt-1" data-toggle="collapse" data-target="#aggs"><small>
-                    {% if  agg_info %}
                     {{agg_info.total_size|filesizeformat}} | {{agg_info.item_types.0.1 | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}
-                    {% else %} <img src="/static/browser/img/loading.gif" width="25" > Calculating...
-                    {% endif %}
                 </small></button>
+                {% endif %}
             </div>
         </div>
     </div>  
