@@ -97,13 +97,13 @@
                     {% endif %}
                 {% endif %}
                 <span data-toggle="tooltip" title="Bulk download options">
-                    <button class="btn btn-primary mt-1" type="button" data-toggle="collapse"
-                           data-target="#collapseBulkDownload" aria-expanded="false" aria-controls="collapseExample">
+                    <button class="btn btn-primary mt-1" type="button" data-bs-toggle="collapse"
+                           data-bs-target="#collapseBulkDownload" aria-expanded="false" aria-controls="collapseExample">
                            <span class="fas fa-cart-arrow-down"></span>
                     </button>
                 </span>
                 {% if  agg_info %}
-                <button type="button" class="btn btn-primary mt-1" data-toggle="collapse" data-target="#aggs"><small>
+                <button type="button" class="btn btn-primary mt-1" data-bs-toggle="collapse" data-bs-target="#aggs"><small>
                     {{agg_info.total_size|filesizeformat}} | {{agg_info.item_types.0.1 | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}
                 </small></button>
                 {% endif %}
@@ -182,11 +182,6 @@
 
 {% endblock %}
 
-{% block tail_js_extra %}
-    <script>
-        $('body').tooltip({selector: '[data-toggle="tooltip"]'});
-    </script>
-{% endblock %}
 
 {% block footer %}
     {{ block.super }}
