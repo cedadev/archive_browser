@@ -125,7 +125,8 @@
     <div id="aggs" class="collapse">
         <div class="alert alert-info">
                 <h5>Aggregate information</h5>
-                <p>Average Size: {{agg_info.ave_size|filesizeformat}} </p>
+                <p>Average File Size: {{agg_info.ave_size|filesizeformat}} </p>
+                <p>Size of files help on tape only: {{agg_info.tape_size|filesizeformat}} </p>
                 <p>Item Types: {% for t, n in agg_info.item_types %} <span class="badge badge-warning">{{t}}: {{n|intcomma}}</span> {% endfor %} </p>
                 <p>Commmon Extensions: {% for e, n in agg_info.exts %} <span class="badge badge-light">{{e}}: {{n|intcomma}}</span> {% endfor %} </p>
                 <p>Variables: {% for v in agg_info.vars %}<span class="badge badge-primary">{{v}}</span> {% endfor %}</p>             
