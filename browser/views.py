@@ -128,7 +128,7 @@ def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     ave_size = summary["size_stats"]["avg"]
     item_types = summary["types"]
     exts = summary["exts"]
-      
+
     # only return vars is a short list
     vars = []
     if len(summary["vars"]) < vars_max:
@@ -137,12 +137,12 @@ def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     else:
         vars = ["Many Variables detected..."]
 
-    summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, max_exts=max_ext, location="on_tape")
+    summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, 
+                              max_exts=max_ext, location="on_tape")
     tape_total_size = summary["size_stats"]["sum"]
-    ave_size = summary["size_stats"]["avg"]
-    exts = summary["exts"]
 
-    return {"total_size": total_size, "ave_size": ave_size, "item_types": item_types, "exts": exts, "vars": vars}
+    return {"total_size": total_size, "ave_size": ave_size, "item_types": item_types, "exts": exts, 
+            "vars": vars, "tape_size": tape_total_size}
 
 
 def make_breadcrumbs(path):
