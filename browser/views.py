@@ -76,9 +76,10 @@ def moles_record(path):
                 data = json.loads(url.read().decode())
             if data.get("record_type") == 'Dataset':
                 uuid = os.path.basename(data["url"])
-                full_record_url  = f"http://api.catalogue.ceda.ac.uk/api/v2/observations/?uuid={uuid}"
+                full_record_url  = f"http://api.catalogue.ceda.ac.uk/api/v2/observations/?format=json&uuid={uuid}"
                 with urllib.request.urlopen(full_record_url) as full_record_page:
                     full_record = json.loads(full_record_page.read().decode())
+                print(full_record)
                 data["status"] = full_record["results"][0]["status"]
                 data["status_warning"] = data["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated')
             return data
@@ -135,6 +136,12 @@ def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
             vars.append(v[0])
     else:
         vars = ["Many Variables detected..."]
+
+    summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, max_exts=max_ext, location="on_tape")
+    tape_total_size = summary["size_stats"]["sum"]
+    ave_size = summary["size_stats"]["avg"]
+    exts = summary["exts"]
+
     return {"total_size": total_size, "ave_size": ave_size, "item_types": item_types, "exts": exts, "vars": vars}
 
 
