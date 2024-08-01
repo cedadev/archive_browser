@@ -14,7 +14,6 @@
     <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
     {% if refresh %}<meta http-equiv="refresh" content="3" > {% endif %}
 
-    <script src="//artefacts.ceda.ac.uk/themes/orgtheme/0.1/_vendor/jquery/dist/jquery.min.js"></script>
     <script>
         function copyPath() {
             var copyText = document.getElementById("path_for_copy_button");
@@ -75,7 +74,7 @@
             </div>
             <div>
                 <div class="float-left">
-                <button type="button" id="copy" class="btn btn-outline-primary mt-1 ml-1" data-toggle="tooltip" onclick="copyPath()"
+                <button type="button" id="copy" class="btn btn-outline-primary mt-1 ml-1" data-bs-toggle="tooltip" onclick="copyPath()"
                         data-original-title="Copy directory path" title="Copy directory path">
                     <i class="fa-regular fa-copy" aria-hidden="true"></i>
                 </button>
@@ -187,4 +186,5 @@
     {{ block.super }}
     <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
     <script type="text/javascript">window.Beacon('init', '{{ beacon }}')</script>
+    
 {% endblock footer %}
