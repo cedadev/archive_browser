@@ -22,8 +22,11 @@
 {% endblock %}
 {% block content %}
 
-<div class="alert alert-info" role="alert">
-  Be aware that this downloader currently only supports open access files.
+<div class="alert alert-danger" role="alert">
+  <i class="fa-solid fa-triangle-exclamation"></i> <i class="fa-solid fa-circle-pause"></i> 
+  Currently this downloader only works for data where no login is needed. 
+  If you use this on data that requires login the files in the resulting zip will have zero size.
+  We are working on a fix, but this requires upgrades to access control system.  
 </div>
 
 <h2>
@@ -53,8 +56,10 @@
 </div>
 
 
-<div class="alert alert-warning">
-  Note: Please ensure your browser supports JavaScript. This downloader uses your browser's memory, so it is not recomended for large sets of files (over a thousand) or files great than 1GB in size.
+<div class="alert alert-info">
+  Note: This downloader uses JavaScript. 
+  It downloads to your browser's memory, so it is not recomended for large sets 
+  of files (over a thousand) or files great than 1GB in size.
 </div>
 
 Please <a href="javascript:void(0);" id="beacon" onclick="Beacon('toggle')">contact us</a> if you require assistance.
