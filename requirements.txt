@@ -1,5 +1,5 @@
 asgiref==3.6.0
-git+https://github.com/cedadev/ceda-elasticsearch-client.git
+git+https://github.com/cedadev/ceda-elasticsearch-client.git@efa8e3aa6e80ed0a83102036b95f07265b28cc42
 git+https://github.com/cedadev/fbi-core.git
 elasticsearch==8.4.0
 elastic-transport==8.4.0
