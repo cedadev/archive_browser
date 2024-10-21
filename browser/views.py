@@ -13,6 +13,7 @@ import os
 import urllib.request
 import urllib.error
 import json 
+import datetime
 from functools import lru_cache 
 from fbi_core import archive_summary, fbi_listdir, get_record, ls_query
 from elasticsearch.helpers import ScanError
@@ -38,13 +39,13 @@ def generate_actions(ext, path, item_type, download_service):
     if item_type in ("dir", "link"):
         return ""
  
-    download_link = f"<a class='btn btn-lg' href='{download_service}{path}?download=1' title='Download file' data-toggle='tooltip'><i class='fa fa-download'></i></a>"
+    download_link = f"<a class='btn btn-sm btn-primary mx-1' href='{download_service}{path}?download=1' title='Download file' data-toggle='tooltip'><i class='fa fa-download'></i> Download</a>"
 
     # Generate button for view action
-    view_link = f'<a class="btn btn-lg" href="{download_service}{path}" title="View file" data-toggle="tooltip"><i class="fa fa-eye"></i></a>'
+    view_link = f'<a class="btn btn-sm btn-primary mx-1" href="{download_service}{path}" title="View file" data-toggle="tooltip"><i class="fa fa-eye"></i> View</a>'
 
     # Generate button for subset action
-    subset_link = f"<a class='btn btn-lg' href='{download_service}/thredds/dodsC{path}.html' title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i></a>"
+    subset_link = f"<a class='btn btn-sm btn-primary mx-1' href='{download_service}/thredds/dodsC{path}.html' title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i> Extract</a>"
 
     if ext in ("nc", ".nc", ".hdf", ".h4", ".hdf4"):
         return download_link + subset_link
@@ -107,18 +108,16 @@ def directory_desc(path):
             status_badge = f'<span class="badge badge-danger">{cat_info["status"]}</span>'
         else:
             status_badge = ""
-        return f'''<i class="fa-lg fa fa-database" style="color: #4f81bd" title="These records describe and link to the actual data in our archive. 
-                     They also provide spatial and temporal information, 
-                     access and usage information and link to background information on why and how the data were collected." data-toggle="tooltip">
-                     </i> {status_badge} {cat_info["title"]} 
-                     <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+        return f'''<a class="btn btn-sm btn-primary mx-1" href = '{cat_info["url"]}' 
+                    title = 'These records describe the data in our archive in detail.' data-toggle='tooltip'>
+                    <i class='fa-lg fa fa-database'></i> Dataset record {status_badge}</a></i>  {cat_info["title"]} '''
     elif cat_info is not None and cat_info["record_type"] == "Dataset Collection":   
-        return f'''<i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets that share some common purpose, theme or association. 
-                   " data-toggle="tooltip"></i> {cat_info["title"]} 
-                   <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+        return f'''<a class="btn btn-sm btn-primary mx-1" href = '{cat_info["url"]}' 
+                    title = 'These records describe the data in our archive in detail.' data-toggle='tooltip'>
+                    <i class='fas fa-copy collection'></i> Collection record</a></i> {cat_info["title"]} '''
     readme_info = readme_line(path)
     if readme_info:
-        return f'<i class="fab fa-readme" title="" data-toggle="tooltip" data-original-title="Description taken from 00README"></i> {readme_info}' 
+        return f'{readme_info}' 
     return ""
 
 @lru_cache_expires(maxsize=1024, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
@@ -215,11 +214,15 @@ def browse(request):
         counts[item["type"]] += 1
         item["icon"] = getIcon(item.get("type"), item.get("ext"))
         item["actions"] = generate_actions(item.get("ext"), item.get("path"), item.get("type"), download_service)
+        if "last_modified" in item:
+            item["last_mod_datetime"] = datetime.datetime.fromisoformat(item.get("last_modified"))
 
     # work out what to show in the description field
     path_desc = directory_desc(path)
     refresh = False
-    if cat_info is not None and cat_info["record_type"] != "Dataset":
+
+    description_col = cat_info is not None and cat_info["record_type"] != "Dataset"
+    if description_col:
         for item in items:
             if item["type"] in ("dir", "link"):
                 if item["type"] == "dir":
@@ -267,6 +270,7 @@ def browse(request):
         "counts": counts,
         "refresh": refresh,
         "access_rules": access_rules,
+        "description_col": description_col,
         "DOWNLOAD_SERVICE": download_service
     }
  

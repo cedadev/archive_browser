@@ -16,6 +16,15 @@ body > .container {
     padding-bottom: 100px;
 }
 
+a {
+  color: #1c3349;
+}
+
+.archive-path {
+  font-family: monospace;
+  color: rgb(13, 13, 58);
+}
+
 /* Match height of navbar to height of logo image */
 a.navbar-brand {
     height: auto; /* Adjust this to the height of the logo image */
