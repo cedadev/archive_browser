@@ -32,18 +32,20 @@
     <div class="collapse" id="collapseBulkDownload">
         <div class="alert alert-info" role="alert">
             <h3>Bulk Download Options</h3>
+            See our <a href="https://help.ceda.ac.uk/article/4431-ceda-archive-web-download-and-services#Download-multiple-files-gSfQC" target="_blank">Help page</a> 
+            for more information.
             <p>
                 <ul>
-                <li>Raw HTTP downloads: <a href="{{ DOWNLOAD_SERVICE }}{{ request.path }}">{{ DOWNLOAD_SERVICE }}{{ request.path }}</a>
+                <li>Raw HTTP downloads: <a href="{{ DOWNLOAD_SERVICE }}{{ request.path }}/">{{ DOWNLOAD_SERVICE }}{{ request.path }}</a>
                     (Tip: If our file indexing is behind for some reason, then this service may show more recent changes that
                     may not be displayed here)</li>
-                <li>Wget: <code class="bg-light">&nbsp;wget -e robots=off --mirror --no-parent -r {{ DOWNLOAD_SERVICE }}{{ request.path }}/&nbsp;</code>
-                    <a href="https://www.gnu.org/software/wget/">Wget</a> is great for bulk downloading.</li>
-                <li>FTP: <a href="ftp://ftp.ceda.ac.uk{{ request.path }}">ftp://ftp.ceda.ac.uk{{ request.path }}</a>
-                    There are lots of tools that can use FTP to do bulk downloads
-                    (e.g. <a href="https://filezilla-project.org/">Filezilla</a>")</li>
+                <li>wget: use <code class="bg-light">&nbsp;wget -e robots=off --mirror --no-parent -r {{ DOWNLOAD_SERVICE }}{{ request.path }}/&nbsp;</code> to download all 
+                    files below this point in the archive.
+                    Note that some datasets, including MIDAS Open, require you to use 
+                        <a href="https://help.ceda.ac.uk/article/5100-archive-access-tokens" target="_blank">token authentication</a> in order to download data.
+                    </li>
                 <li>DAP: If you need to just get a subset of NetCDF files have a look at
-                    help page about interacting <a href="https://help.ceda.ac.uk/article/4442-ceda-opendap-scripted-interactions">
+                    help page about interacting <a href="https://help.ceda.ac.uk/article/4442-ceda-opendap-scripted-interactions" target="_blank">
                         programmatically with the data</a></li>
                 <li>JSON listing: Use <a href="?json">json listing</a> of this directory to script download. </li>
         </ul>
