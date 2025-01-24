@@ -33,21 +33,26 @@
         <div class="alert alert-info" role="alert">
             <h3>Bulk Download Options</h3>
             See our <a href="https://help.ceda.ac.uk/article/4431-ceda-archive-web-download-and-services#Download-multiple-files-gSfQC" target="_blank">Help page</a> 
-            for more information.
+            for more information about bulk download options.
             <p>
                 <ul>
-                <li>Raw HTTP downloads: <a href="{{ DOWNLOAD_SERVICE }}{{ request.path }}/">{{ DOWNLOAD_SERVICE }}{{ request.path }}</a>
-                    (Tip: If our file indexing is behind for some reason, then this service may show more recent changes that
-                    may not be displayed here)</li>
-                <li>wget: use <code class="bg-light">&nbsp;wget -e robots=off --mirror --no-parent -r {{ DOWNLOAD_SERVICE }}{{ request.path }}/&nbsp;</code> to download all 
+                
+                <li><b>WGET:</b> 
+                    
+                    Use <code class="bg-light">&nbsp;wget -e robots=off --mirror --no-parent -r {{ DOWNLOAD_SERVICE }}{{ request.path }}/ &nbsp;</code> 
+                   
+                    to download all 
                     files below this point in the archive.
-                    Note that some datasets, including MIDAS Open, require you to use 
-                        <a href="https://help.ceda.ac.uk/article/5100-archive-access-tokens" target="_blank">token authentication</a> in order to download data.
+                    Note that some datasets, including MIDAS Open, require you to use token authentication in order to download data. See 
+                        <a href="https://help.ceda.ac.uk/article/5191-downloading-multiple-files-with-wget" target="_blank">downloading multiple files with wget</a> for more information
+                        on using wget and token authentication.
                     </li>
-                <li>DAP: If you need to just get a subset of NetCDF files have a look at
-                    help page about interacting <a href="https://help.ceda.ac.uk/article/4442-ceda-opendap-scripted-interactions" target="_blank">
+                    <p></p>
+                <li><b>DAP:</b> If you need to just get a subset of NetCDF files have a look at
+                    help page about interacting <a href="https://help.ceda.ac.uk/article/5100-archive-access-tokens" target="_blank">
                         programmatically with the data</a></li>
-                <li>JSON listing: Use <a href="?json">json listing</a> of this directory to script download. </li>
+                        <p></p>
+                <li><b>JSON listing:</b> Use <a href="?json">json listing</a> of this directory to script download. </li>
         </ul>
     </p>
         </div>
@@ -97,16 +102,18 @@
                         {% endif %}
                     {% endif %}
                 {% endif %}
-                <span data-toggle="tooltip" title="Bulk download options">
+                <span data-toggle="tooltip" title="View bulk download information">
                     <button class="btn btn-primary mt-1" type="button" data-bs-toggle="collapse"
                            data-bs-target="#collapseBulkDownload" aria-expanded="false" aria-controls="collapseExample">
                            <span class="fas fa-cart-arrow-down"></span>
                     </button>
                 </span>
                 {% if  agg_info %}
-                <button type="button" class="btn btn-primary mt-1" data-bs-toggle="collapse" data-bs-target="#aggs"><small>
-                    {{agg_info.total_size|filesizeformat}} | {{agg_info.item_types.0.1 | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}
-                </small></button>
+                <span data-toggle="tooltip" title="Archive contents summary from current location">
+                    <button type="button" class="btn btn-primary mt-1" data-bs-toggle="collapse" data-bs-target="#aggs"><small>
+                        {{agg_info.total_size|filesizeformat}} | {{agg_info.item_types.0.1 | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}
+                    </small></button>
+                </span>
                 {% endif %}
             </div>
         </div>
