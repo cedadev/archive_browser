@@ -117,8 +117,8 @@ def directory_desc(path):
                    " data-toggle="tooltip"></i> {cat_info["title"]} 
                    <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
     readme_info = readme_line(path)
-    if readme_info:
-        return f'<i class="fab fa-readme" title="" data-toggle="tooltip" data-original-title="Description taken from 00README"></i> {readme_info}' 
+    if readme_info and readme_info != 'HIDE DIRECTORY':
+        return f'{readme_info}' 
     return ""
 
 @lru_cache_expires(maxsize=1024, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
