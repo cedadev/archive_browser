@@ -101,3 +101,6 @@ ACCOUNT_COOKIE_NAME=''
 from archive_browser.settings_local import *
 
 CONTAINER_FLUID = False
+
+import secrets
+SECURITY_SHAREDSECRET = secrets.token_hex(32)

@@ -17,6 +17,9 @@ from functools import lru_cache
 from fbi_core import archive_summary, fbi_listdir, get_record, ls_query
 from elasticsearch.helpers import ScanError
 
+import requests
+from concurrent.futures import ThreadPoolExecutor
+
 
 def getIcon(type, extension):
     if type == "dir":
@@ -389,20 +392,59 @@ def search(request):
         files = ls_query(under, name_regex=q)
     return render(request, 'browser/search.html', {"q": q, "results": files})
 
+
+
+BASE_URL = "https://dap.ceda.ac.uk"
+
+def check_file_availability(path):
+    """Checks if a file is accessible (returns status 200)."""
+    url = f"{BASE_URL}{path}"
+    try:
+        response = requests.head(url, timeout=5)  # HEAD request to check availability
+        if response.status_code == 200:
+            return path, True
+        else:
+            return path, False
+    except requests.RequestException:
+        return path, False
+
 def download(request):
     directory = request.GET.get("path")
     paths = []
     ai = agg_info(directory)
-    if ai is not None:
-        size = ai["total_size"]
-    else:
-        size = 0
+
+    size = ai["total_size"] if ai else 0  # Get total size if available
+
     for record in ls_query(directory, item_type='file'):
         paths.append(record["path"])
+
     nfiles = len(paths)
-    return render(request, 'browser/download.html', {'download_paths': paths, 
-                                                     "size": size, 
-                                                     "nfiles": nfiles, 
-                                                     "directory": directory})
+
+    # Check file availability in parallel (faster)
+    available_paths = []
+    failed_paths = []
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = executor.map(check_file_availability, paths)
+
+    for path, is_available in results:
+        if is_available:
+            available_paths.append(path)
+        else:
+            failed_paths.append(path)
+
+    return render(
+        request, 
+        "browser/download.html", 
+        {
+            "download_paths": available_paths,  # Only available files
+            "size": size,
+            "nfiles": nfiles,
+            "available_files_count": len(available_paths),
+            "failed_files_count": len(failed_paths),
+            "directory": directory
+        }
+    )
+
 
     

@@ -46,15 +46,19 @@
 </div>
 
 <div>
+  <p>Total files: {{ nfiles }}</p>
+  <p>Available: <span id="available-count">{{ available_files_count }}</span></p>
+  <p>Unavailable: <span id="unavailable-count">{{ failed_files_count }}</span></p>
   <div>
-    <strong>Download progress:</strong> <span id="count">0</span>/<span id="total">{{nfiles}}</span>
+    <strong>Download progress:</strong> 
+    <span id="count">0</span>/<span id="total">{{nfiles}}</span>
+    (<span id="failed">0</span> failed)
   </div>
   <div class="progress">
     <div class="progress-bar" role="progressbar" style="" aria-valuenow="" aria-valuemin="0" aria-valuemax="100"></div>
   </div>
   <pre id="progress"> </pre>
 </div>
-
 
 <div class="alert alert-info">
   Note: This downloader uses JavaScript. 
