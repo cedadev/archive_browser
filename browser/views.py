@@ -19,6 +19,8 @@ from elasticsearch.helpers import ScanError
 
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from collections import defaultdict
+import time
 
 
 def getIcon(type, extension):
@@ -393,21 +395,32 @@ def search(request):
     return render(request, 'browser/search.html', {"q": q, "results": files})
 
 
-
 BASE_URL = "https://dap.ceda.ac.uk"
 
-def check_file_availability(path):
+def check_file_availability(path, max_retries=5):
     url = f"{BASE_URL}{path}"
-    try:
-        response = requests.head(url, timeout=5)  #
-        if response.status_code == 200:
-            return path, True
-        else:
-            print(path, response.status_code)
-            return path, False
-    except requests.RequestException:
-        print(path, response.status_code)
-        return path, False
+    attempt = 0
+
+    while attempt <= max_retries:
+        try:
+            response = requests.head(url, timeout=5)
+            
+            if response.status_code == 500:
+                attempt += 1
+                if attempt <= max_retries:
+                    wait_time = 2 ** attempt
+                    print(f"Retrying {url} in {wait_time}s (Attempt {attempt}/{max_retries})...")
+                    time.sleep(wait_time)
+                    continue
+            
+            return path, response.status_code 
+
+        except requests.RequestException as e:
+            print(f"Network error on {url}: {e}")
+            return path, 418
+
+    return path, 500
+
 
 def download(request):
     directory = request.GET.get("path")
@@ -422,16 +435,16 @@ def download(request):
     nfiles = len(paths)
 
     available_paths = []
-    failed_paths = []
+    failed_paths = defaultdict(list)
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         results = executor.map(check_file_availability, paths)
 
-    for path, is_available in results:
-        if is_available:
+    for path, status_code in results:
+        if status_code == 200:
             available_paths.append(path)
         else:
-            failed_paths.append(path)
+            failed_paths[status_code].append(path)
 
     return render(
         request, 
@@ -441,10 +454,11 @@ def download(request):
             "size": size,
             "nfiles": nfiles,
             "available_files_count": len(available_paths),
-            "failed_files_count": len(failed_paths),
+            "failed_paths": dict(failed_paths),
             "directory": directory
         }
     )
+
 
 
     

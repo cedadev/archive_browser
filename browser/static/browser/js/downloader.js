@@ -1,5 +1,4 @@
 const updateProgress = (count, total, failed) => {
-  console.info("Updating progress: ", count, total, failed);
   const progressPercentage = Math.ceil((count / total) * 100) + 1;
 
   document.getElementById('count').textContent = count;
@@ -8,26 +7,46 @@ const updateProgress = (count, total, failed) => {
   document.getElementsByClassName('progress-bar')[0].style.width = `${progressPercentage}%`;
 };
 
-const download = async (url, stats) => {
+const download = async (url, stats, maxRetries = 5) => {
   $('#progress').text(`Downloading: ${url}`);
 
-  try {
-      const response = await fetch(url);
+  let attempt = 0;
+  while (attempt <= maxRetries) {
+      try {
+          const response = await fetch(url);
 
-      if (response.status === 403) { 
-          console.warn(`Permission denied: ${url}`);
+          if (response.status === 403) { 
+              console.warn(`Permission denied: ${url}`);
+              stats.failureCount += 1;
+              break; // Don't retry 403 errors
+          } else if (response.status === 500 || !response.ok) {
+              console.error(`Error downloading ${url}: ${response.status} - ${response.statusText}`);
+              attempt += 1;
+              if (attempt <= maxRetries) {
+                  const delay = Math.pow(2, attempt) * 500; // Exponential backoff (500ms, 1s, 2s, 4s...)
+                  console.warn(`Retrying ${url} in ${delay / 1000}s...`);
+                  await new Promise(res => setTimeout(res, delay));
+                  continue;
+              }
+              stats.failureCount += 1;
+          } else {
+              const blob = await response.blob(); 
+              stats.successCount += 1;
+              return blob;
+          }
+      } catch (error) {
+          console.error(`Network error downloading ${url}: ${error.message}`);
+          attempt += 1;
+          if (attempt <= maxRetries) {
+              const delay = Math.pow(2, attempt) * 500;
+              console.warn(`Retrying ${url} in ${delay / 1000}s...`);
+              await new Promise(res => setTimeout(res, delay));
+              continue;
+          }
           stats.failureCount += 1;
-      } else if (!response.ok) {
-          console.error(`Error downloading ${url}: ${response.status} - ${response.statusText}`);
-          stats.failureCount += 1;
-      } else {
-          const blob = await response.blob(); 
-          stats.successCount += 1;
-          return blob;
       }
-  } catch (error) {
-      console.error(`Network error downloading ${url}: ${error.message}`);
-      stats.failureCount += 1;
+
+      break; // Break loop after final failed attempt
   }
 
   updateProgress(stats.successCount + stats.failureCount, stats.totalFiles, stats.failureCount);
