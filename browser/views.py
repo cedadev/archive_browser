@@ -397,15 +397,16 @@ def search(request):
 BASE_URL = "https://dap.ceda.ac.uk"
 
 def check_file_availability(path):
-    """Checks if a file is accessible (returns status 200)."""
     url = f"{BASE_URL}{path}"
     try:
-        response = requests.head(url, timeout=5)  # HEAD request to check availability
+        response = requests.head(url, timeout=5)  #
         if response.status_code == 200:
             return path, True
         else:
+            print(path, response.status_code)
             return path, False
     except requests.RequestException:
+        print(path, response.status_code)
         return path, False
 
 def download(request):
@@ -413,14 +414,13 @@ def download(request):
     paths = []
     ai = agg_info(directory)
 
-    size = ai["total_size"] if ai else 0  # Get total size if available
+    size = ai["total_size"] if ai else 0 
 
     for record in ls_query(directory, item_type='file'):
         paths.append(record["path"])
 
     nfiles = len(paths)
 
-    # Check file availability in parallel (faster)
     available_paths = []
     failed_paths = []
 
@@ -437,7 +437,7 @@ def download(request):
         request, 
         "browser/download.html", 
         {
-            "download_paths": available_paths,  # Only available files
+            "download_paths": available_paths,
             "size": size,
             "nfiles": nfiles,
             "available_files_count": len(available_paths),

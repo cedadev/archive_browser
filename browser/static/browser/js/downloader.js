@@ -21,8 +21,9 @@ const download = async (url, stats) => {
           console.error(`Error downloading ${url}: ${response.status} - ${response.statusText}`);
           stats.failureCount += 1;
       } else {
+          const blob = await response.blob(); 
           stats.successCount += 1;
-          return response.blob();
+          return blob;
       }
   } catch (error) {
       console.error(`Network error downloading ${url}: ${error.message}`);
@@ -33,38 +34,64 @@ const download = async (url, stats) => {
   return null;
 };
 
+
 const downloadByGroup = (paths, filesPerGroup = 5) => {
   const urls = paths.map(path => `https://dap.ceda.ac.uk${path}`);
-  
   let stats = { successCount: 0, failureCount: 0, totalFiles: paths.length };
 
   document.getElementById('count').textContent = 0;
   document.getElementById('total').textContent = paths.length;
   document.getElementById('failed').textContent = 0;
 
-  return Promise.map(urls, url => download(url, stats).then(() => updateProgress(stats.successCount + stats.failureCount, stats.totalFiles, stats.failureCount)), { concurrency: filesPerGroup })
-      .then(blobs => {
-          $('#progress').text("Zipping");
-          return blobs.filter(blob => blob !== null);
-      });
+  const processInChunks = async () => {
+      const results = [];
+      for (let i = 0; i < urls.length; i += filesPerGroup) {
+          const batch = urls.slice(i, i + filesPerGroup).map(url => 
+              download(url, stats).then(blob => {
+                  updateProgress(stats.successCount + stats.failureCount, stats.totalFiles, stats.failureCount);
+                  return blob;
+              })
+          );
+          results.push(...(await Promise.all(batch)));
+      }
+      return results;
+  };
+  $('#progress').text("Zipping your data. Just a moment...");
+  return processInChunks().then(blobs => {
+      $('#progress').text("Zipping");
+      return blobs.filter(blob => blob !== null);
+  });
 };
 
 const exportZip = (blobs, paths) => {
   const zip = new JSZip();
-
-  blobs.forEach((blob, i) => {
-      const path = paths[i];
+  
+  blobs.forEach((blob, index) => {
+      if (!blob) return; // Skip failed downloads
+      
+      const path = paths[index];
       const filename = path.split('/').pop();
       const folderPath = path.split('/').slice(1, -1).join('/');
-      
+
       const folder = zip.folder(folderPath) || zip;
       folder.file(filename, blob);
   });
 
-  zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 9 } })
-      .then(zipFile => saveAs(zipFile, `combined-${Date.now()}.zip`));
+  // Update UI to indicate compression is in progress
+  $('#progress').text("Preparing ZIP file... This may take a while.");
 
-  $('#progress').text("FINISHED - check browser downloads");
+  zip.generateAsync({ 
+      type: 'blob', 
+      compression: 'DEFLATE', 
+      compressionOptions: { level: 5 } 
+  }, (metadata) => {
+      // Update progress UI during ZIP compression
+      $('#progress').text(`Compressing: ${metadata.percent.toFixed(2)}%`);
+  }).then(zipFile => {
+      // Trigger the file download
+      saveAs(zipFile, `combined-${Date.now()}.zip`);
+      $('#progress').text("Download will start soon. Check browser downloads.");
+  });
 };
 
 const downloadAndZip = (paths) => {
