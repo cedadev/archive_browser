@@ -48,12 +48,14 @@
 <div>
   <p>Total files: {{ nfiles }}</p>
   <p>Available: <span id="available-count">{{ available_files_count }}</span></p>
-  <p>Unavailable:</p>
-    <ul>
-      {% for key, value in failed_paths.items %}
-        <li>Error {{ key }}: {{ value|length }}</li>
-      {% endfor %}
-    </ul>
+  {% if failed_paths %}
+    <p>Unavailable:</p>
+      <ul>
+        {% for key, value in failed_paths.items %}
+          <li>Error {{ key }}: {{ value|length }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
   <div>
     <strong>Download progress:</strong> 
     <span id="count">0</span>/<span id="total">{{nfiles}}</span>

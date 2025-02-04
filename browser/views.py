@@ -21,6 +21,7 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 import time
+import random
 
 
 def getIcon(type, extension):
@@ -397,19 +398,21 @@ def search(request):
 
 BASE_URL = "https://dap.ceda.ac.uk"
 
-def check_file_availability(path, max_retries=5):
+session = requests.Session()
+
+def check_file_availability(path, max_retries=3):
     url = f"{BASE_URL}{path}"
     attempt = 0
 
     while attempt <= max_retries:
         try:
-            response = requests.head(url, timeout=5)
+            response = session.head(url, timeout=5)
             
             if response.status_code == 500:
                 attempt += 1
                 if attempt <= max_retries:
-                    wait_time = 2 ** attempt
-                    print(f"Retrying {url} in {wait_time}s (Attempt {attempt}/{max_retries})...")
+                    wait_time = attempt + random.uniform(0, 1)
+                    print(f"Retrying {url} in {wait_time:.2f}s (Attempt {attempt}/{max_retries})...")
                     time.sleep(wait_time)
                     continue
             
@@ -417,10 +420,9 @@ def check_file_availability(path, max_retries=5):
 
         except requests.RequestException as e:
             print(f"Network error on {url}: {e}")
-            return path, 418
+            return path, 418 
 
-    return path, 500
-
+    return path, 500 
 
 def download(request):
     directory = request.GET.get("path")
@@ -437,7 +439,9 @@ def download(request):
     available_paths = []
     failed_paths = defaultdict(list)
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    max_workers = 20
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         results = executor.map(check_file_availability, paths)
 
     for path, status_code in results:
