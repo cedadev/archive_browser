@@ -15,6 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" referrerpolicy="no-referrer"></script>
 <script src="/static/browser/js/downloader.js"></script>
+<script src="/static/browser/js/cookies_test.js"></script>
 <script>
   const paths = {{download_paths | safe }}; 
 </script>
@@ -37,7 +38,7 @@
 <p>Total size: {{size|filesizeformat}} in {{nfiles}} files</p>
 
 <div class="mb-2">
-<button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="downloadAndZip(paths)">
+<button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="test()">
     <i class="fa-solid fa-download"></i> Download ZIP
 </button>
 <a class="btn btn-outline-primary" title="Back" href="{{directory}}">

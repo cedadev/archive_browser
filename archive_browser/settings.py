@@ -104,3 +104,29 @@ CONTAINER_FLUID = False
 
 import secrets
 SECURITY_SHAREDSECRET = secrets.token_hex(32)
+
+OIDC_RP_CLIENT_ID = "data-ceda-ac-uk"
+OIDC_RP_CLIENT_SECRET = "TtVRvZwMbhnHmCjMkEOx1kmLCliJiyU4"
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_STORE_ID_TOKEN = True
+#OIDC_OP_LOGOUT_URL_METHOD = "oidc_auth.utils.generate_id_token_logout_url"
+LOGIN_URL_NAME = "oidc_authentication_init"
+LOGOUT_URL_NAME = "oidc_logout"
+
+OIDC_VERIFY_SSL = False
+OIDC_BASE_URL = (
+    "https://ceda-idp-master.130.246.130.221.nip.io/realms/ceda/protocol/openid-connect"
+)
+OIDC_OP_JWKS_ENDPOINT = f"{OIDC_BASE_URL}/certs"
+OIDC_OP_AUTHORIZATION_ENDPOINT = f"{OIDC_BASE_URL}/auth"
+OIDC_OP_LOGOUT_ENDPOINT = f"{OIDC_BASE_URL}/logout"
+OIDC_OP_TOKEN_ENDPOINT = f"{OIDC_BASE_URL}/token"
+OIDC_OP_USER_ENDPOINT = f"{OIDC_BASE_URL}/userinfo"
+
+ACCOUNT_MANAGEMENT_URL = (
+    "https://ceda-idp-master.130.246.130.221.nip.io/realms/ceda/account"
+)
+
+LOGIN_URL = "/oidc/authenticate"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"

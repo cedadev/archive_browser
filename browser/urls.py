@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
-from django.urls import path, re_path
+from django.urls import path, re_path, include
 from django.shortcuts import HttpResponse
 from . import views
 
@@ -33,6 +33,7 @@ urlpatterns = [
     path('search', views.search, name='search'),
     path('item_info', views.item_info, name='item_info'),
     path('download', views.download, name='download'),
+    path("oidc/", include("mozilla_django_oidc.urls")),
     re_path('stac(?P<path>/.*)$', views.stac, name='stac'),
     re_path('jsonlist(?P<path>/.*)$', views.jsonlist, name='jsonlist'),
     re_path('.*', views.browse, name='browse' ),
