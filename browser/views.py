@@ -35,6 +35,11 @@ def getIcon(type, extension):
 def generate_actions(ext, path, item_type, download_service):
     #print("actions")
     # Generate button for download action
+    #
+    # Make sure uppercase extensions are handled as well
+    
+    ext = ext.lower()
+    
     if item_type in ("dir", "link"):
         return ""
  
