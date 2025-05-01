@@ -38,7 +38,8 @@ def generate_actions(ext, path, item_type, download_service):
     #
     # Make sure uppercase extensions are handled as well
     
-    ext = ext.lower()
+    if ext:
+        ext = ext.lower()
     
     if item_type in ("dir", "link"):
         return ""
