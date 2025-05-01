@@ -53,7 +53,7 @@ def generate_actions(ext, path, item_type, download_service):
 
     if ext in ("nc", ".nc", ".hdf", ".h4", ".hdf4"):
         return download_link + subset_link
-    if ext in (".gif", ".jpg", ".jpeg", ".png", ".svg", ".svgz", ".wbmp", ".webp", ".ico", ".jng", ".bmp", ".txt", ".pdf", ".html"):
+    if ext in (".gif", ".jpg", ".jpeg", ".png", ".svg", ".svgz", ".wbmp", ".webp", ".ico", ".jng", ".bmp", ".txt", ".pdf", ".html", ".mp4"):
         return view_link + download_link
     if os.path.basename(path) == '00README':
         return view_link
