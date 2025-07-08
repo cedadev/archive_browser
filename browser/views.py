@@ -255,7 +255,7 @@ def browse(request):
 
     status = 200
     if "forbidden" in request.GET:
-        messages.error(request, f'''You don't have premission to access files in this directory. You need to 
+        messages.error(request, f'''You don't have permission to access files in this directory. You need to 
                 <a href="{moles_record(path)['url']}">apply for access</a>.''')
         status = 403
 
