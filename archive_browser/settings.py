@@ -26,7 +26,11 @@ INSTALLED_APPS = [
     'fwtheme_django',
     'browser.apps.BrowserConfig',
     'corsheaders',
-    'cookielaw'
+    'cookielaw',
+    'mozilla_django_oidc',
+    'django.contrib.contenttypes',
+    'django.contrib.auth',
+    'django_extensions'
 ]
 
 MIDDLEWARE = [
@@ -35,9 +39,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'dj_security_middleware.middleware.DJSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
 
 DJ_SECURITY_FILTER = ['.*']
@@ -62,7 +66,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'archive_browser.wsgi.application'
 
-CORS_ALLOWED_ORIGINS = ["https://radiantearth.github.io"]
+CORS_ORIGIN_WHITELIST = ["https://radiantearth.github.io", "http://localhost:8000"]
 
 SECURITY_LOGIN_SERVICE = "https://auth.ceda.ac.uk/account/signin"
 
@@ -77,7 +81,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-DISABLE_LOGIN=True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
@@ -99,7 +102,3 @@ ACCESSCTL_URL = "https://accessctl.ceda.ac.uk/api/v1/rules/bypath/?format=json&p
 ACCOUNT_COOKIE_NAME=''
 
 from archive_browser.settings_local import *
-
-CONTAINER_FLUID = False
-import secrets
-SECURITY_SHAREDSECRET = secrets.token_hex(32)

@@ -9,13 +9,12 @@ chardet==3.0.4
 charset-normalizer==2.0.7
 crypto-cookie==0.3.1
 cryptography==41.0.3
-git+https://github.com/cedadev/dj-security-middleware.git#egg=dj-security-middleware==0.5.0
 Django==4.2.3
 django-classy-tags==2.0.0
 django-cookie-law==2.2.0
 django-cors-headers==3.14.0
 git+https://github.com/cedadev/fwtheme-django.git#egg=fwtheme-django==1.0.1
-git+https://github.com/cedadev/fwtheme-django-ceda-serv.git@4653d07#egg=fwtheme-django-ceda-serv
+# git+https://github.com/cedadev/fwtheme-django-ceda-serv.git@4653d07#egg=fwtheme-django-ceda-serv
 idna==2.10
 pycparser==2.20
 pytest-runner==5.2
@@ -25,3 +24,14 @@ requests==2.31.0
 six==1.15.0
 sqlparse==0.4.4
 urllib3==1.26.7
+mozilla-django-oidc==4.0.1
+git+https://github.com/cedadev/fwtheme-django-ceda-serv@bb637e35e326e171b7a8b2534a6685fba3c060d0#egg=fwtheme_django_ceda_serv
+git+https://github.com/cedadev/django-oidc-extras.git
+click==8.1.8
+colorama==0.4.6
+django-extensions==4.1
+git+https://github.com/cedadev/django-oidc-extras.git@3210fea039f7f5c17dbbe9df104eecdf8cbfb4e6
+josepy==2.0.0
+mozilla-django-oidc==4.0.1
+PyYAML==6.0.2
+tabulate==0.9.0

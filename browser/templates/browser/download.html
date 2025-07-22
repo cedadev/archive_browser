@@ -15,8 +15,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" referrerpolicy="no-referrer"></script>
 <script src="/static/browser/js/downloader.js"></script>
+<script src="/static/browser/js/downloader2.js"></script>
 <script>
   const paths = {{download_paths | safe }}; 
+  // const paths = ["/badc/ukmo-cet/data/v1.0.0.0/daily/max/dlycet_max_1878_onwards.dat"]
 </script>
 
 {% endblock %}
@@ -47,7 +49,9 @@
 
 <div>
   <div>
-    <strong>Download progress:</strong> <span id="count">0</span>/<span id="total">{{nfiles}}</span>
+    <strong>Download progress:</strong> 
+    <span id="successCount">0</span>/<span id="totalFiles">{{nfiles}}</span>
+    (<span id="failureCount">0</span> failed)
   </div>
   <div class="progress">
     <div class="progress-bar" role="progressbar" style="" aria-valuenow="" aria-valuemin="0" aria-valuemax="100"></div>

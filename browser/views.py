@@ -6,7 +6,7 @@ from typing import DefaultDict
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import render, HttpResponseRedirect
+from django.shortcuts import render, HttpResponseRedirect, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from .lru_cache_expires import lru_cache_expires
 import os
@@ -35,12 +35,6 @@ def getIcon(type, extension):
 def generate_actions(ext, path, item_type, download_service):
     #print("actions")
     # Generate button for download action
-    #
-    # Make sure uppercase extensions are handled as well
-    
-    if ext:
-        ext = ext.lower()
-    
     if item_type in ("dir", "link"):
         return ""
  
@@ -54,7 +48,7 @@ def generate_actions(ext, path, item_type, download_service):
 
     if ext in ("nc", ".nc", ".hdf", ".h4", ".hdf4"):
         return download_link + subset_link
-    if ext in (".gif", ".jpg", ".jpeg", ".png", ".svg", ".svgz", ".wbmp", ".webp", ".ico", ".jng", ".bmp", ".txt", ".pdf", ".html", ".mp4"):
+    if ext in (".gif", ".jpg", ".jpeg", ".png", ".svg", ".svgz", ".wbmp", ".webp", ".ico", ".jng", ".bmp", ".txt", ".pdf", ".html"):
         return view_link + download_link
     if os.path.basename(path) == '00README':
         return view_link
@@ -255,7 +249,7 @@ def browse(request):
 
     status = 200
     if "forbidden" in request.GET:
-        messages.error(request, f'''You don't have permission to access files in this directory. You need to 
+        messages.error(request, f'''You don't have premission to access files in this directory. You need to 
                 <a href="{moles_record(path)['url']}">apply for access</a>.''')
         status = 403
 
@@ -382,6 +376,13 @@ def storage_types(request):
 def robots(request):
     return HttpResponseRedirect(f"/static/robots.txt")
 
+def self(request):
+    if request.user.is_authenticated:
+        access_token = request.session.get("oidc_access_token")
+        return JsonResponse({"access_token": access_token})
+
+    return HttpResponse(status=401)
+
 def search(request):
     q = ''
     files = []
@@ -397,6 +398,8 @@ def search(request):
 
 def download(request):
     directory = request.GET.get("path")
+    request.session.oidc_login_next = f"/download?path={directory}"
+    
     paths = []
     ai = agg_info(directory)
     if ai is not None:
@@ -410,5 +413,3 @@ def download(request):
                                                      "size": size, 
                                                      "nfiles": nfiles, 
                                                      "directory": directory})
-
-    
