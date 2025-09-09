@@ -26,7 +26,6 @@ sqlparse==0.4.4
 urllib3==1.26.7
 mozilla-django-oidc==4.0.1
 git+https://github.com/cedadev/fwtheme-django-ceda-serv@bb637e35e326e171b7a8b2534a6685fba3c060d0#egg=fwtheme_django_ceda_serv
-git+https://github.com/cedadev/django-oidc-extras.git
 click==8.1.8
 colorama==0.4.6
 django-extensions==4.1
