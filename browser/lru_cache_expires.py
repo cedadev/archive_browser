@@ -80,7 +80,7 @@ class _LruCacheFunctionWrapper:
                 ret = self.__wrapped__(arg)
             except Exception as e:
                 sys.stderr.write(f"Excption running function {self.__wrapped__} with argument {arg}\n")
-                sys.stderr.write(f"{e}\n")
+                sys.stderr.write(f"{e} {sys.exc_info()}\n")
                 sys.stderr.write("continuing.\n")
                 continue
 

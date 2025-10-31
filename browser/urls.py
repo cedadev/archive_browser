@@ -34,6 +34,7 @@ urlpatterns = [
     path('item_info', views.item_info, name='item_info'),
     path('download', views.download, name='download'),
     re_path('stac(?P<path>/.*)$', views.stac, name='stac'),
+    re_path('description(?P<path>/.*)$', views.description, name='description'),
     re_path('jsonlist(?P<path>/.*)$', views.jsonlist, name='jsonlist'),
     re_path('.*', views.browse, name='browse' ),
 ]

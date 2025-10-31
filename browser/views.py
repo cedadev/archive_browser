@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
+import requests
 from hashlib import sha1
 from typing import DefaultDict
 from django.conf import settings
@@ -16,6 +16,7 @@ import json
 from functools import lru_cache 
 from fbi_core import archive_summary, fbi_listdir, get_record, ls_query
 from elasticsearch.helpers import ScanError
+from .catalogue_cache import get_observation, collection_details
 
 
 def getIcon(type, extension):
@@ -85,7 +86,6 @@ def moles_record(path):
                 full_record_url  = f"http://api.catalogue.ceda.ac.uk/api/v2/observations/?format=json&uuid={uuid}"
                 with urllib.request.urlopen(full_record_url) as full_record_page:
                     full_record = json.loads(full_record_page.read().decode())
-                print(full_record)
                 data["status"] = full_record["results"][0]["status"]
                 data["status_warning"] = data["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated')
             return data
@@ -103,7 +103,7 @@ def readme_line(path):
     else:
         return None
 
-    if "content" in readme_record: 
+    if "content" in readme_record and readme_record["size"] > 0: 
         first_chars = readme_record["content"][:500]
         return first_chars.splitlines()[0]
     else:
@@ -227,17 +227,17 @@ def browse(request):
         item["actions"] = generate_actions(item.get("ext"), item.get("path"), item.get("type"), download_service)
 
     # work out what to show in the description field
-    path_desc = directory_desc(path)
+    path_desc = directory_desc2(path)
     refresh = False
     if cat_info is not None and cat_info["record_type"] != "Dataset":
         for item in items:
             if item["type"] in ("dir", "link"):
                 if item["type"] == "dir":
-                    item_desc = directory_desc(item.get("path"))
+                    item_desc = directory_desc2(item.get("path"))
                 elif item["type"] == "link":
-                    item_desc = directory_desc(item.get("path"))
+                    item_desc = directory_desc2(item.get("path"))
                     if not item_desc:
-                        item_desc = directory_desc(item.get("target"))
+                        item_desc = directory_desc2(item.get("target"))
 
                 if item_desc is None:
                     item_desc = '<img src="/static/browser/img/loading.gif" width="25" >'
@@ -416,3 +416,55 @@ def download(request):
                                                      "directory": directory})
 
     
+@csrf_exempt
+def description(request, path="/"):
+    path = path.rstrip('/')
+    if path == "": 
+        path = "/"
+
+    # Check if the request is a file and redirect for direct download
+    path_record = get_record(path)
+    print(path_record)
+    if path_record is None:
+        return render(request, 'browser/notfound.html', {"path": path}, status=404)
+    if path_record["type"] == "link":
+        return HttpResponseRedirect(f'{path_record["target"]}')
+
+    ob_info, collections = get_observation(path)
+
+    # work out what to show in the description field
+    path_desc = directory_desc2(path)
+
+    context = {
+        "path": path,
+        "ob_info": ob_info,
+        "collections": collections,
+        "path_desc": path_desc
+    }
+    return JsonResponse({"info": context}, json_dumps_params={"indent": 4})
+
+
+def directory_desc2(path):
+    cat_info, collections = get_observation(path)
+
+    status_badge = ""
+    if cat_info and cat_info.get("status") in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated'):
+        status_badge = f'<span class="badge badge-danger">{cat_info["status"]}</span>'
+
+    if cat_info:
+        return f'''<i class="fa-lg fa fa-database" style="color: #4f81bd" title="These records describe and link to the actual data in our archive. 
+                     They also provide spatial and temporal information, 
+                     access and usage information and link to background information on why and how the data were collected." data-toggle="tooltip">
+                     </i> {status_badge} {cat_info["title"]} 
+                     <a class='pl-1' href = 'https://catalogue.ceda.ac.uk/uuid/{cat_info["uuid"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+
+    elif collections and len(collections) == 1:
+        c = collection_details(collections[0])
+        if c:
+            return f'''<i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets that share some common purpose, theme or association. 
+                   " data-toggle="tooltip"></i> {c["title"]} 
+                   <a class='pl-1' href = 'https://catalogue.ceda.ac.uk/uuid/{c["uuid"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+    readme_info = readme_line(path)
+    if readme_info and readme_info != 'HIDE DIRECTORY':
+        return f'{readme_info}' 
+    return ""
