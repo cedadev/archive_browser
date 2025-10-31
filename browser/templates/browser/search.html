@@ -26,9 +26,13 @@
 {% block content %}
 <h2>Filename search</h2>
  <form>
-<input name="q" value="{{q}}">
+regex: <input name="q" value="{{q}}">
+under: <input name="under" value="{{under}}">
 <button type="submit">Search</button>
 </form>
+
+<h2>Archive Summary</h2>
+{{summary}}
 
 <h2>Results:</h2>
 {% for record in results %}

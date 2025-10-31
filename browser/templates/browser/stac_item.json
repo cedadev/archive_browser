@@ -2,14 +2,14 @@
     "stac_version": "1.0.0",
     "stac_extensions": [],
     "type": "Feature",
-    "id": "{{path}}",
+    "id": "{{path_record.path}}",
     "bbox": [],
-    "properties": {},
+    "properties": {{stac_properties|safe}},
     "collection": "simple-collection",
     "links": [
       {
         "rel": "collection",
-        "href": "/stac{{directory}}",
+        "href": "/stac{{path_record.directory}}",
         "type": "application/json",
         "title": "Collection: {{directory}}"
       },
@@ -22,8 +22,8 @@
     ],
     "assets": {
       "file": {
-        "href": "https://data.ceda.ac.uk{{path}}",
-        "title": "{{path}}",
+        "href": "https://data.ceda.ac.uk{{path_record.path}}",
+        "title": "{{path_record.name}}",
         "roles": ["data"]
       }
     }

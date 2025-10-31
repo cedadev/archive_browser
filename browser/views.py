@@ -93,14 +93,20 @@ def moles_record(path):
             continue
     return None
 
+
+
+
 def readme_line(path):
     """get readme line"""
+    print("in readme line")
     for readme_filename in ("00README.txt", "00README"):
         readme_file = os.path.join(path, readme_filename)
         readme_record = get_record(readme_file)
+        print(readme_file)
+        print(readme_record)
         if readme_record is not None:
             break
-    else:
+    if readme_record is None:
         return None
 
     if "content" in readme_record: 
@@ -283,6 +289,97 @@ def browse(request):
     return render(request, template, context, status=status)
 
 
+def stac_item(request, path_record):
+    template = 'browser/stac_item.json'
+    context = {"path_record": path_record}
+    stac_properties = {}
+    if path_record.get("regex_date"):
+        stac_properties["datetime"] = path_record.get("regex_date")
+    if path_record.get("phenomena"):
+        stac_properties["cf:parameter"] = []
+        for p in path_record.get("phenomena"):
+            if "standard_name" in p and "units" in p:
+                stac_properties["cf:parameter"].append({
+                    "name": p["standard_name"],
+                    "unit": p.get("units", "1")
+                })
+    context["stac_properties"] = json.dumps(stac_properties)
+    return render(request, template, context,content_type="application/json")
+
+def stac_catalog(request, path_record):
+    path = path_record["path"]
+
+    directories = []
+    for item in fbi_listdir(path, dirs_only=True):
+        if item["path"] not in settings.DO_NOT_DISPLAY:
+            directories.append(item["path"])
+
+    items = []
+    i = 0
+    for item in ls_query(path, item_type="file", size=10000):
+        i += 1
+        if i > 1000:
+            break
+        items.append(item)
+    if len(items) >= 1000:
+       for item in fbi_listdir(path):
+            if item["type"] == "file":
+                items.append(item)
+
+    cat_info = full_moles_record(path)
+    print(cat_info)
+    template = 'browser/stac_catalog.json'
+    context = {"path_record": path_record, "cat_info": cat_info, "directories": directories,
+               "items": items}
+    return render(request, template, context, content_type="application/json")
+
+def full_moles_record(path):
+    try:
+        for p in (path, path + "/"):
+            with urllib.request.urlopen(f"http://api.catalogue.ceda.ac.uk/api/v3/results/?dataPath={path}") as url:
+                results = json.loads(url.read().decode())["results"]
+                for result in results:
+                    if result.get("observation") and result.get("observation").get("ob_id"):
+                        ob_id = result["observation"]["ob_id"]
+                        full_record_url  = f"http://api.catalogue.ceda.ac.uk/api/v3/observations/{ob_id}"
+                        print(full_record_url)
+                        with urllib.request.urlopen(full_record_url) as full_record_page:
+                            full_record = json.loads(full_record_page.read().decode())
+                        print(full_record)
+                        return full_record
+
+    except (ConnectionResetError, urllib.error.HTTPError):
+        return None
+    return None
+
+def stac_collection(request, path_record, cat_info):
+    path = path_record["path"]
+
+    directories = []
+    for item in fbi_listdir(path, dirs_only=True):
+        if item["path"] not in settings.DO_NOT_DISPLAY:
+            directories.append(item["path"])
+
+    items = []
+    i = 0
+    for item in ls_query(path, item_type="file", size=10000):
+        i += 1
+        if i > 1000:
+            break
+        items.append(item)
+    if len(items) >= 1000:
+       for item in fbi_listdir(path):
+            if item["type"] == "file":
+                items.append(item)
+
+    cat_info = full_moles_record(path)
+    print(cat_info)
+    template = 'browser/stac_catalog.json'
+    context = {"path_record": path_record, "cat_info": cat_info, "directories": directories,
+               "items": items}
+    return render(request, template, context, content_type="application/json")
+
+
 @csrf_exempt
 def stac(request, path="/"):
     download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
@@ -294,34 +391,20 @@ def stac(request, path="/"):
     # Check if the request is a file and redirect for direct download
     path_record = get_record(path)
     print(path_record)
+
     if path_record is None:
         return render(request, 'browser/notfound.html', {"path": path}, status=404)
-    if path_record["type"] == "file": 
-        template = 'browser/stac_item.json'
-        context = {"path": path}
-        return render(request, template, context)
-
-    if path_record["type"] == "link":
+    elif path_record["type"] == "file": 
+        return stac_item(request, path_record)
+    elif path_record["type"] == "link":
         return HttpResponseRedirect(f'/stac?p={path_record["target"]}')
-
-    directories = []
-    for item in fbi_listdir(path, dirs_only=True):
-        if item["path"] not in settings.DO_NOT_DISPLAY:
-            directories.append(item["path"])
-
-    item_paths = []
-    items = ls_query(path, item_type="file", size=10000)
-    if len(items) < 10000:
-        for item in ls_query(path, item_type="file", size=10000):
-            item_paths.append(item["path"])
-
-    cat_info = moles_record(path)
-    print(cat_info)
-    template = 'browser/stac_catalog.json'
-    context = {"path": path, "cat_info": cat_info, "directories": directories,
-               "item_paths": item_paths}
-    return render(request, template, context)
-    
+    else:
+        cat_info = full_moles_record(path)
+        print(cat_info)
+        if cat_info:
+            return stac_collection(request, path_record, cat_info)
+        else:
+            return stac_catalog(request, path_record)
 
 @csrf_exempt
 def jsonlist(request, path="/"):
@@ -387,17 +470,15 @@ def robots(request):
     return HttpResponseRedirect(f"/static/robots.txt")
 
 def search(request):
-    q = ''
     files = []
-    if "under" in request.GET:
-        under = request.GET.get("under")
-    else: 
-        under="/"
 
-    if "q" in request.GET:
-        q = request.GET.get("q")
-        files = ls_query(under, name_regex=q)
-    return render(request, 'browser/search.html', {"q": q, "results": files})
+    under = request.GET.get("under", "/")
+    q = request.GET.get("q", ".*")
+
+    summary = archive_summary(under, name_regex=q)
+
+    files = ls_query(under, name_regex=q)
+    return render(request, 'browser/search.html', {"q": q, "results": files, "under": under, "summary": summary})
 
 def download(request):
     directory = request.GET.get("path")

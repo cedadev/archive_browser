@@ -1,9 +1,9 @@
 {
     "id": "{{path}}",
-    "type": "Catalog",
+    "type": "Collection",
     "title": "{{cat_info.title}}",
     "stac_version": "1.0.0",
-    "description": "Catalog for Path:{{path_record.path}} {{cat_info.abstract}}",
+    "description": "{{cat_info.abstract}}",
     "properties": {
       "cat": "{{cat_info}}"
     },
@@ -39,7 +39,7 @@
       {% endfor %}
       {
         "rel": "self",
-        "href": "/stac{{path}}",
+        "href": "/stac{{path_record.path}}",
         "type": "application/json"
       }
     ]
