@@ -54,7 +54,7 @@ def generate_actions(ext, path, item_type, download_service):
         return view_link
     return download_link
 
-@lru_cache_expires(maxsize=2048, max_expire_period=2*3600, default=None)
+@lru_cache_expires(maxsize=16384, max_expire_period=2*3600, default=None)
 def get_access_rules(path):
     if path == "/": 
         return []
@@ -68,7 +68,7 @@ def get_access_rules(path):
             shortest = key 
     return data[shortest]
 
-@lru_cache(maxsize=2048)
+@lru_cache(maxsize=16384)
 def moles_record(path):
     for CAT_URL in settings.CAT_URLS:
         try:
@@ -89,17 +89,21 @@ def moles_record(path):
 
 def readme_line(path):
     """get readme line"""
-    readme_file = os.path.join(path, "00README") 
-    readme_record = get_record(readme_file)
-    if readme_record is None:
+    for readme_filename in ("00README.txt", "00README"):
+        readme_file = os.path.join(path, readme_filename)
+        readme_record = get_record(readme_file)
+        if readme_record is not None:
+            break
+    else:
         return None
+
     if "content" in readme_record: 
         first_chars = readme_record["content"][:500]
         return first_chars.splitlines()[0]
     else:
         return None
  
-@lru_cache_expires(maxsize=2048, max_expire_period=2*3600, default=None)
+@lru_cache_expires(maxsize=16384, max_expire_period=2*3600, default=None)
 def directory_desc(path):
     cat_info = moles_record(path)
     if cat_info is not None and cat_info["record_type"] == "Dataset":
@@ -121,7 +125,7 @@ def directory_desc(path):
         return f'{readme_info}' 
     return ""
 
-@lru_cache_expires(maxsize=1024, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
+@lru_cache_expires(maxsize=16384, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, max_exts=max_ext)
     total_size = summary["size_stats"]["sum"]
