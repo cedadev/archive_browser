@@ -88,12 +88,7 @@
                     <i class="fa-regular fa-copy" aria-hidden="true"></i>
                 </button>
                 </div>
-                <div class="float-left">
-                    <a href="{% url 'describe' path=request.path %}" class="btn btn-primary mt-1" role="button" title="Describe this directory">
-                                <i class="fa-solid fa-info-circle"></i>
-                            </a>
-                </button>
-                </div>
+
             </div>
 
         </div>
@@ -116,6 +111,13 @@
                            <span class="fas fa-cart-arrow-down"></span>
                     </button>
                 </span>
+                <div class="float-left">
+                    <a href="{% url 'timelines' path=request.path %}" class="btn btn-outline-warning m-1" role="button" 
+                       title="Experimental: Timelines for files in this directory and below">
+                                <i class="fa-solid fa-timeline"></i>
+                            </a>
+                </button>
+                </div>
                 {% if  agg_info %}
                 <span data-toggle="tooltip" title="Archive contents summary from current location">
                     <button type="button" class="btn btn-primary mt-1" data-bs-toggle="collapse" data-bs-target="#aggs"><small>

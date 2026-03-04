@@ -327,21 +327,25 @@ def get_time_rows(path, start_date=None, end_date=None):
 
     query ={"bool": {"must": [
             {"term": {"directory.tree": {"value": path}}}
-     #       {"range": {"regex_date": {"gt": "1970-01-01", "lt": "2027-01-01"}}}
-        ]
-        #"must_not": [{"exists": {"field": "removed"}}]
+        ],
+        "must_not": [{"exists": {"field": "removed"}}]
         }}
 
     aggs = {"timeline": {"date_histogram": {"field": "regex_date", "calendar_interval": "day"}},
-            "removed_timeline": {"date_histogram": {"field": "removed", "calendar_interval": "day"}},
             "mod_timeline": {"date_histogram": {"field": "last_modified", "calendar_interval": "day"}}}
 
-    result = es.search(index=indexname, query=query, aggs=aggs, size=0)
+    try:
+        result = es.search(index=indexname, query=query, aggs=aggs, size=0)
+    except Exception as e:
+        print(f"Error running elasticsearch query: {e}")
+        return {"timeline": {"rows": "", "years": 1, "median_value": 0}, 
+                "mod_timeline": {"rows": "", "years": 1, "median_value": 0}}
 
     tl_tables = {}
-    for tl in ("timeline", "removed_timeline", "mod_timeline"):
+    for tl in ("timeline", "mod_timeline"):
         rows = []
         years = 1
+        values = []
         timeline = result["aggregations"][tl]["buckets"]
         if len(timeline) > 0:
             startyear = int(timeline[0]["key_as_string"][:4])
@@ -353,20 +357,19 @@ def get_time_rows(path, start_date=None, end_date=None):
             value = bucket["doc_count"]
             if value > 0: 
                 rows.append(f"[{date_str}, {value}]")
-            # print(date_str, value)
+                values.append(value)
 
-        tl_tables[tl] = {"rows": ', '.join(rows), "years": years}
-
+        median_value = sorted(values)[len(values)//2] if values else 0
+        tl_tables[tl] = {"rows": ', '.join(rows), "years": years, "median_value": median_value}
+  
     return tl_tables
 
 @csrf_exempt
-def describe(request, path="/"):
+def timelines(request, path="/"):
 
     path = path.rstrip('/')
     if path == "": 
         path = "/"
-
-    index_list = make_breadcrumbs(path)
 
     # Check if the request is a file and redirect for direct download
     path_record = get_record(path)
@@ -379,12 +382,13 @@ def describe(request, path="/"):
 
     cat_info = moles_record(path)
     print(cat_info)
-    template = 'browser/describe.html'
+    template = 'browser/timelines.html'
     tl_tables = get_time_rows(path)
-    context = {"path": path, "cat_info": cat_info, "index_list": index_list}
-    for tl in ("timeline", "removed_timeline", "mod_timeline"):
+    context = {"path": path}
+    for tl in ("timeline", "mod_timeline"):
         context[tl] = tl_tables[tl]["rows"]
         context[f"{tl}_height"] = tl_tables[tl]["years"] * 70 + 100
+        context[f"{tl}_scale"] = tl_tables[tl]["median_value"] * 2
 
     return render(request, template, context)
     
