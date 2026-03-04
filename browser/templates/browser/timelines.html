@@ -1,0 +1,81 @@
+
+{% extends data_centre_template %}
+{% load static %}
+
+{% block head_title %}CEDA Archive Web Browser{% endblock %}
+{% block extra_meta %}
+    <meta name="description" content="Web based directory browser for the CEDA Archive.
+    Provides download links and access to the relevant CEDA Catalogue record.">
+    <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
+{% endblock %}
+{% block page_title %}
+{% endblock %}
+
+
+
+{% block content %}
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load("current", { packages: ["calendar"] });
+        google.charts.setOnLoadCallback(drawCharts);
+
+        timeline_data = [{{ timeline }}];
+        mod_timeline_data = [{{ mod_timeline }}];
+
+        function drawChart(data, element_id, title, scale) {
+            var dataTable = new google.visualization.DataTable();
+            dataTable.addColumn({ type: 'date', id: 'Date' });
+            dataTable.addColumn({ type: 'number', id: 'number' });
+            dataTable.addRows(data);
+            var chart = new google.visualization.Calendar(document.getElementById(element_id));
+            var options = {
+                "title": title,
+                height: 4050,
+                noDataPattern: { backgroundColor: '#aaaaaa', color: '#eeeeee' },
+                calendar: { cellSize: 8 },
+                colorAxis: { minValue: 0, maxValue: scale, colors: ['#000000', '#00aa00', '#aa0000'] }
+            };
+            chart.draw(dataTable, options);
+        }
+
+        function drawCharts() {
+            drawChart(timeline_data, 'timeline', 'Files avaliable by "Regex" date', {{ timeline_scale }});
+            drawChart(mod_timeline_data, 'modified', 'Files by last modified date', {{ mod_timeline_scale }});
+        }
+    </script>
+    
+    
+    <div class="row">
+        <div class="col-md-12">
+            Back to the files in <a href="{{path}}">{{path}}</a>
+            
+            <div class="alert alert-warning" role="alert">
+  
+This is an experimental view of the timeline of data in this directory and below. We would love to hear any comments or suggestions for improvement.
+                Please email any feedback to the CEDA helpdesk </div>
+
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Data timeline</h5>
+            <p>The date the data cover are often trivially extractable from the filename.
+               This timeline shows the number of files with a given date in the filename. The methodology is not 
+               100% accurate, but for a lot of data
+               it gives a good indication of the data coverage.
+            </p>
+            <div id="timeline" style="width: 500px; height: {{timeline_height}}px;"></div>
+        </div>
+    
+        <div class="col-md-6">
+            <h5>Data Arrival Timeline</h5>
+            <p>The date the data were last modified mostly indicates when the data arrived in the archive.
+            </p>
+            <div id="modified" style="width: 500px; height: {{mod_timeline_height}}px;"></div>
+        </div>
+    
+    </div>
+
+    {% endblock %}

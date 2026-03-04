@@ -14,7 +14,7 @@ import urllib.request
 import urllib.error
 import json 
 from functools import lru_cache 
-from fbi_core import archive_summary, fbi_listdir, get_record, ls_query
+from fbi_core import archive_summary, fbi_listdir, get_record, ls_query, es, indexname
 from elasticsearch.helpers import ScanError
 
 
@@ -321,7 +321,78 @@ def stac(request, path="/"):
     context = {"path": path, "cat_info": cat_info, "directories": directories,
                "item_paths": item_paths}
     return render(request, template, context)
+
+
+def get_time_rows(path, start_date=None, end_date=None):
+
+    query ={"bool": {"must": [
+            {"term": {"directory.tree": {"value": path}}}
+        ],
+        "must_not": [{"exists": {"field": "removed"}}]
+        }}
+
+    aggs = {"timeline": {"date_histogram": {"field": "regex_date", "calendar_interval": "day"}},
+            "mod_timeline": {"date_histogram": {"field": "last_modified", "calendar_interval": "day"}}}
+
+    try:
+        result = es.search(index=indexname, query=query, aggs=aggs, size=0)
+    except Exception as e:
+        print(f"Error running elasticsearch query: {e}")
+        return {"timeline": {"rows": "", "years": 1, "median_value": 0}, 
+                "mod_timeline": {"rows": "", "years": 1, "median_value": 0}}
+
+    tl_tables = {}
+    for tl in ("timeline", "mod_timeline"):
+        rows = []
+        years = 1
+        values = []
+        timeline = result["aggregations"][tl]["buckets"]
+        if len(timeline) > 0:
+            startyear = int(timeline[0]["key_as_string"][:4])
+            endyear = int(timeline[-1]["key_as_string"][:4])
+            years = endyear - startyear + 1
+                            
+        for bucket in result["aggregations"][tl]["buckets"]:
+            date_str = f"new Date({bucket['key']})"
+            value = bucket["doc_count"]
+            if value > 0: 
+                rows.append(f"[{date_str}, {value}]")
+                values.append(value)
+
+        median_value = sorted(values)[len(values)//2] if values else 0
+        tl_tables[tl] = {"rows": ', '.join(rows), "years": years, "median_value": median_value}
+  
+    return tl_tables
+
+@csrf_exempt
+def timelines(request, path="/"):
+
+    path = path.rstrip('/')
+    if path == "": 
+        path = "/"
+
+    # Check if the request is a file and redirect for direct download
+    path_record = get_record(path)
+    print(path_record)
+    if path_record is None:
+        return render(request, 'browser/notfound.html', {"path": path}, status=404)
+
+    if path_record["type"] == "link":
+        return HttpResponseRedirect(f'/describe?p={path_record["target"]}')
+
+    cat_info = moles_record(path)
+    print(cat_info)
+    template = 'browser/timelines.html'
+    tl_tables = get_time_rows(path)
+    context = {"path": path}
+    for tl in ("timeline", "mod_timeline"):
+        context[tl] = tl_tables[tl]["rows"]
+        context[f"{tl}_height"] = tl_tables[tl]["years"] * 70 + 100
+        context[f"{tl}_scale"] = tl_tables[tl]["median_value"] * 2
+
+    return render(request, template, context)
     
+
 
 @csrf_exempt
 def jsonlist(request, path="/"):
