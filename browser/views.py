@@ -14,7 +14,7 @@ import urllib.request
 import urllib.error
 import json 
 from functools import lru_cache 
-from fbi_core import archive_summary, fbi_listdir, get_record, ls_query
+from fbi_core import archive_summary, fbi_listdir, get_record, ls_query, es, indexname
 from elasticsearch.helpers import ScanError
 
 
@@ -321,7 +321,74 @@ def stac(request, path="/"):
     context = {"path": path, "cat_info": cat_info, "directories": directories,
                "item_paths": item_paths}
     return render(request, template, context)
+
+
+def get_time_rows(path, start_date=None, end_date=None):
+
+    query ={"bool": {"must": [
+            {"term": {"directory.tree": {"value": path}}}
+     #       {"range": {"regex_date": {"gt": "1970-01-01", "lt": "2027-01-01"}}}
+        ]
+        #"must_not": [{"exists": {"field": "removed"}}]
+        }}
+
+    aggs = {"timeline": {"date_histogram": {"field": "regex_date", "calendar_interval": "day"}},
+            "removed_timeline": {"date_histogram": {"field": "removed", "calendar_interval": "day"}},
+            "mod_timeline": {"date_histogram": {"field": "last_modified", "calendar_interval": "day"}}}
+
+    result = es.search(index=indexname, query=query, aggs=aggs, size=0)
+
+    tl_tables = {}
+    for tl in ("timeline", "removed_timeline", "mod_timeline"):
+        rows = []
+        years = 1
+        timeline = result["aggregations"][tl]["buckets"]
+        if len(timeline) > 0:
+            startyear = int(timeline[0]["key_as_string"][:4])
+            endyear = int(timeline[-1]["key_as_string"][:4])
+            years = endyear - startyear + 1
+                            
+        for bucket in result["aggregations"][tl]["buckets"]:
+            date_str = f"new Date({bucket['key']})"
+            value = bucket["doc_count"]
+            if value > 0: 
+                rows.append(f"[{date_str}, {value}]")
+            # print(date_str, value)
+
+        tl_tables[tl] = {"rows": ', '.join(rows), "years": years}
+
+    return tl_tables
+
+@csrf_exempt
+def describe(request, path="/"):
+
+    path = path.rstrip('/')
+    if path == "": 
+        path = "/"
+
+    index_list = make_breadcrumbs(path)
+
+    # Check if the request is a file and redirect for direct download
+    path_record = get_record(path)
+    print(path_record)
+    if path_record is None:
+        return render(request, 'browser/notfound.html', {"path": path}, status=404)
+
+    if path_record["type"] == "link":
+        return HttpResponseRedirect(f'/describe?p={path_record["target"]}')
+
+    cat_info = moles_record(path)
+    print(cat_info)
+    template = 'browser/describe.html'
+    tl_tables = get_time_rows(path)
+    context = {"path": path, "cat_info": cat_info, "index_list": index_list}
+    for tl in ("timeline", "removed_timeline", "mod_timeline"):
+        context[tl] = tl_tables[tl]["rows"]
+        context[f"{tl}_height"] = tl_tables[tl]["years"] * 70 + 100
+
+    return render(request, template, context)
     
+
 
 @csrf_exempt
 def jsonlist(request, path="/"):

@@ -64,6 +64,8 @@
         </div>
     {% endfor %}
 
+
+
     <div class="row">
 
         {% block breadcrumbs %}
@@ -84,6 +86,12 @@
                 <button type="button" id="copy" class="btn btn-outline-primary mt-1 ml-1" data-bs-toggle="tooltip" onclick="copyPath()"
                         data-original-title="Copy directory path" title="Copy directory path">
                     <i class="fa-regular fa-copy" aria-hidden="true"></i>
+                </button>
+                </div>
+                <div class="float-left">
+                    <a href="{% url 'describe' path=request.path %}" class="btn btn-primary mt-1" role="button" title="Describe this directory">
+                                <i class="fa-solid fa-info-circle"></i>
+                            </a>
                 </button>
                 </div>
             </div>
@@ -138,7 +146,13 @@
                 <p>Size of files held on tape only: {{agg_info.tape_size|filesizeformat}} </p>
                 <p>Item Types: {% for t, n in agg_info.item_types %} <span class="badge badge-warning">{{t}}: {{n|intcomma}}</span> {% endfor %} </p>
                 <p>Commmon Extensions: {% for e, n in agg_info.exts %} <span class="badge badge-light">{{e}}: {{n|intcomma}}</span> {% endfor %} </p>
-                <p>Variables: {% for v in agg_info.vars %}<span class="badge badge-primary">{{v}}</span> {% endfor %}</p>             
+                <p>Variables: {% for v in agg_info.vars %}<span class="badge badge-primary">{{v}}</span> {% endfor %}</p> 
+                
+
+
+
+
+      
           </div>
     </div>
   
