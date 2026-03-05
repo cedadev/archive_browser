@@ -12,6 +12,7 @@ Django==4.2.3
 django-classy-tags==2.0.0
 django-cookie-law==2.2.0
 django-cors-headers==3.14.0
+git+https://github.com/cedadev/django-flexi-settings.git@0.2.0
 git+https://github.com/cedadev/fwtheme-django.git@1.0.1
 git+https://github.com/cedadev/fwtheme-django-ceda-serv.git@4653d07
 idna==2.10
