@@ -18,6 +18,7 @@ git+https://github.com/cedadev/fwtheme-django-ceda-serv.git@4653d07
 idna==2.10
 pycparser==2.20
 pytest-runner==5.2
+PyYAML==6.0.3
 psycopg2-binary==2.9.11
 pytz==2020.1
 requests==2.31.0
