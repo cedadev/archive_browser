@@ -70,8 +70,8 @@
 
         {% block breadcrumbs %}
         <div class="col-8">
-            <div class="float-left">
-                <ol class="breadcrumb">
+            <div class="d-grid d-md-flex justify-content-md-start pb-2">
+                <ol class="breadcrumb p-2 m-2 bg-light border-0 rounded">
                     {% for dir in index_list %}
                         {% if forloop.last %}
                         <li class="breadcrumb-item active text-grey">{{ dir.dir }}</li>
@@ -80,47 +80,43 @@
                         {% endif %}
                     {% endfor %}
                 </ol>
-            </div>
-            <div>
                 <div class="float-left">
-                <button type="button" id="copy" class="btn btn-outline-primary mt-1 ml-1" data-bs-toggle="tooltip" onclick="copyPath()"
+                <button type="button" id="copy" class="btn btn-outline-primary mt-2 ml-2" data-bs-toggle="tooltip" onclick="copyPath()"
                         data-original-title="Copy directory path" title="Copy directory path">
                     <i class="fa-regular fa-copy" aria-hidden="true"></i>
                 </button>
                 </div>
-
             </div>
 
         </div>
         {% endblock %}
 
         <div class="col-4">
-            <div class="float-right">
+            <div class="d-grid gap-1 d-md-flex justify-content-md-end py-2">
+                <div class="float-left">
+                    <a href="{% url 'timelines' path=request.path %}" class="btn btn-outline-warning" role="button" 
+                       title="Experimental: Timelines for files in this directory and below">
+                                <i class="fa-solid fa-timeline"></i>
+                            </a>
+                </div>
                 {% if agg_info %}
                     {% if agg_info.total_size <= 1000000000 %}
                         {% if agg_info.item_types.0.1 <= 5000 %}
-                            <a href="{% url 'download' %}?path={{request.path}}" class="btn btn-primary mt-1" role="button" title="This is a small directory - Download as a ZIP file?">
+                            <a href="{% url 'download' %}?path={{request.path}}" class="btn btn-primary" role="button" title="This is a small directory - Download as a ZIP file?">
                                 <i class="fa-solid fa-download"></i>
                             </a>
                         {% endif %}
                     {% endif %}
                 {% endif %}
                 <span data-toggle="tooltip" title="View bulk download information">
-                    <button class="btn btn-primary mt-1" type="button" data-bs-toggle="collapse"
+                    <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
                            data-bs-target="#collapseBulkDownload" aria-expanded="false" aria-controls="collapseExample">
                            <span class="fas fa-cart-arrow-down"></span>
                     </button>
                 </span>
-                <div class="float-left">
-                    <a href="{% url 'timelines' path=request.path %}" class="btn btn-outline-warning m-1" role="button" 
-                       title="Experimental: Timelines for files in this directory and below">
-                                <i class="fa-solid fa-timeline"></i>
-                            </a>
-                </button>
-                </div>
                 {% if  agg_info %}
                 <span data-toggle="tooltip" title="Archive contents summary from current location">
-                    <button type="button" class="btn btn-primary mt-1" data-bs-toggle="collapse" data-bs-target="#aggs"><small>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#aggs"><small>
                         {{agg_info.total_size|filesizeformat}} | {{agg_info.item_types.0.1 | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}
                     </small></button>
                 </span>

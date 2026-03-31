@@ -35,7 +35,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'dj_security_middleware.middleware.DJSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
@@ -97,6 +96,7 @@ CAT_URLS = ["https://catalogue.ceda.ac.uk/api/v0/obs/get_info"]
 DO_NOT_DISPLAY = ["/edc", "/sparc"]
 ACCESSCTL_URL = "https://accessctl.ceda.ac.uk/api/v1/rules/bypath/?format=json&path="
 ACCOUNT_COOKIE_NAME=''
+ARTEFACT_URL="https://cdn.jsdelivr.net/gh/cedadev/orgtheme-ceda-serv@bootstrap533/orgtheme_ceda_serv/static/orgtheme/"
 
 from archive_browser.settings_local import *
 
