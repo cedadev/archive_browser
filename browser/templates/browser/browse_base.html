@@ -121,7 +121,7 @@
                 {% if  agg_info %}
                 <span data-toggle="tooltip" title="Archive contents summary from current location">
                     <button type="button" class="btn btn-primary mt-1" data-bs-toggle="collapse" data-bs-target="#aggs"><small>
-                        {{agg_info.total_size|filesizeformat}} | {{agg_info.item_types.0.1 | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}
+                        {{agg_info.total_size|filesizeformat}} | {{agg_info.nfiles | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}
                     </small></button>
                 </span>
                 {% endif %}
