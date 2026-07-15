@@ -65,7 +65,7 @@ def get_access_rules(path):
     if path == "/": 
         return []
     url = settings.ACCESSCTL_URL + path
-    print(url)
+    #print(url)
     with urllib.request.urlopen(settings.ACCESSCTL_URL + path) as page:
         data = json.loads(page.read().decode())
     shortest = "x" * 1000    
@@ -85,7 +85,7 @@ def moles_record(path):
                 full_record_url  = f"http://api.catalogue.ceda.ac.uk/api/v2/observations/?format=json&uuid={uuid}"
                 with urllib.request.urlopen(full_record_url) as full_record_page:
                     full_record = json.loads(full_record_page.read().decode())
-                print(full_record)
+                # print(full_record)
                 data["status"] = full_record["results"][0]["status"]
                 data["status_warning"] = data["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated')
             return data
@@ -147,12 +147,16 @@ def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     else:
         vars = ["Many Variables detected..."]
 
+    for item_type, number in item_types:
+        if item_type == "file":
+            nfiles = number
+
     summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, 
                               max_exts=max_ext, location="on_tape")
     tape_total_size = summary["size_stats"]["sum"]
 
     return {"total_size": total_size, "ave_size": ave_size, "item_types": item_types, "exts": exts, 
-            "vars": vars, "tape_size": tape_total_size}
+            "vars": vars, "tape_size": tape_total_size, "nfiles": nfiles}
 
 
 def make_breadcrumbs(path):
@@ -190,7 +194,7 @@ def browse(request):
 
     # Check if the request is a file and redirect for direct download
     path_record = get_record(path)
-    print(path_record)
+    # print(path_record)
     if path_record is None:
         return render(request, 'browser/notfound.html', {"path": path}, status=404)
     if path_record["type"] == "file": 
@@ -293,7 +297,7 @@ def stac(request, path="/"):
 
     # Check if the request is a file and redirect for direct download
     path_record = get_record(path)
-    print(path_record)
+    # print(path_record)
     if path_record is None:
         return render(request, 'browser/notfound.html', {"path": path}, status=404)
     if path_record["type"] == "file": 
@@ -316,7 +320,7 @@ def stac(request, path="/"):
             item_paths.append(item["path"])
 
     cat_info = moles_record(path)
-    print(cat_info)
+    # print(cat_info)
     template = 'browser/stac_catalog.json'
     context = {"path": path, "cat_info": cat_info, "directories": directories,
                "item_paths": item_paths}
@@ -373,7 +377,7 @@ def timelines(request, path="/"):
 
     # Check if the request is a file and redirect for direct download
     path_record = get_record(path)
-    print(path_record)
+    # print(path_record)
     if path_record is None:
         return render(request, 'browser/notfound.html', {"path": path}, status=404)
 
@@ -381,7 +385,7 @@ def timelines(request, path="/"):
         return HttpResponseRedirect(f'/describe?p={path_record["target"]}')
 
     cat_info = moles_record(path)
-    print(cat_info)
+    # print(cat_info)
     template = 'browser/timelines.html'
     tl_tables = get_time_rows(path)
     context = {"path": path}
@@ -403,7 +407,7 @@ def jsonlist(request, path="/"):
 
     # Check if the request is a file and redirect for direct download
     path_record = get_record(path)
-    print(path_record)
+    # print(path_record)
     if path_record is None:
         return render(request, 'browser/notfound.html', {"path": path}, status=404)
 
