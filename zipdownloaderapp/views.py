@@ -20,14 +20,14 @@ DAP_URL = "https://dap.ceda.ac.uk"
 
 def list (request):
 
-  top_dir = request.GET.get("path")
+  top_dir = request.GET.get("path", '')
+
+  if not top_dir:
+    return HttpResponse("No path specified")
 
   number_ok_files = 0
   number_blocked_files = 0
   total_size = 0
-
-  if not top_dir:
-     return HttpResponse("No path specified")
 
   query_parameters = {"download": "1"}
 
@@ -57,12 +57,12 @@ def list (request):
 
 def download (request):
 
-  top_dir = "/badc/ukmo-midas/data/CURL/yearly_files"
 
-  cookies = {"ceda.session.1": request.COOKIES.get('ceda.session.1'),
-              "ceda.session.2": request.COOKIES.get('ceda.session.2'),
-              "auth_tkt": request.COOKIES.get('auth_tkt'),
-              }
+  top_dir = request.GET.get("path", '')
+
+  if not top_dir:
+    return HttpResponse("No path specified")
+
 
   query_parameters = {"download": "1"}
 
@@ -70,12 +70,11 @@ def download (request):
 
   zip = zipfile.ZipFile(ZIPFILE, mode="w", compresslevel=9, compression=zipfile.ZIP_DEFLATED)
 
-
   for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file'):
     url = DAP_URL + rec['path']
     print ('Processing: ', rec['path'], url)
 
-    response = session.get(url, params=query_parameters, headers=HEADER, cookies=cookies, allow_redirects=True)
+    response = session.get(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
     if response.url.startswith('https://auth.ceda.ac.uk'):
          print ('...Skipping', rec['path'])
