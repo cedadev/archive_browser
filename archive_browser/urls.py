@@ -16,7 +16,8 @@ Including another URLconf
 from django.urls import path, include
 
 urlpatterns = [
-    path('', include('browser.urls'))
+    path('zip/', include('zipdownloaderapp.urls')),
+    path('', include('browser.urls')),
 ]
 
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns

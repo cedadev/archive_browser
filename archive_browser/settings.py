@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
+DEBUG = True
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -26,7 +28,8 @@ INSTALLED_APPS = [
     'fwtheme_django',
     'browser.apps.BrowserConfig',
     'corsheaders',
-    'cookielaw'
+    'cookielaw',
+    'zipdownloaderapp',
 ]
 
 MIDDLEWARE = [
