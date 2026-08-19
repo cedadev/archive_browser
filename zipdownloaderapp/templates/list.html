@@ -1,3 +1,98 @@
+{% extends data_centre_template %}
+{% load static %}
+{% load humanize %}
+
+{% block head_title %}CEDA Archive Web Browser{% endblock %}
+{% block extra_meta %}
+    <meta name="description" content="Web based directory browser for the CEDA Archive.
+    Provides download links and access to the relevant CEDA Catalogue record.">
+    <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
+{% endblock %}
+{% block page_title %}
+
+<script src="//artefacts.ceda.ac.uk/themes/orgtheme/0.1/_vendor/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.min.js" integrity="sha512-TFp7JOp8so/oHJrngLI0kn9diZrc0YDr1NrGj1YbzbvSBdGfligjYVRp1xtqlmNCPWpx4xJDhiWSGgUYvqCbBg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" referrerpolicy="no-referrer"></script>
+<script src="/static/browser/js/downloader.js"></script>
+<script>
+  const paths = {{download_paths | safe }}; 
+</script>
+
+{% endblock %}
+{% block content %}
+
+
+
+<h2>
+  ZIP File Download
+</h2>
+
+<p><a href="{{directory}}">{{directory}}<a></p>
+<p>Total size: {{size|filesizeformat}} in {{nfiles}} files</p>
+
+{% if number_blocked_files > 0 %}
+
+<p><font color="red">Blocked files: {{number_blocked_files}} (files not accessible)</font></p>
+
+{% endif %}
+
+<div class="mb-2">
+<button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}'">
+    <i class="fa-solid fa-download"></i> Download ZIP
+</button>
+<a class="btn btn-outline-primary" title="Back" href="{{directory}}">
+    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to archive
+</a>
+</div>
+<p></p>
+
+<h5>Files included in zip download:</h5>
+
+<table>
+{% for rec in file_recs %}
+<tr><td>{{rec.path}}</td><td>{{rec.size|filesizeformat}}</td></tr>
+{% endfor %}
+</table>
+
+<p></p>
+
+
+{% if number_blocked_files > 0 %}
+<h5>Blocked files</h5>
+The following files were not accessible, either because you are not logged in, or your account is not authorised to access them:
+<p></p>
+<table>
+{% for rec in blocked_recs %}
+<tr><td><font color="red">{{rec.path}}</font></td><td><font color="red">{{rec.size|filesizeformat}}</font></td></tr>
+{% endfor %}
+</table>
+{% endif %}
+
+<p></p>
+
+<div class="mb-2">
+<button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}'">
+    <i class="fa-solid fa-download"></i> Download ZIP
+</button>
+<a class="btn btn-outline-primary" title="Back" href="{{directory}}">
+    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to archive
+</a>
+</div>
+
+Please <a href="javascript:void(0);" id="beacon" onclick="Beacon('toggle')">contact us</a> if you require assistance.
+{% endblock %}
+
+
+{% block footer %}
+    {{ block.super }}
+    <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
+    <script type="text/javascript">window.Beacon('init', '{{ beacon }}')</script>
+{% endblock footer %}
+
+
+
+
 {{path}}
 <p>
 Total files: {{number_ok_files}}    

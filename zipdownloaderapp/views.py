@@ -28,6 +28,8 @@ def list (request):
   number_ok_files = 0
   number_blocked_files = 0
   total_size = 0
+  file_recs = []
+  blocked_recs = []
 
   query_parameters = {"download": "1"}
 
@@ -39,16 +41,23 @@ def list (request):
 
     response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
+
     if response.url.startswith('https://auth.ceda.ac.uk'):
          print ('...Skipping', rec['path'])
          number_blocked_files = number_blocked_files + 1
+         blocked_recs.append(rec)
          continue
 
+    file_recs.append(rec)
     number_ok_files = number_ok_files + 1
+    total_size = total_size + rec['size']
 
-  context = {"number_ok_files": number_ok_files,
+  context = {"nfiles": number_ok_files,
               "number_blocked_files": number_blocked_files,
-              "path": top_dir}
+              "directory": top_dir,
+              "size": total_size,
+              "file_recs": file_recs,
+              "blocked_recs": blocked_recs}
 
   return render(request, "list.html", context)
 
