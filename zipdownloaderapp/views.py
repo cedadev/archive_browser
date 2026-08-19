@@ -1,5 +1,5 @@
 from django.http import FileResponse, HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 
 import fbi_core
 
@@ -8,10 +8,10 @@ import tempfile
 import zipfile
 import os
 from pprint import pprint
+from archive_browser.settings import  ARCHIVE_ACCESS_TOKEN
 
 
-TOKEN = "dummy"
-HEADER = {"Authorization": f"Bearer {TOKEN}"}
+HEADER = {"Authorization": f"Bearer {ARCHIVE_ACCESS_TOKEN}"}
 
 
 ZIPFILE = '/tmp/ceda_download.zip'
@@ -20,18 +20,14 @@ DAP_URL = "https://dap.ceda.ac.uk"
 
 def list (request):
 
-
-  top_dir = "/badc/ukmo-midas/data/CURL/yearly_files"
   top_dir = request.GET.get("path")
+
+  number_ok_files = 0
+  number_blocked_files = 0
+  total_size = 0
+
   if not top_dir:
      return HttpResponse("No path specified")
-
-
-
-  cookies = {"ceda.session.1": request.COOKIES.get('ceda.session.1'),
-              "ceda.session.2": request.COOKIES.get('ceda.session.2'),
-              "auth_tkt": request.COOKIES.get('auth_tkt'),
-              }
 
   query_parameters = {"download": "1"}
 
@@ -41,13 +37,20 @@ def list (request):
     url = DAP_URL + rec['path']
     print ('Processing: ', rec['path'], url)
 
-    response = session.head(url, params=query_parameters, headers=HEADER, cookies=cookies, allow_redirects=True)
+    response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
     if response.url.startswith('https://auth.ceda.ac.uk'):
          print ('...Skipping', rec['path'])
+         number_blocked_files = number_blocked_files + 1
          continue
 
-  return HttpResponse("Hello, world. You're at the polls index.")
+    number_ok_files = number_ok_files + 1
+
+  context = {"number_ok_files": number_ok_files,
+              "number_blocked_files": number_blocked_files,
+              "path": top_dir}
+
+  return render(request, "list.html", context)
 
 
 
@@ -87,41 +90,3 @@ def download (request):
   return response
 
 
-def index(request):
-
-    cookies = {"ceda.session.1": request.COOKIES.get('ceda.session.1'),
-               "ceda.session.2": request.COOKIES.get('ceda.session.2'),
-               "auth_tkt": request.COOKIES.get('auth_tkt'),
-               }
-
-    url =  "https://dap.ceda.ac.uk/badc/ukmo-midas/data/CURL/yearly_files/midas_clm-ua-rec_200701-200712.txt"
-    query_parameters = {"download": "1"}
-
-   # session = requests.Session()
-
-    #pprint(vars(session))
-
-    response = session.get(url, params=query_parameters, headers=HEADER, cookies=cookies)
-
-    downfile = "/tmp/mydownload.txt"
-    myzipfile = "/tmp/myzipfile.zip"
-
-    with open(downfile, mode="wb") as file:
-        file.write(response.content)
-
-    #tmp = tempfile.TemporaryFile(suffix='.zip')
-    #tmp = tempfile.mkstemp(suffix=".zip")
-    #¢filename = os.path.basename(downfile)
-
-    tf = zipfile.ZipFile(myzipfile, mode="w")
-    tf.write(downfile)
-    tf.close()
-
-  #  fh = zipfile.ZipFile(myzipfile, mode="r")
-
-    response = FileResponse(open(myzipfile, "rb"), as_attachment=True)
-
-
-   # return HttpResponse("Hello, world. You're at the polls index.")
-    tf.close()
-    return response
