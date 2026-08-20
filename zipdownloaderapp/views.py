@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 import fbi_core
 
 import requests
+import re
 import tempfile
 import zipfile
 import os
@@ -16,16 +17,21 @@ HEADER = {"Authorization": f"Bearer {ARCHIVE_ACCESS_TOKEN}"}
 
 ZIPFILE = '/tmp/ceda_download.zip'
 DAP_URL = "https://dap.ceda.ac.uk"
+MAX_PATH_LENGTH = 300
 
+
+    
 
 def list (request):
 
   top_dir = request.GET.get("path", '')
 
-  if not top_dir:
-    return HttpResponse("No path specified")
+  if not _validate_path(top_dir):
+     return HttpResponse("Not a valid path")
 
-  SEARCH_STRING = "acsoe"
+  top_dir_path_depth = top_dir.count('/')
+
+  SEARCH_STRING = "nerc"
   regex = f'.*{SEARCH_STRING}.*'
 
   number_ok_files = 0
@@ -40,7 +46,9 @@ def list (request):
 
   for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
     url = DAP_URL + rec['path']
-    print ('Processing: ', rec['path'], url)
+
+    depth = rec['directory'].count('/') - top_dir_path_depth
+    print ('Processing: ', rec['path'], depth)
 
     response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
@@ -99,4 +107,14 @@ def download (request):
 
   return response
 
+def _validate_path (path):
+#
+# Do some checks on the given path to make sure it is ok to proceed with
+#
+  pattern = r"[a-zA-Z0-9/.\-_]+"
+  
+  if re.fullmatch(pattern, path) and len(path) <= MAX_PATH_LENGTH:
+      return True
+  else:
+      return False
 
