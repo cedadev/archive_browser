@@ -20,6 +20,8 @@ DAP_URL = "https://dap.ceda.ac.uk"
 MAX_PATH_LENGTH = 300
 MAX_QUERY_LENGTH = 20
 
+MAX_FILES = 10
+MAX_SIZE = 100000000000
 
     
 
@@ -50,6 +52,9 @@ def list (request):
 
   for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
     url = DAP_URL + rec['path']
+
+    if number_ok_files >= MAX_FILES or total_size >= MAX_SIZE:
+        break
 
     depth = rec['directory'].count('/') - top_dir_path_depth
     print ('Processing: ', rec['path'], depth)
@@ -95,7 +100,12 @@ def download (request):
   regex = f'.*{query_string}.*'
 
   print ('Query_string: ', query_string)
+
+
   query_parameters = {"download": "1"}
+
+  number_ok_files = 0
+  total_size = 0
 
   session = requests.Session()
 
@@ -110,6 +120,9 @@ def download (request):
     if response.url.startswith('https://auth.ceda.ac.uk'):
          print ('...Skipping', rec['path'])
          continue
+
+    number_ok_files = number_ok_files + 1
+    total_size = total_size + rec['size']
 
     arc_file_name = rec['path'].lstrip('/')
     zip.writestr(arc_file_name, response.content) 

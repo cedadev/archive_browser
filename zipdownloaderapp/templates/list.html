@@ -28,13 +28,12 @@
   ZIP File Download
 </h2>
 
-<p><a href="{{directory}}">{{directory}}<a></p>
 
 <form method="get">
 
-    <table border="1" cellpadding="5">
+    <table border="0" cellpadding="5">
     <tr><td>Start path:</td><td><a href="{{directory}}">{{directory}}<a></td></tr>
-
+    <tr><td>Depth:</td><td><input type="text" maxlength="2" size="5" name="depth" value="{{depth}}"></td></tr>
     <tr><td>File name must contain:</td><td><input type="text" maxlength="20" size="15" name="query_string" value="{{query_string}}"></td></tr>
     <tr><td> <input type="submit" value="OK"></td></tr>   
     </table>
@@ -53,7 +52,7 @@
 
 <div class="mb-2">
 <button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}'">
-    <i class="fa-solid fa-download"></i> Download ZIP
+    <i class="fa-solid fa-download"></i> Download
 </button>
 <a class="btn btn-outline-primary" title="Back" href="{{directory}}">
     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to archive
@@ -61,7 +60,7 @@
 </div>
 <p></p>
 
-<h5>Files included in zip download:</h5>
+<h5>Files included in zip download file:</h5>
 
 <table>
 {% for rec in file_recs %}
@@ -87,7 +86,7 @@ The following files were not accessible, either because you are not logged in, o
 
 <div class="mb-2">
 <button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}'">
-    <i class="fa-solid fa-download"></i> Download ZIP
+    <i class="fa-solid fa-download"></i> Download
 </button>
 <a class="btn btn-outline-primary" title="Back" href="{{directory}}">
     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to archive
