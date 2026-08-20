@@ -29,6 +29,7 @@ def list (request):
 
   top_dir = request.GET.get("path", '')
   query_string = request.GET.get("query_string", '')
+  depth = request.GET.get("depth", 10)
 
   if not _validate_path(top_dir):
      return HttpResponse("Not a valid path")
