@@ -28,7 +28,6 @@ def list (request):
   top_dir = request.GET.get("path", '')
   query_string = request.GET.get("query_string", '')
 
-
   if not _validate_path(top_dir):
      return HttpResponse("Not a valid path")
 
@@ -82,20 +81,27 @@ def list (request):
 
 def download (request):
 
-
   top_dir = request.GET.get("path", '')
+  query_string = request.GET.get("query_string", '')
 
-  if not top_dir:
-    return HttpResponse("No path specified")
+  if not _validate_path(top_dir):
+     return HttpResponse("Not a valid path")
 
+  top_dir_path_depth = top_dir.count('/')
 
+  if not _validate_query(query_string):
+     query_string = ''
+
+  regex = f'.*{query_string}.*'
+
+  print ('Query_string: ', query_string)
   query_parameters = {"download": "1"}
 
   session = requests.Session()
 
   zip = zipfile.ZipFile(ZIPFILE, mode="w", compresslevel=9, compression=zipfile.ZIP_DEFLATED)
 
-  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file'):
+  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
     url = DAP_URL + rec['path']
     print ('Processing: ', rec['path'], url)
 
