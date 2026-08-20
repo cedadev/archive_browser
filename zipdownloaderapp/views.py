@@ -25,6 +25,9 @@ def list (request):
   if not top_dir:
     return HttpResponse("No path specified")
 
+  SEARCH_STRING = "acsoe"
+  regex = f'.*{SEARCH_STRING}.*'
+
   number_ok_files = 0
   number_blocked_files = 0
   total_size = 0
@@ -35,12 +38,11 @@ def list (request):
 
   session = requests.Session()
 
-  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file'):
+  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
     url = DAP_URL + rec['path']
     print ('Processing: ', rec['path'], url)
 
     response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
-
 
     if response.url.startswith('https://auth.ceda.ac.uk'):
          print ('...Skipping', rec['path'])
