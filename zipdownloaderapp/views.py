@@ -18,6 +18,7 @@ HEADER = {"Authorization": f"Bearer {ARCHIVE_ACCESS_TOKEN}"}
 ZIPFILE = '/tmp/ceda_download.zip'
 DAP_URL = "https://dap.ceda.ac.uk"
 MAX_PATH_LENGTH = 300
+MAX_QUERY_LENGTH = 20
 
 
     
@@ -25,14 +26,18 @@ MAX_PATH_LENGTH = 300
 def list (request):
 
   top_dir = request.GET.get("path", '')
+  query_string = request.GET.get("query_string", '')
+
 
   if not _validate_path(top_dir):
      return HttpResponse("Not a valid path")
 
   top_dir_path_depth = top_dir.count('/')
 
-  SEARCH_STRING = "nerc"
-  regex = f'.*{SEARCH_STRING}.*'
+  if not _validate_query(query_string):
+     query_string = ''
+
+  regex = f'.*{query_string}.*'
 
   number_ok_files = 0
   number_blocked_files = 0
@@ -67,7 +72,8 @@ def list (request):
               "directory": top_dir,
               "size": total_size,
               "file_recs": file_recs,
-              "blocked_recs": blocked_recs}
+              "blocked_recs": blocked_recs,
+              "query_string": query_string}
 
   return render(request, "list.html", context)
 
@@ -114,6 +120,16 @@ def _validate_path (path):
   pattern = r"[a-zA-Z0-9/.\-_]+"
   
   if re.fullmatch(pattern, path) and len(path) <= MAX_PATH_LENGTH:
+      return True
+  else:
+      return False
+
+
+def _validate_query(query):
+
+  pattern = r"[a-zA-Z0-9.\-_]+"
+  
+  if re.fullmatch(pattern, query) and len(query) <= MAX_QUERY_LENGTH:
       return True
   else:
       return False
