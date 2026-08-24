@@ -20,16 +20,17 @@ DAP_URL = "https://dap.ceda.ac.uk"
 MAX_PATH_LENGTH = 300
 MAX_QUERY_LENGTH = 20
 
-MAX_FILES = 10
-MAX_SIZE = 100000000000
+MAX_FILES = 10000
+MAX_SIZE = 100000000
+MAX_DEPTH = 10
 
     
 
 def list (request):
 
-  top_dir = request.GET.get("path", '')
+  top_dir = request.GET.get("path", '').rstrip('/')
   query_string = request.GET.get("query_string", '')
-  depth = request.GET.get("depth", 10)
+  depth = request.GET.get("depth", MAX_DEPTH)
 
   if not _validate_path(top_dir):
      return HttpResponse("Not a valid path")
@@ -39,11 +40,15 @@ def list (request):
   if not _validate_query(query_string):
      query_string = ''
 
+  depth = _validate_depth(depth)
+
   regex = f'.*{query_string}.*'
 
   number_ok_files = 0
   number_blocked_files = 0
   total_size = 0
+  max_files_exceeded = False
+  max_size_exceeded = False
   file_recs = []
   blocked_recs = []
 
@@ -54,10 +59,19 @@ def list (request):
   for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
     url = DAP_URL + rec['path']
 
-    if number_ok_files >= MAX_FILES or total_size >= MAX_SIZE:
-        break
+    file_depth = rec['directory'].count('/') - top_dir_path_depth
 
-    depth = rec['directory'].count('/') - top_dir_path_depth
+    if file_depth > depth:
+       continue
+
+    if number_ok_files >= MAX_FILES:
+      max_files_exceeded = True
+      break
+    if total_size >= MAX_SIZE:
+      max_size_exceeded = True
+      break
+       
+    rec['depth'] = file_depth
     print ('Processing: ', rec['path'], depth)
 
     response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
@@ -78,7 +92,12 @@ def list (request):
               "size": total_size,
               "file_recs": file_recs,
               "blocked_recs": blocked_recs,
-              "query_string": query_string}
+              "query_string": query_string,
+              "depth": depth,
+              "max_files": MAX_FILES,
+              "max_size": MAX_SIZE, 
+              "max_size_exceeded": max_size_exceeded,
+              "max_files_exceeded": max_files_exceeded}
 
   return render(request, "list.html", context)
 
@@ -154,3 +173,19 @@ def _validate_query(query):
   else:
       return False
 
+
+def _validate_depth(depth_string):
+
+  depth = MAX_DEPTH
+
+  try:
+    depth = int(depth_string)
+
+    if depth > MAX_DEPTH:
+       depth = MAX_DEPTH
+    if depth < 0:
+       depth = 0   
+  except:
+    pass
+
+  return depth

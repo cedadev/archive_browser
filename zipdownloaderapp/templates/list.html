@@ -33,7 +33,7 @@
 
     <table border="0" cellpadding="5">
     <tr><td>Start path:</td><td><a href="{{directory}}">{{directory}}<a></td></tr>
-    <tr><td>Depth:</td><td><input type="text" maxlength="2" size="5" name="depth" value="{{depth}}"></td></tr>
+    <tr><td>Maximum directory depth:</td><td><input type="text" maxlength="2" size="5" name="depth" value="{{depth}}"></td></tr>
     <tr><td>File name must contain:</td><td><input type="text" maxlength="20" size="15" name="query_string" value="{{query_string}}"></td></tr>
     <tr><td> <input type="submit" value="OK"></td></tr>   
     </table>
@@ -41,14 +41,7 @@
     <input type="hidden" name="path" value="{{directory}}">
 
 </form>
-
-<p>Total size: {{size|filesizeformat}} in {{nfiles}} files</p>
-
-{% if number_blocked_files > 0 %}
-
-<p><font color="red">Blocked files: {{number_blocked_files}} (files not accessible)</font></p>
-
-{% endif %}
+<p/>
 
 <div class="mb-2">
 <button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}'">
@@ -60,11 +53,27 @@
 </div>
 <p></p>
 
-<h5>Files included in zip download file:</h5>
+<h5>Files to be included in zip download:</h5>
+<p>Total size: {{size|filesizeformat}} in {{nfiles}} files</p>
+
+{% if max_files_exceeded  %}
+   <p><font color="red">This list is truncated as you have reached the maximum allowed number of files ({{max_files}})</font></p>
+{% endif %}
+
+{% if max_size_exceeded  %}
+   <p><font color="red">This list is truncated as you have reached the maximum total file size ({{max_size|filesizeformat}})</font></p>
+{% endif %}
+
+
+
+{% if number_blocked_files > 0 %}
+   <p><font color="red">Blocked files: {{number_blocked_files}} (files not accessible)</font></p>
+{% endif %}
 
 <table>
+    <th>Filename</th><th>Size</th><th>Depth</th>
 {% for rec in file_recs %}
-<tr><td>{{rec.path}}</td><td>{{rec.size|filesizeformat}}</td></tr>
+<tr><td>{{rec.path}}</td><td>{{rec.size|filesizeformat}}</td><td align="middle">{{rec.depth}}</td></tr>
 {% endfor %}
 </table>
 
