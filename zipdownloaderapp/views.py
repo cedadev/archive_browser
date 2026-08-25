@@ -42,6 +42,10 @@ def list (request):
 
   depth = _validate_depth(depth)
 
+  print ('Depth: ', depth)
+  print ('Query: ', query_string)
+
+
   regex = f'.*{query_string}.*'
 
   number_ok_files = 0
@@ -72,7 +76,7 @@ def list (request):
       break
        
     rec['depth'] = file_depth
-    print ('Processing: ', rec['path'], depth)
+    print ('Processing: ', rec['path'], file_depth)
 
     response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
@@ -106,8 +110,9 @@ def list (request):
 
 def download (request):
 
-  top_dir = request.GET.get("path", '')
+  top_dir = request.GET.get("path", '').rstrip('/')
   query_string = request.GET.get("query_string", '')
+  depth = request.GET.get("depth", MAX_DEPTH)
 
   if not _validate_path(top_dir):
      return HttpResponse("Not a valid path")
@@ -117,15 +122,21 @@ def download (request):
   if not _validate_query(query_string):
      query_string = ''
 
+  depth = _validate_depth(depth)
+
   regex = f'.*{query_string}.*'
-
-  print ('Query_string: ', query_string)
-
-
-  query_parameters = {"download": "1"}
 
   number_ok_files = 0
   total_size = 0
+  max_files_exceeded = False
+  max_size_exceeded = False
+
+
+  print ('Depth: ', depth)
+  print ('Query: ', query_string)
+
+  query_parameters = {"download": "1"}
+
 
   session = requests.Session()
 
@@ -134,6 +145,18 @@ def download (request):
   for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
     url = DAP_URL + rec['path']
     print ('Processing: ', rec['path'], url)
+
+    file_depth = rec['directory'].count('/') - top_dir_path_depth
+
+    if file_depth > depth:
+       continue
+
+    if number_ok_files >= MAX_FILES:
+      max_files_exceeded = True
+      break
+    if total_size >= MAX_SIZE:
+      max_size_exceeded = True
+      break
 
     response = session.get(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
@@ -151,6 +174,40 @@ def download (request):
   response = FileResponse(open(ZIPFILE, "rb"), as_attachment=True)
 
   return response
+
+
+
+  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
+    url = DAP_URL + rec['path']
+
+    file_depth = rec['directory'].count('/') - top_dir_path_depth
+
+    if file_depth > depth:
+       continue
+
+    if number_ok_files >= MAX_FILES:
+      max_files_exceeded = True
+      break
+    if total_size >= MAX_SIZE:
+      max_size_exceeded = True
+      break
+       
+    rec['depth'] = file_depth
+    print ('Processing: ', rec['path'], depth)
+
+    response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
+
+    if response.url.startswith('https://auth.ceda.ac.uk'):
+         print ('...Skipping', rec['path'])
+         number_blocked_files = number_blocked_files + 1
+         blocked_recs.append(rec)
+         continue
+
+    file_recs.append(rec)
+    number_ok_files = number_ok_files + 1
+    total_size = total_size + rec['size']
+
+
 
 def _validate_path (path):
 #

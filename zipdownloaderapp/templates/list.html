@@ -35,22 +35,25 @@
     <tr><td>Start path:</td><td><a href="{{directory}}">{{directory}}<a></td></tr>
     <tr><td>Maximum directory depth:</td><td><input type="text" maxlength="2" size="5" name="depth" value="{{depth}}"></td></tr>
     <tr><td>File name must contain:</td><td><input type="text" maxlength="20" size="15" name="query_string" value="{{query_string}}"></td></tr>
-    <tr><td> <input type="submit" value="OK"></td></tr>   
     </table>
 
     <input type="hidden" name="path" value="{{directory}}">
 
-</form>
 <p/>
 
 <div class="mb-2">
-<button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}'">
+
+    <input type="submit" value="Refresh file list" class="btn btn-outline-primary"> 
+
+<button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}&depth={{depth}}'">
     <i class="fa-solid fa-download"></i> Download
 </button>
 <a class="btn btn-outline-primary" title="Back" href="{{directory}}">
     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to archive
 </a>
 </div>
+
+</form>
 <p></p>
 
 <h5>Files to be included in zip download:</h5>
