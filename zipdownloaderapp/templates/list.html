@@ -31,19 +31,21 @@
 
 <form method="get">
 
-    <table border="0" cellpadding="5">
+    <table border="0" cellpadding="1">
     <tr><td>Start path:</td><td><a href="{{directory}}">{{directory}}<a></td></tr>
-    <tr><td>Maximum directory depth:</td><td><input type="text" maxlength="2" size="5" name="depth" value="{{depth}}"></td></tr>
-    <tr><td>File name must contain:</td><td><input type="text" maxlength="20" size="15" name="query_string" value="{{query_string}}"></td></tr>
+    <tr><td>Maximum directory depth:</td><td><input type="text" maxlength="2" size="2" name="depth" value="{{depth}}"></td></tr>
+    <tr><td><font size="1">Number of directories to descend from start path</font></td><td></td></tr>
+    <tr><td>Filename filter:</td><td><input type="text" maxlength="20" size="15" name="query_string" value="{{query_string}}"></td></tr>
     </table>
 
     <input type="hidden" name="path" value="{{directory}}">
+    <input type="submit" value="Refresh file list" class="btn btn-outline-primary"> 
 
 <p/>
 
+</form>
 <div class="mb-2">
 
-    <input type="submit" value="Refresh file list" class="btn btn-outline-primary"> 
 
 <button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}&depth={{depth}}'">
     <i class="fa-solid fa-download"></i> Download
@@ -53,7 +55,6 @@
 </a>
 </div>
 
-</form>
 <p></p>
 
 <h5>Files to be included in zip download:</h5>
@@ -95,15 +96,6 @@ The following files were not accessible, either because you are not logged in, o
 {% endif %}
 
 <p></p>
-
-<div class="mb-2">
-<button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}'">
-    <i class="fa-solid fa-download"></i> Download
-</button>
-<a class="btn btn-outline-primary" title="Back" href="{{directory}}">
-    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to archive
-</a>
-</div>
 
 Please <a href="javascript:void(0);" id="beacon" onclick="Beacon('toggle')">contact us</a> if you require assistance.
 {% endblock %}

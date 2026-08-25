@@ -21,7 +21,7 @@ MAX_PATH_LENGTH = 300
 MAX_QUERY_LENGTH = 20
 
 MAX_FILES = 10000
-MAX_SIZE = 100000000
+MAX_SIZE = 1000000000
 MAX_DEPTH = 10
 
     
@@ -76,10 +76,12 @@ def list (request):
       break
        
     rec['depth'] = file_depth
-    print ('Processing: ', rec['path'], file_depth)
+    print ('Processing list: ', rec['path'], file_depth)
 
     response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
+    print ('Resonse: ', response.url)
+    
     if response.url.startswith('https://auth.ceda.ac.uk'):
          print ('...Skipping', rec['path'])
          number_blocked_files = number_blocked_files + 1
@@ -144,7 +146,7 @@ def download (request):
 
   for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
     url = DAP_URL + rec['path']
-    print ('Processing: ', rec['path'], url)
+    print ('Processing download: ', rec['path'], url)
 
     file_depth = rec['directory'].count('/') - top_dir_path_depth
 
@@ -174,38 +176,6 @@ def download (request):
   response = FileResponse(open(ZIPFILE, "rb"), as_attachment=True)
 
   return response
-
-
-
-  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
-    url = DAP_URL + rec['path']
-
-    file_depth = rec['directory'].count('/') - top_dir_path_depth
-
-    if file_depth > depth:
-       continue
-
-    if number_ok_files >= MAX_FILES:
-      max_files_exceeded = True
-      break
-    if total_size >= MAX_SIZE:
-      max_size_exceeded = True
-      break
-       
-    rec['depth'] = file_depth
-    print ('Processing: ', rec['path'], depth)
-
-    response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
-
-    if response.url.startswith('https://auth.ceda.ac.uk'):
-         print ('...Skipping', rec['path'])
-         number_blocked_files = number_blocked_files + 1
-         blocked_recs.append(rec)
-         continue
-
-    file_recs.append(rec)
-    number_ok_files = number_ok_files + 1
-    total_size = total_size + rec['size']
 
 
 
