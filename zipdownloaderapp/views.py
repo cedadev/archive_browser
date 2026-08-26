@@ -11,7 +11,7 @@ import os
 from pprint import pprint
 from archive_browser.settings import  ARCHIVE_ACCESS_TOKEN
 
-ARCHIVE_ACCESS_TOKEN = "dummy"
+#ARCHIVE_ACCESS_TOKEN = "dummy"
 HEADER = {"Authorization": f"Bearer {ARCHIVE_ACCESS_TOKEN}"}
 
 
@@ -21,7 +21,7 @@ MAX_PATH_LENGTH = 300
 MAX_QUERY_LENGTH = 20
 
 MAX_FILES = 10000
-MAX_SIZE = 1000000000
+MAX_SIZE = 10000000000
 MAX_DEPTH = 10
 
     
@@ -44,9 +44,11 @@ def list (request):
 
   print ('Path: ', top_dir, 'Depth: ', depth, 'Query string: ', query_string)
 
-
-  regex = f'.*{query_string}.*'
-
+  if query_string:
+    regex = f'.*{query_string}.*'
+  else:
+    regex = None
+    
   number_ok_files = 0
   number_blocked_files = 0
   number_forbidden_files = 0
@@ -67,7 +69,8 @@ def list (request):
     file_depth = rec['directory'].count('/') - top_dir_path_depth
 
     if file_depth > depth:
-       continue
+      print ('Too deep: ', rec['path'])
+      continue
 
     if number_ok_files >= MAX_FILES:
       max_files_exceeded = True
@@ -94,7 +97,6 @@ def list (request):
          number_forbidden_files = number_forbidden_files + 1
          forbidden_recs.append(rec)
          continue
-
 
 
     file_recs.append(rec)
@@ -153,7 +155,7 @@ def download (request):
   session = requests.Session()
 
   tmpzip = tempfile.NamedTemporaryFile(suffix='.zip', dir=TMP_DIR, delete=True, delete_on_close=True)
-  print ('Zip: ', tmpzip.name)
+  print ('Zipfile: ', tmpzip.name)
   zip = zipfile.ZipFile(tmpzip.name, mode="w", compresslevel=9, compression=zipfile.ZIP_DEFLATED)
 
   for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):

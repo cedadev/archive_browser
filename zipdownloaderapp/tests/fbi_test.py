@@ -7,7 +7,7 @@ from datetime import datetime
 
 start = datetime.now()
 
-TOP_DIR = "/badc/ukmo-midas/data/MO"
+TOP_DIR = "/badc/acsoe"
 GREP = ""
 regex = f'.*{GREP}.*'
 
@@ -15,7 +15,7 @@ regex = '.*'
 
 total_size = 0
 nfiles = 0
-for rec in fbi_core.fbi_records_under(path=TOP_DIR, include_removed=False, item_type='file',  name_regex=regex, fetch_size=1000):
+for rec in fbi_core.fbi_records_under(path=TOP_DIR, include_removed=False, item_type='file',  name_regex=None, fetch_size=1000):
     print (rec['path'], rec['size'])
     total_size = total_size + rec['size']
     nfiles = nfiles + 1
