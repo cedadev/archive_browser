@@ -15,7 +15,7 @@ ARCHIVE_ACCESS_TOKEN = "dummy"
 HEADER = {"Authorization": f"Bearer {ARCHIVE_ACCESS_TOKEN}"}
 
 
-ZIPFILE = '/tmp/ceda_download.zip'
+TMP_DIR = '/tmp'
 DAP_URL = "https://dap.ceda.ac.uk"
 MAX_PATH_LENGTH = 300
 MAX_QUERY_LENGTH = 20
@@ -150,10 +150,11 @@ def download (request):
 
   query_parameters = {"download": "1"}
 
-
   session = requests.Session()
 
-  zip = zipfile.ZipFile(ZIPFILE, mode="w", compresslevel=9, compression=zipfile.ZIP_DEFLATED)
+  tmpzip = tempfile.NamedTemporaryFile(suffix='.zip', dir=TMP_DIR, delete=True, delete_on_close=True)
+  print ('Zip: ', tmpzip.name)
+  zip = zipfile.ZipFile(tmpzip.name, mode="w", compresslevel=9, compression=zipfile.ZIP_DEFLATED)
 
   for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
     url = DAP_URL + rec['path']
@@ -174,7 +175,11 @@ def download (request):
     response = session.get(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
     if response.url.startswith('https://auth.ceda.ac.uk'):
-         print ('...Skipping', rec['path'])
+         print ('...Skipping. Login requested', rec['path'])
+         continue
+
+    if response.url.endswith('?forbidden'):
+         print ('...Forbidden', rec['path'])
          continue
 
     number_ok_files = number_ok_files + 1
@@ -182,10 +187,11 @@ def download (request):
 
     arc_file_name = rec['path'].lstrip('/')
     zip.writestr(arc_file_name, response.content) 
-
+#
+# Return zipfile as an attachment
+#
   zip.close()
-  response = FileResponse(open(ZIPFILE, "rb"), as_attachment=True)
-
+  response = FileResponse(tmpzip, filename='ceda_download.zip', as_attachment=True)
   return response
 
 
