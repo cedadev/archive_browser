@@ -11,7 +11,7 @@ import os
 from pprint import pprint
 from archive_browser.settings import  ARCHIVE_ACCESS_TOKEN
 
-
+ARCHIVE_ACCESS_TOKEN = "dummy"
 HEADER = {"Authorization": f"Bearer {ARCHIVE_ACCESS_TOKEN}"}
 
 
@@ -42,19 +42,20 @@ def list (request):
 
   depth = _validate_depth(depth)
 
-  print ('Depth: ', depth)
-  print ('Query: ', query_string)
+  print ('Path: ', top_dir, 'Depth: ', depth, 'Query string: ', query_string)
 
 
   regex = f'.*{query_string}.*'
 
   number_ok_files = 0
   number_blocked_files = 0
+  number_forbidden_files = 0
   total_size = 0
   max_files_exceeded = False
   max_size_exceeded = False
   file_recs = []
   blocked_recs = []
+  forbidden_recs = []
 
   query_parameters = {"download": "1"}
 
@@ -80,13 +81,21 @@ def list (request):
 
     response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
-    print ('Resonse: ', response.url)
+    print ('Resonse url: ', response.url)
     
     if response.url.startswith('https://auth.ceda.ac.uk'):
-         print ('...Skipping', rec['path'])
+         print ('...Skipping - login required', rec['path'])
          number_blocked_files = number_blocked_files + 1
          blocked_recs.append(rec)
          continue
+
+    if response.url.endswith('?forbidden'):
+         print ('...Forbidden', rec['path'])
+         number_forbidden_files = number_forbidden_files + 1
+         forbidden_recs.append(rec)
+         continue
+
+
 
     file_recs.append(rec)
     number_ok_files = number_ok_files + 1
@@ -94,10 +103,12 @@ def list (request):
 
   context = {"nfiles": number_ok_files,
               "number_blocked_files": number_blocked_files,
+              "number_forbidden_files": number_forbidden_files,
               "directory": top_dir,
               "size": total_size,
               "file_recs": file_recs,
               "blocked_recs": blocked_recs,
+              "forbidden_recs": forbidden_recs,
               "query_string": query_string,
               "depth": depth,
               "max_files": MAX_FILES,

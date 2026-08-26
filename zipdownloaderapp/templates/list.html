@@ -71,22 +71,31 @@
 
 
 {% if number_blocked_files > 0 %}
-   <p><font color="red">Blocked files: {{number_blocked_files}} (files not accessible)</font></p>
+   <p><font color="red">Blocked files: {{number_blocked_files}} (files requiring login). Please login and run again.</font></p>
 {% endif %}
 
+
+{% if number_forbidden_files > 0 %}
+   <p><font color="red">Forbidden files: {{number_forbidden_files}} (files you do not have permission to access)</font></p>
+{% endif %}
+
+
+
+{% if nfiles > 0 %}
 <table>
     <th>Filename</th><th>Size</th><th>Depth</th>
 {% for rec in file_recs %}
 <tr><td>{{rec.path}}</td><td>{{rec.size|filesizeformat}}</td><td align="middle">{{rec.depth}}</td></tr>
 {% endfor %}
 </table>
+{% endif %}
 
 <p></p>
 
 
 {% if number_blocked_files > 0 %}
 <h5>Blocked files</h5>
-The following files were not accessible, either because you are not logged in, or your account is not authorised to access them:
+The following files were not accessible because they require you to be logged in to a CEDA account:
 <p></p>
 <table>
 {% for rec in blocked_recs %}
@@ -94,6 +103,20 @@ The following files were not accessible, either because you are not logged in, o
 {% endfor %}
 </table>
 {% endif %}
+
+
+{% if number_forbidden_files > 0 %}
+<h5>Forbidden files</h5>
+The following files were not accessible because your account does not have permission to access them:
+<p></p>
+<table cellspacing=""15">
+{% for rec in forbidden_recs %}
+<tr><td><font color="red">{{rec.path}}</font></td><td><font color="red">{{rec.size|filesizeformat}}</font></td></tr>
+{% endfor %}
+</table>
+{% endif %}
+
+
 
 <p></p>
 
