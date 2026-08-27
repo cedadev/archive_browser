@@ -28,7 +28,9 @@
   Multiple file downloader
 </h2>
 
-Downloads multiple files as a zip archive. Select options then press 'List files' to view the files to be downloaded.
+Downloads multiple files as a zip archive. Select options then press 'List files' to view the files to be downloaded. You can then download the selected files as
+a zip archive.
+
 <p></p>
 
 <form method="get">
@@ -58,47 +60,47 @@ Downloads multiple files as a zip archive. Select options then press 'List files
 
     <p></p>
 
-    <div class="mb-2">
+    {% if nfiles > 0 %}
 
+        <div class="mb-2">
 
-    <button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}&depth={{depth}}'">
-        <i class="fa-solid fa-download"></i> Download files as zip archive
-    </button>
-    </div>
+        <button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}&depth={{depth}}'">
+            <i class="fa-solid fa-download"></i> Download files as zip archive
+        </button>
+        </div>
+    {% endif %}
 
     <p></p>
 
-    <h5>Download summary</h5>
+    <h4>Download summary</h4>
 
-    <p>Total size: {{size|filesizeformat}} in {{nfiles}} files</p>
+        <p style="text-indent: 30px;">Total size: {{size|filesizeformat}} in {{nfiles}} files</p>
 
-    {% if max_files_exceeded  %}
-    <p><font color="red">This list is truncated as you have reached the maximum allowed number of files ({{max_files}})</font></p>
-    {% endif %}
+        {% if max_files_exceeded  %}
+        <p style="text-indent: 30px;"><font color="red">This list is truncated as you have reached the maximum allowed number of files ({{max_files}})</font></p>
+        {% endif %}
 
-    {% if max_size_exceeded  %}
-    <p><font color="red">This list is truncated as you have reached the maximum total file size ({{max_size|filesizeformat}})</font></p>
-    {% endif %}
-
-
-
-    {% if number_blocked_files > 0 %}
-    <p><font color="red">Blocked files: {{number_blocked_files}} (files requiring login). Please login and try again.</font></p>
-    {% endif %}
+        {% if max_size_exceeded  %}
+        <p style="text-indent: 30px;"><font color="red">This list is truncated as you have reached the maximum total file size ({{max_size|filesizeformat}})</font></p>
+        {% endif %}
 
 
-    {% if number_forbidden_files > 0 %}
-    <p><font color="red">Forbidden files: {{number_forbidden_files}} (files you do not have permission to access)</font></p>
-    {% endif %}
+
+        {% if number_blocked_files > 0 %}
+        <p style="text-indent: 30px;"><font color="red">Blocked files: {{number_blocked_files}} (files requiring login). Please login and try again.</font></p>
+        {% endif %}
 
 
+        {% if number_forbidden_files > 0 %}
+        <p style="text-indent: 30px;"><font color="red">Forbidden files: {{number_forbidden_files}} (files you do not have permission to access)</font></p>
+        {% endif %}
 
 
     {% if nfiles > 0 %}
 
-    <h5>Files to be included in zip download:</h5>
+    <h4>Files to be included in zip download:</h4>
 
-    <table>
+    <table cellpadding="3"  style="margin-left:30px">
         <th>Filename</th><th>Size</th><th>Depth</th>
     {% for rec in file_recs %}
     <tr><td>{{rec.path}}</td><td>{{rec.size|filesizeformat}}</td><td align="middle">{{rec.depth}}</td></tr>
@@ -110,10 +112,9 @@ Downloads multiple files as a zip archive. Select options then press 'List files
 
 
     {% if number_blocked_files > 0 %}
-    <h5>Blocked files:</h5>
-    The following files were not accessible because they require you to be logged in to a CEDA account:
-    <p></p>
-    <table cellpadding="3">
+    <h4>Blocked files:</h4>
+    <p style="text-indent: 30px;">The following files were not accessible because they require you to be logged in to a CEDA account:</p>
+    <table cellpadding="3"  style="margin-left:30px">
     <th>Filename</th><th>Size</th><th>Depth</th>
 
     {% for rec in blocked_recs %}
@@ -124,16 +125,15 @@ Downloads multiple files as a zip archive. Select options then press 'List files
 
 
     {% if number_forbidden_files > 0 %}
-    <h5>Forbidden files:</h5>
-    The following files were not accessible because your account does not have permission to access them:
-    <p></p>
-    <table cellpadding="15">
-    <th>Filename</th><th>Size</th><th>Depth</th>
+    <h4>Forbidden files:</h4>
+    <p style="text-indent: 30px;">The following files were not accessible because your account does not have permission to access them:</p>
+        <table cellpadding="3"  style="margin-left:30px">
+        <th>Filename</th><th>Size</th><th>Depth</th>
 
-    {% for rec in forbidden_recs %}
-    <tr><td><font color="red">{{rec.path}}</font></td><td align="middle"><font color="red">{{rec.size|filesizeformat}}</font></td><td align="middle"><font color="red">{{rec.depth}}</font></td></tr>
-    {% endfor %}
-    </table>
+        {% for rec in forbidden_recs %}
+        <tr><td><font color="red">{{rec.path}}</font></td><td align="middle"><font color="red">{{rec.size|filesizeformat}}</font></td><td align="middle"><font color="red">{{rec.depth}}</font></td></tr>
+        {% endfor %}
+        </table>
     {% endif %}
 {% endif %}
 

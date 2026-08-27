@@ -47,12 +47,14 @@ def list (request):
     regex = f'.*{query_string}.*'
   else:
     regex = None
-
+#
+# Just display the form, no results to return
+#
   if not depth:
     context = { "form_only": True,
                 "directory": top_dir,
                 "query_string": query_string,
-                "depth": MAX_DEPTH}
+                "depth": 0}
 
     return render(request, "list.html", context)
 
