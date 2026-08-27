@@ -149,8 +149,9 @@ def download (request):
   if not _validate_query(query_string):
      query_string = ''
 
-  depth = _validate_depth(depth)
+  print ('Path: ', top_dir, 'Depth: ', depth, 'Query string: ', query_string)
 
+  depth = _validate_depth(depth)
 
   if query_string:
     regex = f'.*{query_string}.*'
@@ -159,12 +160,6 @@ def download (request):
 
   number_ok_files = 0
   total_size = 0
-  max_files_exceeded = False
-  max_size_exceeded = False
-
-
-  print ('Depth: ', depth)
-  print ('Query: ', query_string)
 
   query_parameters = {"download": "1"}
 
@@ -185,10 +180,8 @@ def download (request):
       continue
 
     if number_ok_files >= MAX_FILES:
-      max_files_exceeded = True
       break
     if total_size >= MAX_SIZE:
-      max_size_exceeded = True
       break
 
     response = session.get(url, params=query_parameters, headers=HEADER, allow_redirects=True)
