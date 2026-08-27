@@ -25,106 +25,117 @@
 
 
 <h2>
-  ZIP File Download
+  Multiple file downloader
 </h2>
 
+Downloads multiple files as a zip archive. Select options then press 'List files' to view the files to be downloaded.
+<p></p>
 
 <form method="get">
 
-    <table border="0" cellpadding="1">
-    <tr><td>Start path:</td><td><a href="{{directory}}">{{directory}}<a></td></tr>
-    <tr><td>Maximum directory depth:</td><td><input type="text" maxlength="2" size="2" name="depth" value="{{depth}}"></td></tr>
-    <tr><td><font size="1">Number of directories to descend from start path</font></td><td></td></tr>
-    <tr><td>Filename filter:</td><td><input type="text" maxlength="20" size="15" name="query_string" value="{{query_string}}"></td></tr>
-    </table>
-
     <input type="hidden" name="path" value="{{directory}}">
-    <input type="submit" value="Refresh file list" class="btn btn-outline-primary"> 
+
+    <table border="0" cellpadding="10">
+    <tr><td><b>Start path:</b></td><td><a href="{{directory}}">{{directory}}<a></td></tr>
+    <tr><td><b>Maximum directory depth (0-10):</b></td><td><input type="text" maxlength="2" size="2" name="depth" value="{{depth}}"></td></tr>
+    <tr><td><b>Filename filter:</b></td><td><input type="text" maxlength="20" size="15" name="query_string" value="{{query_string}}"></td></tr>
+    <tr><td> <input type="submit" value="List files" class="btn btn-outline-primary"> &nbsp; 
+        <a class="btn btn-outline-primary" title="Back" href="{{directory}}">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to archive</a></td></tr>
+</table>
+
+    <p/>
+
+   
+    
 
 <p/>
 
 </form>
-<div class="mb-2">
 
 
-<button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}&depth={{depth}}'">
-    <i class="fa-solid fa-download"></i> Download
-</button>
-<a class="btn btn-outline-primary" title="Back" href="{{directory}}">
-    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to archive
-</a>
-</div>
+{% if not form_only %}
 
-<p></p>
+    <p></p>
 
-<h5>Download summary</h5>
-
-<p>Total size: {{size|filesizeformat}} in {{nfiles}} files</p>
-
-{% if max_files_exceeded  %}
-   <p><font color="red">This list is truncated as you have reached the maximum allowed number of files ({{max_files}})</font></p>
-{% endif %}
-
-{% if max_size_exceeded  %}
-   <p><font color="red">This list is truncated as you have reached the maximum total file size ({{max_size|filesizeformat}})</font></p>
-{% endif %}
+    <div class="mb-2">
 
 
+    <button id="download-button" class="btn btn-primary mr-1" data-original-title="Download ZIP" title="Download ZIP" onclick="location.href='/zip/download?path={{directory}}&query_string={{query_string}}&depth={{depth}}'">
+        <i class="fa-solid fa-download"></i> Download files as zip archive
+    </button>
+    </div>
 
-{% if number_blocked_files > 0 %}
-   <p><font color="red">Blocked files: {{number_blocked_files}} (files requiring login). Please login and try again.</font></p>
-{% endif %}
+    <p></p>
 
+    <h5>Download summary</h5>
 
-{% if number_forbidden_files > 0 %}
-   <p><font color="red">Forbidden files: {{number_forbidden_files}} (files you do not have permission to access)</font></p>
-{% endif %}
+    <p>Total size: {{size|filesizeformat}} in {{nfiles}} files</p>
+
+    {% if max_files_exceeded  %}
+    <p><font color="red">This list is truncated as you have reached the maximum allowed number of files ({{max_files}})</font></p>
+    {% endif %}
+
+    {% if max_size_exceeded  %}
+    <p><font color="red">This list is truncated as you have reached the maximum total file size ({{max_size|filesizeformat}})</font></p>
+    {% endif %}
 
 
 
+    {% if number_blocked_files > 0 %}
+    <p><font color="red">Blocked files: {{number_blocked_files}} (files requiring login). Please login and try again.</font></p>
+    {% endif %}
 
-{% if nfiles > 0 %}
 
-<h5>Files to be included in zip download:</h5>
+    {% if number_forbidden_files > 0 %}
+    <p><font color="red">Forbidden files: {{number_forbidden_files}} (files you do not have permission to access)</font></p>
+    {% endif %}
 
-<table>
+
+
+
+    {% if nfiles > 0 %}
+
+    <h5>Files to be included in zip download:</h5>
+
+    <table>
+        <th>Filename</th><th>Size</th><th>Depth</th>
+    {% for rec in file_recs %}
+    <tr><td>{{rec.path}}</td><td>{{rec.size|filesizeformat}}</td><td align="middle">{{rec.depth}}</td></tr>
+    {% endfor %}
+    </table>
+    {% endif %}
+
+    <p></p>
+
+
+    {% if number_blocked_files > 0 %}
+    <h5>Blocked files:</h5>
+    The following files were not accessible because they require you to be logged in to a CEDA account:
+    <p></p>
+    <table cellpadding="3">
     <th>Filename</th><th>Size</th><th>Depth</th>
-{% for rec in file_recs %}
-<tr><td>{{rec.path}}</td><td>{{rec.size|filesizeformat}}</td><td align="middle">{{rec.depth}}</td></tr>
-{% endfor %}
-</table>
+
+    {% for rec in blocked_recs %}
+    <tr><td><font color="red">{{rec.path}}</font></td><td align="middle"><font color="red">{{rec.size|filesizeformat}}</font></td><td align="middle"><font color="red">{{rec.depth}}</font></td></tr>
+    {% endfor %}
+    </table>
+    {% endif %}
+
+
+    {% if number_forbidden_files > 0 %}
+    <h5>Forbidden files:</h5>
+    The following files were not accessible because your account does not have permission to access them:
+    <p></p>
+    <table cellpadding="15">
+    <th>Filename</th><th>Size</th><th>Depth</th>
+
+    {% for rec in forbidden_recs %}
+    <tr><td><font color="red">{{rec.path}}</font></td><td align="middle"><font color="red">{{rec.size|filesizeformat}}</font></td><td align="middle"><font color="red">{{rec.depth}}</font></td></tr>
+    {% endfor %}
+    </table>
+    {% endif %}
 {% endif %}
-
-<p></p>
-
-
-{% if number_blocked_files > 0 %}
-<h5>Blocked files:</h5>
-The following files were not accessible because they require you to be logged in to a CEDA account:
-<p></p>
-<table cellpadding="3">
-<th>Filename</th><th>Size</th><th>Depth</th>
-
-{% for rec in blocked_recs %}
-<tr><td><font color="red">{{rec.path}}</font></td><td align="middle"><font color="red">{{rec.size|filesizeformat}}</font></td><td align="middle"><font color="red">{{rec.depth}}</font></td></tr>
-{% endfor %}
-</table>
-{% endif %}
-
-
-{% if number_forbidden_files > 0 %}
-<h5>Forbidden files:</h5>
-The following files were not accessible because your account does not have permission to access them:
-<p></p>
-<table cellpadding="15">
-<th>Filename</th><th>Size</th><th>Depth</th>
-
-{% for rec in forbidden_recs %}
-<tr><td><font color="red">{{rec.path}}</font></td><td align="middle"><font color="red">{{rec.size|filesizeformat}}</font></td><td align="middle"><font color="red">{{rec.depth}}</font></td></tr>
-{% endfor %}
-</table>
-{% endif %}
-
 
 
 <p></p>

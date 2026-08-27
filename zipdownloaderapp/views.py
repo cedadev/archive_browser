@@ -30,7 +30,7 @@ def list (request):
 
   top_dir = request.GET.get("path", '').rstrip('/')
   query_string = request.GET.get("query_string", '')
-  depth = request.GET.get("depth", MAX_DEPTH)
+  depth = request.GET.get("depth", None)
 
   if not _validate_path(top_dir):
      return HttpResponse("Not a valid path")
@@ -40,7 +40,6 @@ def list (request):
   if not _validate_query(query_string):
      query_string = ''
 
-  depth = _validate_depth(depth)
 
   print ('Path: ', top_dir, 'Depth: ', depth, 'Query string: ', query_string)
 
@@ -48,7 +47,18 @@ def list (request):
     regex = f'.*{query_string}.*'
   else:
     regex = None
-    
+
+  if not depth:
+    context = { "form_only": True,
+                "directory": top_dir,
+                "query_string": query_string,
+                "depth": MAX_DEPTH}
+
+    return render(request, "list.html", context)
+
+  depth = _validate_depth(depth)
+
+      
   number_ok_files = 0
   number_blocked_files = 0
   number_forbidden_files = 0
@@ -139,7 +149,11 @@ def download (request):
 
   depth = _validate_depth(depth)
 
-  regex = f'.*{query_string}.*'
+
+  if query_string:
+    regex = f'.*{query_string}.*'
+  else:
+    regex = None
 
   number_ok_files = 0
   total_size = 0
@@ -165,7 +179,8 @@ def download (request):
     file_depth = rec['directory'].count('/') - top_dir_path_depth
 
     if file_depth > depth:
-       continue
+      print ('Too deep: ', rec['path'])
+      continue
 
     if number_ok_files >= MAX_FILES:
       max_files_exceeded = True
