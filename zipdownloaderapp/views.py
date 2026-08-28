@@ -4,6 +4,8 @@ from django.shortcuts import redirect, render
 import fbi_core
 
 import requests
+from urllib3.util import Retry
+from requests.adapters import HTTPAdapter
 import re
 import tempfile
 import zipfile
@@ -20,11 +22,57 @@ DAP_URL = "https://dap.ceda.ac.uk"
 MAX_PATH_LENGTH = 300
 MAX_QUERY_LENGTH = 20
 
-MAX_FILES = 10000
+MAX_FILES = 1000000
 MAX_SIZE = 10000000000
 MAX_DEPTH = 10
 
-    
+
+def _get_fbi_file_records (top_dir, depth, filter_string='', match_path=False):
+#
+# Returns fbi records for all files below top_dir matching query
+#
+    file_recs = []
+    total_size = 0
+    status = 'OK'
+
+    top_dir.rstrip('/')
+    top_dir_path_depth = top_dir.count('/')
+#
+#   Use listdir if we only want a single directory as it will be faster
+#  
+    if depth == 0:
+        records = fbi_core.fbi_listdir(top_dir, fetch_size=10000, dirs_only=False, removed=False, hidden=False)
+    else:
+        records = fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', exclude_phenomena=True)
+
+    for rec in records:
+        if rec['type'] != 'file':
+            continue
+
+        file_depth = rec['directory'].count('/') - top_dir_path_depth
+        rec['depth'] = file_depth
+
+        if filter_string:
+            if match_path:
+                if not filter_string in rec['path']: continue
+            else:
+                if not filter_string in rec['name']: continue
+
+        if file_depth > depth:
+            continue
+
+        if len(file_recs) >= MAX_FILES:
+            status = 'max_files_exceeded'
+            break
+        if total_size >= MAX_SIZE:
+            status = 'max_size_exceeded'
+            break
+
+        file_recs.append(rec)
+        total_size = total_size + rec['size']
+
+    return (status, total_size, file_recs)
+
 
 def list (request):
 
@@ -40,13 +88,8 @@ def list (request):
   if not _validate_query(query_string):
      query_string = ''
 
-
   print ('Path: ', top_dir, 'Depth: ', depth, 'Query string: ', query_string)
 
-  if query_string:
-    regex = f'.*{query_string}.*'
-  else:
-    regex = None
 #
 # Just display the form, no results to return
 #
@@ -60,43 +103,37 @@ def list (request):
 
   depth = _validate_depth(depth)
 
+  (status, total_size, fbi_records) = _get_fbi_file_records (top_dir, depth, filter_string=query_string, match_path=False)
       
   number_ok_files = 0
   number_blocked_files = 0
   number_forbidden_files = 0
-  total_size = 0
   max_files_exceeded = False
   max_size_exceeded = False
-  file_recs = []
+  ok_file_recs = []
   blocked_recs = []
   forbidden_recs = []
 
   query_parameters = {"download": "1"}
-
   session = requests.Session()
 
-  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex, exclude_phenomena=True):
-    url = DAP_URL + rec['path']
+  retries = Retry(
+    total=3,
+    backoff_factor=0.1,
+    status_forcelist=[502, 503, 504],
+    allowed_methods={'GET'},
+  )
+  session.mount('https://', HTTPAdapter(max_retries=retries))
 
-    file_depth = rec['directory'].count('/') - top_dir_path_depth
+  nrecords =1
 
-    if file_depth > depth:
-      print ('Too deep: ', rec['path'])
-      continue
-
-    if number_ok_files >= MAX_FILES:
-      max_files_exceeded = True
-      break
-    if total_size >= MAX_SIZE:
-      max_size_exceeded = True
-      break
-       
-    rec['depth'] = file_depth
-    print ('Processing list: ', rec['path'], file_depth)
+  for rec in fbi_records:
+    url = DAP_URL + rec['path'] 
+    print (f'Processing {nrecords} of ', len(fbi_records), rec['path'], rec['depth'])
 
     response = session.head(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
-    print ('Resonse url: ', response.url)
+   # print ('Resonse url: ', response.url)
     
     if response.url.startswith('https://auth.ceda.ac.uk'):
          print ('...Skipping - login required', rec['path'])
@@ -110,25 +147,24 @@ def list (request):
          forbidden_recs.append(rec)
          continue
 
-
-    file_recs.append(rec)
+    ok_file_recs.append(rec)
     number_ok_files = number_ok_files + 1
-    total_size = total_size + rec['size']
+    nrecords = nrecords + 1
 
   context = {"nfiles": number_ok_files,
               "number_blocked_files": number_blocked_files,
               "number_forbidden_files": number_forbidden_files,
               "directory": top_dir,
               "size": total_size,
-              "file_recs": file_recs,
+              "file_recs": ok_file_recs,
               "blocked_recs": blocked_recs,
               "forbidden_recs": forbidden_recs,
               "query_string": query_string,
               "depth": depth,
               "max_files": MAX_FILES,
               "max_size": MAX_SIZE, 
-              "max_size_exceeded": max_size_exceeded,
-              "max_files_exceeded": max_files_exceeded}
+              "max_size_exceeded": status == 'max_size_exceeded',
+              "max_files_exceeded": status == 'max_files_exceeded'}
 
   return render(request, "list.html", context)
 
@@ -144,8 +180,6 @@ def download (request):
   if not _validate_path(top_dir):
      return HttpResponse("Not a valid path")
 
-  top_dir_path_depth = top_dir.count('/')
-
   if not _validate_query(query_string):
      query_string = ''
 
@@ -153,36 +187,28 @@ def download (request):
 
   depth = _validate_depth(depth)
 
-  if query_string:
-    regex = f'.*{query_string}.*'
-  else:
-    regex = None
-
-  number_ok_files = 0
-  total_size = 0
+  (status, total_size, fbi_records) = _get_fbi_file_records (top_dir, depth, filter_string=query_string, match_path=False)
 
   query_parameters = {"download": "1"}
-
   session = requests.Session()
+
+  retries = Retry(
+    total=3,
+    backoff_factor=0.1,
+    status_forcelist=[502, 503, 504],
+    allowed_methods={'GET'},
+  )
+  session.mount('https://', HTTPAdapter(max_retries=retries))
 
   tmpzip = tempfile.NamedTemporaryFile(suffix='.zip', dir=TMP_DIR, delete=True, delete_on_close=True)
   print ('Zipfile: ', tmpzip.name)
   zip = zipfile.ZipFile(tmpzip.name, mode="w", compresslevel=9, compression=zipfile.ZIP_DEFLATED)
 
-  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex, exclude_phenomena=True):
+  ndownload = 1
+
+  for rec in fbi_records:
     url = DAP_URL + rec['path']
-    print ('Processing download: ', rec['path'], url)
-
-    file_depth = rec['directory'].count('/') - top_dir_path_depth
-
-    if file_depth > depth:
-      print ('Too deep: ', rec['path'])
-      continue
-
-    if number_ok_files >= MAX_FILES:
-      break
-    if total_size >= MAX_SIZE:
-      break
+    print (f'Processing download: {ndownload} of ', len(fbi_records), rec['path'])
 
     response = session.get(url, params=query_parameters, headers=HEADER, allow_redirects=True)
 
@@ -194,11 +220,10 @@ def download (request):
          print ('...Forbidden', rec['path'])
          continue
 
-    number_ok_files = number_ok_files + 1
-    total_size = total_size + rec['size']
-
     arc_file_name = rec['path'].lstrip('/')
     zip.writestr(arc_file_name, response.content) 
+
+    ndownload = ndownload +1
 #
 # Return zipfile as an attachment
 #
@@ -222,7 +247,7 @@ def _validate_path (path):
 
 def _validate_query(query):
 
-  pattern = r"[a-zA-Z0-9.\-_]+"
+  pattern = r"[a-zA-Z0-9./\-_]+"
   
   if re.fullmatch(pattern, query) and len(query) <= MAX_QUERY_LENGTH:
       return True
@@ -245,3 +270,50 @@ def _validate_depth(depth_string):
     pass
 
   return depth
+
+
+def _get_fbi_file_records (top_dir, depth, filter_string='', match_path=False):
+#
+# Returns fbi records for all files below top_dir matching query
+#
+    file_recs = []
+    total_size = 0
+    status = 'OK'
+
+    top_dir.rstrip('/')
+    top_dir_path_depth = top_dir.count('/')
+#
+#   Use listdir if we only want a single directory as it will be faster
+#  
+    if depth == 0:
+        records = fbi_core.fbi_listdir(top_dir, fetch_size=10000, dirs_only=False, removed=False, hidden=False)
+    else:
+        records = fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', exclude_phenomena=True)
+
+    for rec in records:
+        if rec['type'] != 'file':
+            continue
+
+        file_depth = rec['directory'].count('/') - top_dir_path_depth
+        rec['depth'] = file_depth
+
+        if filter_string:
+            if match_path:
+                if not filter_string in rec['path']: continue
+            else:
+                if not filter_string in rec['name']: continue
+
+        if file_depth > depth:
+            continue
+
+        if len(file_recs) >= MAX_FILES:
+            status = 'max_files_exceeded'
+            break
+        if total_size >= MAX_SIZE:
+            status = 'max_size_exceeded'
+            break
+
+        file_recs.append(rec)
+        total_size = total_size + rec['size']
+
+    return (status, total_size, file_recs)
