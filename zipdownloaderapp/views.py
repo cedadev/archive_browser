@@ -75,7 +75,7 @@ def list (request):
 
   session = requests.Session()
 
-  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
+  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex, exclude_phenomena=True):
     url = DAP_URL + rec['path']
 
     file_depth = rec['directory'].count('/') - top_dir_path_depth
@@ -169,7 +169,7 @@ def download (request):
   print ('Zipfile: ', tmpzip.name)
   zip = zipfile.ZipFile(tmpzip.name, mode="w", compresslevel=9, compression=zipfile.ZIP_DEFLATED)
 
-  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex):
+  for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', name_regex=regex, exclude_phenomena=True):
     url = DAP_URL + rec['path']
     print ('Processing download: ', rec['path'], url)
 
