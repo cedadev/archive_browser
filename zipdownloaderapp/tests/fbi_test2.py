@@ -7,9 +7,9 @@ from datetime import datetime
 
 start = datetime.now()
 
-TOP_DIR = "/badc/acsoe"
+TOP_DIR = "/badc/acsoe/doc"
 
-MAX_FILES = 1000000000
+MAX_FILES = 1000
 MAX_SIZE = 100000000000000
 MAX_DEPTH = 10
 GREP = ""
@@ -23,21 +23,23 @@ nfiles = 0
 
 def get_fbi_records (top_dir, query_string, depth):
 
-    top_dir.rstrip('/')
-
     file_recs = []
     total_size = 0
     status = 'OK'
 
+    top_dir.rstrip('/')
     top_dir_path_depth = top_dir.count('/')
 
-    for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', exclude_phenomena=True):
+    for rec in fbi_core.fbi_listdir(top_dir, fetch_size=10000, dirs_only=False, removed=False, hidden=False):
+   # for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', exclude_phenomena=True):
+
+        if rec['type'] != 'file':
+            continue
 
         file_depth = rec['directory'].count('/') - top_dir_path_depth
         rec['depth'] = file_depth
 
         if query_string:
-            print ('checking')
             if not query_string in rec['name']:
                 continue
 
@@ -57,7 +59,7 @@ def get_fbi_records (top_dir, query_string, depth):
     return (status, total_size, file_recs)
 
 
-(status, total_size, file_recs) = get_fbi_records (TOP_DIR, '', 10)
+(status, total_size, file_recs) = get_fbi_records (TOP_DIR, 'file', 0)
 
 n = 1
 for rec in file_recs:
