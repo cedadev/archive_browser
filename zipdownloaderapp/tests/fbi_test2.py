@@ -7,9 +7,9 @@ from datetime import datetime
 
 start = datetime.now()
 
-TOP_DIR = "/badc/acsoe/doc"
+TOP_DIR = "/badc/acsoe"
 
-MAX_FILES = 1000
+MAX_FILES = 100000
 MAX_SIZE = 100000000000000
 MAX_DEPTH = 10
 GREP = ""
@@ -21,27 +21,36 @@ total_size = 0
 nfiles = 0
 
 
-def get_fbi_records (top_dir, query_string, depth):
-
+def get_fbi_file_records (top_dir, depth, filter_string='', match_path=False):
+#
+# Returns fbi records for all files below top_dir matching query
+#
     file_recs = []
     total_size = 0
     status = 'OK'
 
     top_dir.rstrip('/')
     top_dir_path_depth = top_dir.count('/')
+#
+#   Use listdir if we only want a single directory as it will be faster
+#  
+    if depth == 0:
+        records = fbi_core.fbi_listdir(top_dir, fetch_size=10000, dirs_only=False, removed=False, hidden=False)
+    else:
+        records = fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', exclude_phenomena=True)
 
-    for rec in fbi_core.fbi_listdir(top_dir, fetch_size=10000, dirs_only=False, removed=False, hidden=False):
-   # for rec in fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', exclude_phenomena=True):
-
+    for rec in records:
         if rec['type'] != 'file':
             continue
 
         file_depth = rec['directory'].count('/') - top_dir_path_depth
         rec['depth'] = file_depth
 
-        if query_string:
-            if not query_string in rec['name']:
-                continue
+        if filter_string:
+            if match_path:
+                if not filter_string in rec['path']: continue
+            else:
+                if not filter_string in rec['name']: continue
 
         if file_depth > depth:
             continue
@@ -59,7 +68,7 @@ def get_fbi_records (top_dir, query_string, depth):
     return (status, total_size, file_recs)
 
 
-(status, total_size, file_recs) = get_fbi_records (TOP_DIR, 'file', 0)
+(status, total_size, file_recs) = get_fbi_file_records (TOP_DIR, 10, filter_string='/weybourne/960929/', match_path=True)
 
 n = 1
 for rec in file_recs:
