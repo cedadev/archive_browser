@@ -106,6 +106,7 @@ def list (request):
   (status, total_size, fbi_records) = _get_fbi_file_records (top_dir, depth, filter_string=query_string, match_path=False)
       
   number_ok_files = 0
+  size = 0
   number_blocked_files = 0
   number_forbidden_files = 0
   max_files_exceeded = False
@@ -150,12 +151,13 @@ def list (request):
     ok_file_recs.append(rec)
     number_ok_files = number_ok_files + 1
     nrecords = nrecords + 1
+    size = size + rec['size']
 
   context = {"nfiles": number_ok_files,
               "number_blocked_files": number_blocked_files,
               "number_forbidden_files": number_forbidden_files,
               "directory": top_dir,
-              "size": total_size,
+              "size": size,
               "file_recs": ok_file_recs,
               "blocked_recs": blocked_recs,
               "forbidden_recs": forbidden_recs,
