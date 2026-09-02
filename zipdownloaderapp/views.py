@@ -27,52 +27,6 @@ MAX_SIZE = 10000000000
 MAX_DEPTH = 10
 
 
-def _get_fbi_file_records (top_dir, depth, filter_string='', match_path=False):
-#
-# Returns fbi records for all files below top_dir matching query
-#
-    file_recs = []
-    total_size = 0
-    status = 'OK'
-
-    top_dir.rstrip('/')
-    top_dir_path_depth = top_dir.count('/')
-#
-#   Use listdir if we only want a single directory as it will be faster
-#  
-    if depth == 0:
-        records = fbi_core.fbi_listdir(top_dir, fetch_size=10000, dirs_only=False, removed=False, hidden=False)
-    else:
-        records = fbi_core.fbi_records_under(path=top_dir, include_removed=False, item_type='file', exclude_phenomena=True)
-
-    for rec in records:
-        if rec['type'] != 'file':
-            continue
-
-        file_depth = rec['directory'].count('/') - top_dir_path_depth
-        rec['depth'] = file_depth
-
-        if filter_string:
-            if match_path:
-                if not filter_string in rec['path']: continue
-            else:
-                if not filter_string in rec['name']: continue
-
-        if file_depth > depth:
-            continue
-
-        if len(file_recs) >= MAX_FILES:
-            status = 'max_files_exceeded'
-            break
-        if total_size >= MAX_SIZE:
-            status = 'max_size_exceeded'
-            break
-
-        file_recs.append(rec)
-        total_size = total_size + rec['size']
-
-    return (status, total_size, file_recs)
-
 
 def list (request):
 
@@ -104,7 +58,8 @@ def list (request):
   depth = _validate_depth(depth)
 
   (status, total_size, fbi_records) = _get_fbi_file_records (top_dir, depth, filter_string=query_string, match_path=False)
-      
+
+  print ('Recs: ', len(fbi_records))
   number_ok_files = 0
   size = 0
   number_blocked_files = 0
@@ -126,7 +81,7 @@ def list (request):
   )
   session.mount('https://', HTTPAdapter(max_retries=retries))
 
-  nrecords =1
+  nrecords = 1
 
   for rec in fbi_records:
     url = DAP_URL + rec['path'] 
@@ -282,7 +237,7 @@ def _get_fbi_file_records (top_dir, depth, filter_string='', match_path=False):
     total_size = 0
     status = 'OK'
 
-    top_dir.rstrip('/')
+    top_dir = top_dir.rstrip('/')
     top_dir_path_depth = top_dir.count('/')
 #
 #   Use listdir if we only want a single directory as it will be faster
