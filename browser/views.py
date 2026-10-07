@@ -430,12 +430,32 @@ def jsonlist(request, path="/"):
 
 
 @csrf_exempt
-def item_info(request):
-    path = request.GET.get("p")
+def item_json(request, path="/"):
     path_record = get_record(path)
     if path_record is None:
-        render(request, 'browser/notfound.html', {"path": path}, status=404)
-    return JsonResponse(path_record)
+        return render(request, 'browser/notfound.html', {"path": path}, status=404)
+    else:
+        return JsonResponse(path_record)
+
+
+@csrf_exempt
+def item_info(request, path="/"):
+    path_record = get_record(path)
+    print(path_record)
+    if path_record is None:
+        return render(request, 'browser/notfound.html', {"path": path}, status=404)
+    
+    download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
+    context = {"record": path_record, "path": path, "download_service": download_service}
+
+    if path_record["type"] == "link":
+        context["link_record"] = path_record
+        context["record"] = get_record(path_record["target"])
+
+    context["cat_info"] = moles_record(path)
+    context["access_rules"] = get_access_rules(path)
+
+    return render(request, 'browser/item_info.html', context, status=404)
 
 
 def cache_control(request):
