@@ -16,6 +16,10 @@ import json
 from functools import lru_cache 
 from fbi_core import archive_summary, fbi_listdir, get_record, ls_query, es, indexname
 from elasticsearch.helpers import ScanError
+from .catalogue_cache import observation_cache
+
+obs_cache, collections_cache, projects_cache = observation_cache()
+
 
 
 def getIcon(type, extension):
@@ -75,26 +79,9 @@ def get_access_rules(path):
     return data[shortest]
 
 @lru_cache(maxsize=16384)
-def moles_record(path):
-    for CAT_URL in settings.CAT_URLS:
-        try:
-            with urllib.request.urlopen(CAT_URL + path) as url:
-                data = json.loads(url.read().decode())
-            if data.get("record_type") == 'Dataset':
-                uuid = os.path.basename(data["url"])
-                full_record_url  = f"http://api.catalogue.ceda.ac.uk/api/v2/observations/?format=json&uuid={uuid}"
-                with urllib.request.urlopen(full_record_url) as full_record_page:
-                    full_record = json.loads(full_record_page.read().decode())
-                # print(full_record)
-                data["status"] = full_record["results"][0]["status"]
-                data["status_warning"] = data["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated')
-            return data
-        except (ConnectionResetError, urllib.error.HTTPError):
-            continue
-    return None
-
 def readme_line(path):
     """get readme line"""
+    print(f"readme_line: {path}")
     for readme_filename in ("00README.txt", "00README"):
         readme_file = os.path.join(path, readme_filename)
         readme_record = get_record(readme_file)
@@ -105,15 +92,42 @@ def readme_line(path):
 
     if "content" in readme_record: 
         first_chars = readme_record["content"][:500]
-        return first_chars.splitlines()[0]
+        if first_chars:
+            return first_chars.splitlines()[0]
     else:
         return None
  
-@lru_cache_expires(maxsize=16384, max_expire_period=2*3600, default=None)
-def directory_desc(path):
-    cat_info = moles_record(path)
-    if cat_info is not None and cat_info["record_type"] == "Dataset":
-        if cat_info["status_warning"]:
+def directory_desc(path, item_type):
+    if item_type == "file":
+        return ""
+
+    cat_info = obs_cache[path]
+    if cat_info is not None:
+        cat_type = "observation"
+    else:
+        cat_info = collections_cache.get(path)
+        if cat_info is not None:
+            cat_type = "collection"
+        else:
+            cat_info = projects_cache.get(path)
+            if cat_info is not None:
+                cat_type = "project"
+            else:
+                cat_type = None
+
+    # if there is no catalogue info, check for a readme file
+    if cat_info is None:
+        readme_info = readme_line(path)
+        if readme_info and readme_info != 'HIDE DIRECTORY':
+            return f'{readme_info}' 
+        else:
+            return ""
+
+    cat_url = f'https://catalogue.ceda.ac.uk/uuid/{cat_info["uuid"]}'
+
+    #print(f"collections_cache: {collections_cache}")
+    if cat_type == "observation":
+        if cat_info["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated'):
             status_badge = f'<span class="badge badge-danger">{cat_info["status"]}</span>'
         else:
             status_badge = ""
@@ -121,15 +135,16 @@ def directory_desc(path):
                      They also provide spatial and temporal information, 
                      access and usage information and link to background information on why and how the data were collected." data-toggle="tooltip">
                      </i> {status_badge} {cat_info["title"]} 
-                     <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
-    elif cat_info is not None and cat_info["record_type"] == "Dataset Collection":   
+                     <a class='pl-1' href = '{cat_url}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+    elif cat_type == "collection":
         return f'''<i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets that share some common purpose, theme or association. 
                    " data-toggle="tooltip"></i> {cat_info["title"]} 
-                   <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
-    readme_info = readme_line(path)
-    if readme_info and readme_info != 'HIDE DIRECTORY':
-        return f'{readme_info}' 
-    return ""
+                   <a class='pl-1' href = '{cat_url}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''    
+    elif cat_type == "project":
+        return f'''<i class="fas fa-users project" style="color: #ea3838" title="A project that share some common purpose, theme or association. 
+                   " data-toggle="tooltip"></i> {cat_info["title"]} 
+                   <a class='pl-1' href = '{cat_url}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+
 
 @lru_cache_expires(maxsize=16384, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
@@ -217,7 +232,11 @@ def browse(request):
     except ScanError: 
         return HttpResponseRedirect(f"{download_service}{path}/")
 
-    cat_info = moles_record(path)
+    cat_info = obs_cache[path]
+    if cat_info is None:
+        cat_info = collections_cache.get(path)
+    if cat_info is None:
+        cat_info = projects_cache.get(path)
 
     if "json" in request.GET:
         return JsonResponse({"path": path, "items": items})
@@ -231,23 +250,14 @@ def browse(request):
         item["actions"] = generate_actions(item.get("ext"), item.get("path"), item.get("type"), download_service)
 
     # work out what to show in the description field
-    path_desc = directory_desc(path)
+    path_desc = directory_desc(path, item_type="dir")
     refresh = False
-    if cat_info is not None and cat_info["record_type"] != "Dataset":
-        for item in items:
-            if item["type"] in ("dir", "link"):
-                if item["type"] == "dir":
-                    item_desc = directory_desc(item.get("path"))
-                elif item["type"] == "link":
-                    item_desc = directory_desc(item.get("path"))
-                    if not item_desc:
-                        item_desc = directory_desc(item.get("target"))
-
-                if item_desc is None:
-                    item_desc = '<img src="/static/browser/img/loading.gif" width="25" >'
-                    refresh = True
-                if item_desc != path_desc:
-                    item["description"] = item_desc
+    print(f"cat_info: {cat_info}")
+    
+    for item in items:
+        item_desc = directory_desc(item.get("path"), item.get("type"))
+        if item_desc != path_desc:
+            item["description"] = item_desc
 
     summary = agg_info(path)
     if summary is None:
