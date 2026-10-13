@@ -40,7 +40,7 @@ def find_record_paths(path_to_uuid: dict, path: str, uuid: str, title: str):
 def obs(obs_store, coll_store, proj_store, mod_since):
     """Populate obs store and collection store dictionaries from the catalogue."""
 
-    if mod_since is None:
+    if mod_since is not None:
         mod_str = f"&lastUpdatedDate__gt={mod_since}"
     else:
         mod_str = ""
@@ -99,7 +99,7 @@ def obs(obs_store, coll_store, proj_store, mod_since):
             
 def cache_obs_loop(obs_store, coll_store, proj_store):
     """Loop forever cacheing the list of observations"""
-    mod_since = datetime.date(1970, 1, 1).isoformat()
+    mod_since = None
     while True:
         # print(mod_since)
         obs(obs_store, coll_store, proj_store, mod_since)

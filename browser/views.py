@@ -125,25 +125,31 @@ def directory_desc(path, item_type):
 
     cat_url = f'https://catalogue.ceda.ac.uk/uuid/{cat_info["uuid"]}'
 
+
+
     #print(f"collections_cache: {collections_cache}")
     if cat_type == "observation":
         if cat_info["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated'):
             status_badge = f'<span class="badge badge-danger">{cat_info["status"]}</span>'
         else:
             status_badge = ""
-        return f'''<i class="fa-lg fa fa-database" style="color: #4f81bd" title="These records describe and link to the actual data in our archive. 
-                     They also provide spatial and temporal information, 
-                     access and usage information and link to background information on why and how the data were collected." data-toggle="tooltip">
-                     </i> {status_badge} {cat_info["title"]} 
-                     <a class='pl-1' href = '{cat_url}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+        if cat_info["publicationState"] in ('working', 'preview'):
+            publication_badge = f'<span class="badge badge-warning">{cat_info["publicationState"]}</span>'
+        else:
+            publication_badge = ""     
+        publication_badge = f'<span class="badge badge-warning">{cat_info["publicationState"]}</span>'
+        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
+                     <i class="fa-lg fa fa-database" style="color: #4f81bd" title="Dataset information" data-toggle="tooltip"></i> 
+                     Dataset {status_badge} {publication_badge}</a>
+                      {cat_info["title"]}'''
     elif cat_type == "collection":
-        return f'''<i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets that share some common purpose, theme or association. 
-                   " data-toggle="tooltip"></i> {cat_info["title"]} 
-                   <a class='pl-1' href = '{cat_url}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''    
+        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
+                   <i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets." data-toggle="tooltip"></i> Collection</a> 
+                   {cat_info["title"]}'''    
     elif cat_type == "project":
-        return f'''<i class="fas fa-users project" style="color: #ea3838" title="A project that share some common purpose, theme or association. 
-                   " data-toggle="tooltip"></i> {cat_info["title"]} 
-                   <a class='pl-1' href = '{cat_url}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
+        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
+                   <i class="fas fa-users project" style="color: #ea3838" title="A project." data-toggle="tooltip"></i> Project</a>
+                   {cat_info["title"]}'''
 
 
 @lru_cache_expires(maxsize=16384, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)

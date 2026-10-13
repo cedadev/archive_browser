@@ -45,9 +45,6 @@ class TreeDict:
 
     def __iter__(self):
         return iter(self._dict)
-
-    def __unicode__(self):
-        return unicode(repr(self._dict))
         
     def _clean_path(self, path):
         """Make sure a path is clean and absolute."""
