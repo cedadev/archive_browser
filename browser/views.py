@@ -511,9 +511,8 @@ def search(request):
 
     files = list(ls_query(under, name_regex=q_regex, since=since, before=before, item_type=item_type, size=10000))
 
-    print(f"search: q={q}, under={under}, files={files}")
     return render(request, 'browser/search.html', {"q": q, "results": files, "under": under, "since": since, 
-                                                   "before": before})
+                                                   "before": before, "item_type": item_type})
 
 def download(request):
     directory = request.GET.get("path")
