@@ -26,13 +26,28 @@
 {% block content %}
 <h2>Filename search</h2>
  <form>
-<input name="q" value="{{q}}">
+filename pattern:<input name="q" value="{{q}}">
+under dir: <input name="under" value="{{under}}">
+added since: <input name="since" value="{{since}}">
+added before: <input name="before" value="{{before}}">
+item type: <select name="item_type">
+    <option value="" {% if item_type == "" %}selected{% endif %}>any</option>
+    <option value="file" {% if item_type == "file" %}selected{% endif %}>file</option>
+    <option value="dir" {% if item_type == "dir" %}selected{% endif %}>directory</option>
+    <option value="link" {% if item_type == "link" %}selected{% endif %}>link</option>
+</select>
 <button type="submit">Search</button>
 </form>
 
 <h2>Results:</h2>
+length: {{results|length}}<br/>
+<table class="table table-striped">
+    <tr><th>Directory/Filename</th><th>Last modified</th></tr>
 {% for record in results %}
-<a href="{{record.directory}}">{{record.directory}}</a>/<a href="{{record.path}}">{{record.name}}</a><br/>
+    <tr>
+        <td><a href="{{record.directory}}">{{record.directory}}</a> / <a href="{{record.path}}">{{record.name}}</a></td>
+        <td>{{record.last_modified|naturaltime}}</td>
+    </tr>
 {% endfor %}
-
+</table>
 {% endblock %}

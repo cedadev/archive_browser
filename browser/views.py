@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import fnmatch
 from hashlib import sha1
 from typing import DefaultDict
 from django.conf import settings
@@ -96,10 +97,36 @@ def readme_line(path):
             return first_chars.splitlines()[0]
     else:
         return None
- 
-def directory_desc(path, item_type):
+
+def cat_button(cat_info, cat_type):
+    cat_url = f'https://catalogue.ceda.ac.uk/uuid/{cat_info["uuid"]}'
+    if cat_type == "observation":
+        if cat_info["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated'):
+            status_badge = f'<span class="badge badge-danger">{cat_info["status"]}</span>'
+            button_type = "btn-outline-warning"
+        else:
+            status_badge = ""
+            button_type = "btn-outline-primary"
+        if cat_info["publicationState"] in ('working', 'preview'):
+            publication_badge = f'<span class="badge badge-warning">{cat_info["publicationState"]}</span>'
+        else:
+            publication_badge = ""  
+        return f'''<a href="{cat_url}" class="btn {button_type} btn-sm">
+                     <i class="fa-lg fa fa-database" style="color: #4f81bd" title="Dataset information" data-toggle="tooltip"></i> 
+                     Dataset {status_badge} {publication_badge}</a> {cat_info["title"]}'''
+    elif cat_type == "collection":
+        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
+                   <i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets." data-toggle="tooltip"></i> Collection</a> 
+                   {cat_info["title"]}'''    
+    elif cat_type == "project":
+        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
+                   <i class="fas fa-users project" style="color: #ea3838" title="A project." data-toggle="tooltip"></i> Project</a>
+                   {cat_info["title"]}'''
+
+
+def directory_desc(path, item_type=None, mod_time=None):
     if item_type == "file":
-        return ""
+        return f"{mod_time}"
 
     cat_info = obs_cache[path]
     if cat_info is not None:
@@ -123,33 +150,8 @@ def directory_desc(path, item_type):
         else:
             return ""
 
-    cat_url = f'https://catalogue.ceda.ac.uk/uuid/{cat_info["uuid"]}'
-
-
-
     #print(f"collections_cache: {collections_cache}")
-    if cat_type == "observation":
-        if cat_info["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated'):
-            status_badge = f'<span class="badge badge-danger">{cat_info["status"]}</span>'
-        else:
-            status_badge = ""
-        if cat_info["publicationState"] in ('working', 'preview'):
-            publication_badge = f'<span class="badge badge-warning">{cat_info["publicationState"]}</span>'
-        else:
-            publication_badge = ""     
-        publication_badge = f'<span class="badge badge-warning">{cat_info["publicationState"]}</span>'
-        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
-                     <i class="fa-lg fa fa-database" style="color: #4f81bd" title="Dataset information" data-toggle="tooltip"></i> 
-                     Dataset {status_badge} {publication_badge}</a>
-                      {cat_info["title"]}'''
-    elif cat_type == "collection":
-        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
-                   <i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets." data-toggle="tooltip"></i> Collection</a> 
-                   {cat_info["title"]}'''    
-    elif cat_type == "project":
-        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
-                   <i class="fas fa-users project" style="color: #ea3838" title="A project." data-toggle="tooltip"></i> Project</a>
-                   {cat_info["title"]}'''
+    return f"{cat_button(cat_info, cat_type)} {cat_info['title']}"
 
 
 @lru_cache_expires(maxsize=16384, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
@@ -233,6 +235,8 @@ def browse(request):
         for item in fbi_listdir(path, removed=show_removed, hidden=show_hidden):
             if item["type"] == "file":
                 item["download"] = f'{download_service}{item.get("path")}?download=1'
+            if item["type"] == "dir" and agg_info(item.get("path")):
+                item["size"] = agg_info(item.get("path"))["total_size"]
             if item["path"] not in settings.DO_NOT_DISPLAY:
                 items.append(item)
     except ScanError: 
@@ -261,7 +265,7 @@ def browse(request):
     print(f"cat_info: {cat_info}")
     
     for item in items:
-        item_desc = directory_desc(item.get("path"), item.get("type"))
+        item_desc = directory_desc(item.get("path"), item.get("type"), mod_time=item.get("last_modified"))
         if item_desc != path_desc:
             item["description"] = item_desc
 
@@ -400,8 +404,6 @@ def timelines(request, path="/"):
     if path_record["type"] == "link":
         return HttpResponseRedirect(f'/describe?p={path_record["target"]}')
 
-    cat_info = moles_record(path)
-    # print(cat_info)
     template = 'browser/timelines.html'
     tl_tables = get_time_rows(path)
     context = {"path": path}
@@ -478,17 +480,40 @@ def robots(request):
     return HttpResponseRedirect(f"/static/robots.txt")
 
 def search(request):
+    print("search...")
     q = ''
     files = []
-    if "under" in request.GET:
+    if "under" in request.GET and request.GET.get("under"):
         under = request.GET.get("under")
     else: 
         under="/"
 
-    if "q" in request.GET:
+    if "since" in request.GET and request.GET.get("since"):
+        since = request.GET.get("since")
+    else:
+        since = None
+
+    if "before" in request.GET and request.GET.get("before"):
+        before = request.GET.get("before")
+    else:
+        before = None
+
+    if "q" in request.GET and request.GET.get("q"):
         q = request.GET.get("q")
-        files = ls_query(under, name_regex=q)
-    return render(request, 'browser/search.html', {"q": q, "results": files})
+        q_regex = fnmatch.translate(q)[4:-3]
+    else:
+        q_regex = None
+
+    if "item_type" in request.GET and request.GET.get("item_type"):
+        item_type = request.GET.get("item_type")
+    else:
+        item_type = None
+
+    files = list(ls_query(under, name_regex=q_regex, since=since, before=before, item_type=item_type, size=10000))
+
+    print(f"search: q={q}, under={under}, files={files}")
+    return render(request, 'browser/search.html', {"q": q, "results": files, "under": under, "since": since, 
+                                                   "before": before})
 
 def download(request):
     directory = request.GET.get("path")
