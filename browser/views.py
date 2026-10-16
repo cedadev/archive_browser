@@ -49,21 +49,20 @@ def generate_actions(ext, path, item_type, download_service):
     if item_type in ("dir", "link"):
         return ""
  
-    download_link = f"<a class='btn btn-lg' href='{download_service}{path}?download=1' title='Download file' data-toggle='tooltip'><i class='fa fa-download'></i></a>"
-
     # Generate button for view action
-    view_link = f'<a class="btn btn-lg" href="{download_service}{path}" title="View file" data-toggle="tooltip"><i class="fa fa-eye"></i></a>'
+    view_link = f'<a class="btn" href="{download_service}{path}" title="View file" data-toggle="tooltip"><i class="fa fa-eye"></i> View</a>'
 
     # Generate button for subset action
-    subset_link = f"<a class='btn btn-lg' href='{download_service}/thredds/dodsC{path}.html' title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i></a>"
+    subset_link = f"""<a class='btn' href='{download_service}/thredds/dodsC{path}.html' 
+                    title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i> Subset</a>"""
 
     if ext in ("nc", ".nc", ".hdf", ".h4", ".hdf4"):
-        return download_link + subset_link
+        return subset_link
     if ext in (".gif", ".jpg", ".jpeg", ".png", ".svg", ".svgz", ".wbmp", ".webp", ".ico", ".jng", ".bmp", ".txt", ".pdf", ".html", ".mp4"):
-        return view_link + download_link
+        return view_link
     if os.path.basename(path) == '00README':
         return view_link
-    return download_link
+    return ""
 
 @lru_cache_expires(maxsize=16384, max_expire_period=2*3600, default=None)
 def get_access_rules(path):
@@ -77,12 +76,16 @@ def get_access_rules(path):
     for key in data:
         if len(key) < len(shortest):
             shortest = key 
-    return data[shortest]
+    print(f"👾 get_access_rules for {path}: {data[shortest]}")
+    if data[shortest] == "no matching paths":
+        return []
+    else:
+        return data[shortest]
 
 @lru_cache(maxsize=16384)
 def readme_line(path):
     """get readme line"""
-    print(f"readme_line: {path}")
+    print(f"🐔", end='')
     for readme_filename in ("00README.txt", "00README"):
         readme_file = os.path.join(path, readme_filename)
         readme_record = get_record(readme_file)
@@ -156,6 +159,7 @@ def directory_desc(path, item_type=None, mod_time=None):
 
 @lru_cache_expires(maxsize=16384, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
+    print(f"🐸", end='')
     summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, max_exts=max_ext)
     total_size = summary["size_stats"]["sum"]
     ave_size = summary["size_stats"]["avg"]
@@ -170,6 +174,7 @@ def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     else:
         vars = ["Many Variables detected..."]
 
+    nfiles = 0
     for item_type, number in item_types:
         if item_type == "file":
             nfiles = number
@@ -177,7 +182,6 @@ def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, 
                               max_exts=max_ext, location="on_tape")
     tape_total_size = summary["size_stats"]["sum"]
-
     return {"total_size": total_size, "ave_size": ave_size, "item_types": item_types, "exts": exts, 
             "vars": vars, "tape_size": tape_total_size, "nfiles": nfiles}
 
@@ -236,7 +240,7 @@ def browse(request):
             if item["type"] == "file":
                 item["download"] = f'{download_service}{item.get("path")}?download=1'
             if item["type"] == "dir" and agg_info(item.get("path")):
-                item["size"] = agg_info(item.get("path"))["total_size"]
+                item["agg_info"] = agg_info(item.get("path"))
             if item["path"] not in settings.DO_NOT_DISPLAY:
                 items.append(item)
     except ScanError: 
@@ -252,11 +256,13 @@ def browse(request):
         return JsonResponse({"path": path, "items": items})
 
     access_rules = get_access_rules(path)
+    print(f"🤖 access_rules for {path}: {access_rules}")
 
     counts = DefaultDict(int)
     for item in items:
         counts[item["type"]] += 1
         item["icon"] = getIcon(item.get("type"), item.get("ext"))
+        item["on_tape"] = item.get("location") == ["on_tape"]
         item["actions"] = generate_actions(item.get("ext"), item.get("path"), item.get("type"), download_service)
 
     # work out what to show in the description field
@@ -270,8 +276,8 @@ def browse(request):
             item["description"] = item_desc
 
     summary = agg_info(path)
-    if summary is None:
-        refresh = True
+    #if summary is None:
+    #    refresh = True
 
     template = 'browser/browse_base.html'
     if show_removed:
@@ -350,7 +356,8 @@ def stac(request, path="/"):
 def get_time_rows(path, start_date=None, end_date=None):
 
     query ={"bool": {"must": [
-            {"term": {"directory.tree": {"value": path}}}
+            {"term": {"directory.tree": {"value": path}}},
+            {"term": {"type": {"value": "file"}}}
         ],
         "must_not": [{"exists": {"field": "removed"}}]
         }}

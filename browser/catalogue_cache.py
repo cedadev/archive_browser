@@ -14,7 +14,7 @@ REFRESH = 30
 
 def records_for_path_parent(path_to_uuid: dict[str, set], path: str, uuids: set[str]):
     """Find paths that are unambiguously associated with a single observation/project."""
-    if path == "/":
+    if path.count("/") <= 2:
         return
     parent = os.path.dirname(path)
     if parent not in path_to_uuid:
@@ -22,20 +22,6 @@ def records_for_path_parent(path_to_uuid: dict[str, set], path: str, uuids: set[
     else:
         path_to_uuid[parent].intersection_update(uuids)  # Keep only the uuids that are common to all children
     records_for_path_parent(path_to_uuid, parent, path_to_uuid[parent])  # Recurse up the tree
-
-def find_record_paths(path_to_uuid: dict, path: str, uuid: str, title: str):
-    """Find paths that are unambiguously associated with a single observation/project."""
-    while path != "/":
-        path = os.path.dirname(path)
-        if path not in path_to_uuid:
-            path_to_uuid[path] = {"uuid": uuid, "title": title}    # If the path is not in the dictionary, add it with the current uuid and title
-        elif path_to_uuid[path] is None:
-            continue                                               # If the path is already marked as ambiguous, do nothing
-        elif path_to_uuid[path]["uuid"] == uuid:
-            continue                                               # If the path already has the same uuid, do nothing
-        else: 
-            path_to_uuid[path] = None                              # Blank out the path if it has more than one uuid associated with it
-
 
 def obs(obs_store, coll_store, proj_store, mod_since):
     """Populate obs store and collection store dictionaries from the catalogue."""
@@ -45,9 +31,7 @@ def obs(obs_store, coll_store, proj_store, mod_since):
     else:
         mod_str = ""
     url = f"https://catalogue.ceda.ac.uk/api/v3/observations/?limit=300{mod_str}"
-    collection_paths = defaultdict(list)
     collection_records = {}    
-    project_paths = defaultdict(list)
     project_records = {}
     collection_sets = defaultdict(set)
     project_sets = defaultdict(set) 
@@ -70,7 +54,7 @@ def obs(obs_store, coll_store, proj_store, mod_since):
                 if path.startswith('/'):
                     obs_store[path] = cutdown
 
-                    # count collections and projects for each path
+                    # Find the collection and project uuids associated with this observation
                     coll_uuids = set(coll["uuid"] for coll in record.get("observationcollection_set", []))
                     proj_uuids = set(proj["uuid"] for proj in record.get("projects", []))
                     records_for_path_parent(collection_sets, path, coll_uuids)
