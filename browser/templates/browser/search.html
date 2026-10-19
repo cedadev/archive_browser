@@ -28,8 +28,11 @@
  <form>
 filename pattern:<input name="q" value="{{q}}">
 under dir: <input name="under" value="{{under}}">
-added since: <input name="since" value="{{since}}">
-added before: <input name="before" value="{{before}}">
+added since: <input name="since" value="{{since|default_if_none:''}}">
+added before: <input name="before" value="{{before|default_if_none:''}}">
+regex date since: <input name="regex_date_since" value="{{regex_date_since|default_if_none:''}}">
+regex date before: <input name="regex_date_before" value="{{regex_date_before|default_if_none:''}}">
+
 item type: <select name="item_type">
     <option value="" {% if item_type == "" %}selected{% endif %}>any</option>
     <option value="file" {% if item_type == "file" %}selected{% endif %}>file</option>

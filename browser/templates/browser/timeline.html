@@ -15,51 +15,45 @@
 
 {% block content %}
 
+    {% block timeline_js %}
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
         google.charts.load("current", { packages: ["calendar"] });
-        google.charts.setOnLoadCallback(drawCharts);
+        google.charts.setOnLoadCallback(drawChart);
 
         timeline_data = [{{ timeline }}];
-        mod_timeline_data = [{{ mod_timeline }}];
+        plot_title = "{{ plot_title }}";
+        search_element = "{{ time_element }}";  // this is the input name on the search form <element_name>_since and <element_name>_before
 
-        function drawChart(data, element_id, title, scale) {
+        function drawChart() {
             var dataTable = new google.visualization.DataTable();
             dataTable.addColumn({ type: 'date', id: 'Date' });
             dataTable.addColumn({ type: 'number', id: 'number' });
-            dataTable.addRows(data);
-            var chart = new google.visualization.Calendar(document.getElementById(element_id));
+            dataTable.addRows(timeline_data);
+            var chart = new google.visualization.Calendar(document.getElementById("timeline"));
             var options = {
-                "title": title,
+                "title": plot_title,
                 height: 4050,
                 noDataPattern: { backgroundColor: '#aaaaaa', color: '#eeeeee' },
                 calendar: { cellSize: 8 },
-                colorAxis: { minValue: 0, maxValue: scale, colors: ['#97e396','#97e396', '#06ad03',  '#06ad03', '#06ad03'] }
+                colorAxis: { minValue: 0, maxValue: {{scale}}, colors: ['#97e396','#97e396', '#06ad03',  '#06ad03', '#06ad03'] }
             };
             chart.draw(dataTable, options);
 
             function selectHandler(e) {
                 var selection = chart.getSelection();
+                console.log(selection, e);
                 if (selection.length > 0) {
                     var date = dataTable.getValue(selection[0].row, 0);
                     sdate = date.toISOString().split('T')[0];
-                    const url = "/search?under={{path}}&since=" + sdate + "&before=" + sdate + "&item_type=file";
-                    window.location.href = url;
+                    const url = "/search?under={{path}}&since_{{time_element}}=" + sdate + "&before_{{time_element}}=" + sdate + "&item_type=file";
+                    //window.location.href = url;
                 }
             }
 
             google.visualization.events.addListener(chart, 'select', selectHandler);
-        }
+        };
 
-        function drawCharts() {
-            drawChart(timeline_data, 'timeline', 'Files avaliable by "Regex" date', {{ timeline_scale }});
-            drawChart(mod_timeline_data, 'modified', 'Files by last modified date', {{ mod_timeline_scale }});
-        }
-
-
-        function selectHandler(e) {
-        console.log(chart.getSelection());
-        }
 
 
     </script>
@@ -76,25 +70,23 @@ This is an experimental view of the timeline of data in this directory and below
 
         </div>
     </div>
+    {% endblock timeline_js %}
+
+    
     
     <div class="row">
-        <div class="col-md-6">
-            <h5>Data time coverage</h5>
+        <div class="col-md-12">
+            {% block timeline_title %}
+            <h5>----- coverage</h5>
             <p>The dates the data cover are often trivially extractable from the filename.
                This timeline shows the number of files with a given date in the filename or file path. The methodology is not 
                100% accurate, but for a lot of data
                it gives a good indication of the data coverage.
             </p>
-            <div id="timeline" style="width: 500px; height: {{timeline_height}}px;"></div>
+            {% endblock timeline_title %}
+            <div id="timeline" style="width: 500px; height: {{height}}px;"></div>
         </div>
-    
-        <div class="col-md-6">
-            <h5>Data Arrival Timeline</h5>
-            <p>The date the data were last modified mostly indicates when the data arrived in the archive.
-            </p>
-            <div id="modified" style="width: 500px; height: {{mod_timeline_height}}px;"></div>
-        </div>
-    
     </div>
+    
 
     {% endblock %}

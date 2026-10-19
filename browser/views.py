@@ -353,7 +353,7 @@ def stac(request, path="/"):
     return render(request, template, context)
 
 
-def get_time_rows(path, start_date=None, end_date=None):
+def get_time_rows(path, time_field, start_date=None, end_date=None):
 
     query ={"bool": {"must": [
             {"term": {"directory.tree": {"value": path}}},
@@ -362,8 +362,7 @@ def get_time_rows(path, start_date=None, end_date=None):
         "must_not": [{"exists": {"field": "removed"}}]
         }}
 
-    aggs = {"timeline": {"date_histogram": {"field": "regex_date", "calendar_interval": "day"}},
-            "mod_timeline": {"date_histogram": {"field": "last_modified", "calendar_interval": "day"}}}
+    aggs = {"timeline": {"date_histogram": {"field": time_field, "calendar_interval": "day"}}}
 
     try:
         result = es.search(index=indexname, query=query, aggs=aggs, size=0)
@@ -371,36 +370,37 @@ def get_time_rows(path, start_date=None, end_date=None):
         print(f"Error running elasticsearch query: {e}")
         return {"timeline": {"rows": "", "years": 1, "median_value": 0}, 
                 "mod_timeline": {"rows": "", "years": 1, "median_value": 0}}
+    
+    rows = []
+    years = 1
+    values = []
+    timeline = result["aggregations"]["timeline"]["buckets"]
+    if len(timeline) > 0:
+        startyear = int(timeline[0]["key_as_string"][:4])
+        endyear = int(timeline[-1]["key_as_string"][:4])
+        years = endyear - startyear + 1
+                        
+    for bucket in result["aggregations"]["timeline"]["buckets"]:
+        date_str = f"new Date({bucket['key']})"
+        value = bucket["doc_count"]
+        if value > 0: 
+            rows.append(f"[{date_str}, {value}]")
+            values.append(value)
 
-    tl_tables = {}
-    for tl in ("timeline", "mod_timeline"):
-        rows = []
-        years = 1
-        values = []
-        timeline = result["aggregations"][tl]["buckets"]
-        if len(timeline) > 0:
-            startyear = int(timeline[0]["key_as_string"][:4])
-            endyear = int(timeline[-1]["key_as_string"][:4])
-            years = endyear - startyear + 1
-                            
-        for bucket in result["aggregations"][tl]["buckets"]:
-            date_str = f"new Date({bucket['key']})"
-            value = bucket["doc_count"]
-            if value > 0: 
-                rows.append(f"[{date_str}, {value}]")
-                values.append(value)
-
-        median_value = sorted(values)[len(values)//2] if values else 0
-        tl_tables[tl] = {"rows": ', '.join(rows), "years": years, "median_value": median_value}
-  
-    return tl_tables
+    median_value = sorted(values)[len(values)//2] if values else 0  
+    return {"rows": ', '.join(rows), "years": years, "median_value": median_value}
 
 @csrf_exempt
-def timelines(request, path="/"):
+def timelines(request, path="/"): 
 
     path = path.rstrip('/')
     if path == "": 
         path = "/"
+
+    if "time_field" in request.GET and request.GET.get("time_field"):
+        time_field = request.GET.get("time_field")
+    else: 
+        time_field="regex_date"
 
     # Check if the request is a file and redirect for direct download
     path_record = get_record(path)
@@ -408,16 +408,14 @@ def timelines(request, path="/"):
     if path_record is None:
         return render(request, 'browser/notfound.html', {"path": path}, status=404)
 
-    if path_record["type"] == "link":
-        return HttpResponseRedirect(f'/describe?p={path_record["target"]}')
-
-    template = 'browser/timelines.html'
-    tl_tables = get_time_rows(path)
-    context = {"path": path}
-    for tl in ("timeline", "mod_timeline"):
-        context[tl] = tl_tables[tl]["rows"]
-        context[f"{tl}_height"] = tl_tables[tl]["years"] * 70 + 100
-        context[f"{tl}_scale"] = tl_tables[tl]["median_value"] * 2
+    template = f'browser/timeline_{time_field}.html'
+    tl_tables = get_time_rows(path, time_field)
+    context = {"path": path, 
+               "time_field": time_field, 
+               "timeline": tl_tables["rows"], 
+               "scale": tl_tables["median_value"] * 2, 
+               "height": tl_tables["years"] * 70 + 100,
+               "plot_title": f"Files available by {time_field} date"}
 
     return render(request, template, context)
     
@@ -505,6 +503,16 @@ def search(request):
     else:
         before = None
 
+    if "regex_date_since" in request.GET and request.GET.get("regex_date_since"):
+        regex_date_since = request.GET.get("regex_date_since")
+    else:
+        regex_date_since = None
+
+    if "regex_date_before" in request.GET and request.GET.get("regex_date_before"):
+        regex_date_before = request.GET.get("regex_date_before")
+    else:
+        regex_date_before = None    
+
     if "q" in request.GET and request.GET.get("q"):
         q = request.GET.get("q")
         q_regex = fnmatch.translate(q)[4:-3]
@@ -516,10 +524,14 @@ def search(request):
     else:
         item_type = None
 
-    files = list(ls_query(under, name_regex=q_regex, since=since, before=before, item_type=item_type, size=10000))
+    files = list(ls_query(under, name_regex=q_regex, since=since, before=before, 
+                          regex_date_since=regex_date_since, regex_date_before=regex_date_before,
+                          item_type=item_type, size=10000))
 
     return render(request, 'browser/search.html', {"q": q, "results": files, "under": under, "since": since, 
-                                                   "before": before, "item_type": item_type})
+                                                   "before": before, 
+                                                   "regex_date_since": regex_date_since, "regex_date_before": regex_date_before,
+                                                   "item_type": item_type})
 
 def download(request):
     directory = request.GET.get("path")
