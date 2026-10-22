@@ -45,7 +45,10 @@ def generate_actions(ext, path, item_type, download_service):
     
     if ext:
         ext = ext.lower()
-    
+
+    # Generate button for info action
+    info_link = f'<a class="btn" href="/item_info?path={path}" title="Info" data-toggle="tooltip"><i class="fa fa-info-circle"></i> Info</a> '
+
     if item_type in ("dir", "link"):
         return ""
  
@@ -57,12 +60,12 @@ def generate_actions(ext, path, item_type, download_service):
                     title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i> Subset</a>"""
 
     if ext in ("nc", ".nc", ".hdf", ".h4", ".hdf4"):
-        return subset_link
+        return subset_link + info_link
     if ext in (".gif", ".jpg", ".jpeg", ".png", ".svg", ".svgz", ".wbmp", ".webp", ".ico", ".jng", ".bmp", ".txt", ".pdf", ".html", ".mp4"):
-        return view_link
+        return view_link + info_link
     if os.path.basename(path) == '00README':
-        return view_link
-    return ""
+        return view_link + info_link
+    return info_link
 
 @lru_cache_expires(maxsize=16384, max_expire_period=2*3600, default=None)
 def get_access_rules(path):
@@ -116,15 +119,13 @@ def cat_button(cat_info, cat_type):
             publication_badge = ""  
         return f'''<a href="{cat_url}" class="btn {button_type} btn-sm">
                      <i class="fa-lg fa fa-database" style="color: #4f81bd" title="Dataset information" data-toggle="tooltip"></i> 
-                     Dataset {status_badge} {publication_badge}</a> {cat_info["title"]}'''
+                     Dataset {status_badge} {publication_badge}</a>'''
     elif cat_type == "collection":
         return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
-                   <i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets." data-toggle="tooltip"></i> Collection</a> 
-                   {cat_info["title"]}'''    
+                   <i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets." data-toggle="tooltip"></i> Collection</a>'''    
     elif cat_type == "project":
         return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
-                   <i class="fas fa-users project" style="color: #ea3838" title="A project." data-toggle="tooltip"></i> Project</a>
-                   {cat_info["title"]}'''
+                   <i class="fas fa-users project" style="color: #ea3838" title="A project." data-toggle="tooltip"></i> Project</a>'''
 
 
 def directory_desc(path, item_type=None, mod_time=None):
@@ -196,19 +197,6 @@ def make_breadcrumbs(path):
         subset = split_target[:i]
         index_list.append({"path": '/'.join(subset), "dir": dir}) 
     return index_list   
-
-def browse_query(path, show_hidden, show_removed):
-    body = {
-            "sort": {"name.keyword": {"order": "asc"}}, 
-            "query": {"bool": {"must": [{"term": {"directory.keyword": path}}], 
-                    "must_not": []
-                    }}, "size": settings.MAX_FILES_PER_PAGE}
-    
-    if not show_removed:
-        body["query"]["bool"]["must_not"].append({"exists": {"field": "removed"}})
-    if not show_hidden:
-        body["query"]["bool"]["must_not"].append({"regexp": {"name.keyword": "[.].*"}})    
-    return body
 
 @csrf_exempt
 def browse(request):
@@ -353,8 +341,9 @@ def stac(request, path="/"):
     return render(request, template, context)
 
 
-def get_time_rows(path, time_field, start_date=None, end_date=None):
-
+def get_time_rows(path, time_field):
+    """ES quary to grab the date histogram of files in the archive.
+       returns a dictionaary containing the things you need for a plot."""
     query ={"bool": {"must": [
             {"term": {"directory.tree": {"value": path}}},
             {"term": {"type": {"value": "file"}}}
@@ -454,11 +443,32 @@ def jsonlist(request, path="/"):
 
 @csrf_exempt
 def item_info(request):
-    path = request.GET.get("p")
+    path = request.GET.get("path")
     path_record = get_record(path)
     if path_record is None:
         render(request, 'browser/notfound.html', {"path": path}, status=404)
-    return JsonResponse(path_record)
+    if request.GET.get("json"):
+        return JsonResponse(path_record)
+
+    index_list = make_breadcrumbs(path)
+    item_type = path_record["type"]
+    if item_type == 'file':
+        obs_path = path_record["directory"]
+    elif item_type == 'link':
+        obs_path = path_record["target"]
+        target_record = get_record(path_record["target"])
+        if target_record and target_record["type"] == "file":
+            obs_path = target_record["directory"]
+    else:
+        obs_path = path
+
+    path_record = json.dumps(path_record, indent=4)
+    obs_record = json.dumps(obs_cache[path], indent=4)
+    coll_record = json.dumps(collections_cache.get(obs_path), indent=4)
+    proj_record = json.dumps(projects_cache.get(obs_path), indent=4)
+    context = {"path_record": path_record, "obs": obs_record, "project": proj_record, 
+               "coll": coll_record, "item_type": item_type, "path": path, "index_list": index_list } 
+    return render(request, 'browser/item_info.html', context)
 
 
 def cache_control(request):
@@ -493,25 +503,25 @@ def search(request):
     else: 
         under="/"
 
-    if "since" in request.GET and request.GET.get("since"):
-        since = request.GET.get("since")
+    if "since_last_modified" in request.GET and request.GET.get("since_last_modified"):
+        since_last_modified = request.GET.get("since_last_modified")
     else:
-        since = None
+        since_last_modified = None
 
-    if "before" in request.GET and request.GET.get("before"):
-        before = request.GET.get("before")
+    if "before_last_modified" in request.GET and request.GET.get("before_last_modified"):
+        before_last_modified = request.GET.get("before_last_modified")
     else:
-        before = None
+        before_last_modified = None
 
-    if "regex_date_since" in request.GET and request.GET.get("regex_date_since"):
-        regex_date_since = request.GET.get("regex_date_since")
+    if "since_regex_date" in request.GET and request.GET.get("since_regex_date"):
+        since_regex_date = request.GET.get("since_regex_date")
     else:
-        regex_date_since = None
+        since_regex_date = None
 
-    if "regex_date_before" in request.GET and request.GET.get("regex_date_before"):
-        regex_date_before = request.GET.get("regex_date_before")
+    if "before_regex_date" in request.GET and request.GET.get("before_regex_date"):
+        before_regex_date = request.GET.get("before_regex_date")
     else:
-        regex_date_before = None    
+        before_regex_date = None    
 
     if "q" in request.GET and request.GET.get("q"):
         q = request.GET.get("q")
@@ -524,13 +534,16 @@ def search(request):
     else:
         item_type = None
 
-    files = list(ls_query(under, name_regex=q_regex, since=since, before=before, 
-                          regex_date_since=regex_date_since, regex_date_before=regex_date_before,
+    files = list(ls_query(under, name_regex=q_regex, 
+                          since=since_last_modified, 
+                          before=before_last_modified, 
+                          regex_date_since=since_regex_date, 
+                          regex_date_before=before_regex_date,
                           item_type=item_type, size=10000))
 
-    return render(request, 'browser/search.html', {"q": q, "results": files, "under": under, "since": since, 
-                                                   "before": before, 
-                                                   "regex_date_since": regex_date_since, "regex_date_before": regex_date_before,
+    return render(request, 'browser/search.html', {"q": q, "results": files, "under": under, "since_last_modified": since_last_modified, 
+                                                   "before_last_modified": before_last_modified, 
+                                                   "since_regex_date": since_regex_date, "before_regex_date": before_regex_date,
                                                    "item_type": item_type})
 
 def download(request):

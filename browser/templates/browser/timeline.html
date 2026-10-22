@@ -23,7 +23,7 @@
 
         timeline_data = [{{ timeline }}];
         plot_title = "{{ plot_title }}";
-        search_element = "{{ time_element }}";  // this is the input name on the search form <element_name>_since and <element_name>_before
+        search_element = "{{ time_field }}";  // this is the input name on the search form <element_name>_since and <element_name>_before
 
         function drawChart() {
             var dataTable = new google.visualization.DataTable();
@@ -42,12 +42,12 @@
 
             function selectHandler(e) {
                 var selection = chart.getSelection();
-                console.log(selection, e);
+                //console.log(selection, e);
                 if (selection.length > 0) {
                     var date = dataTable.getValue(selection[0].row, 0);
                     sdate = date.toISOString().split('T')[0];
-                    const url = "/search?under={{path}}&since_{{time_element}}=" + sdate + "&before_{{time_element}}=" + sdate + "&item_type=file";
-                    //window.location.href = url;
+                    const url = "/search?under={{path}}&since_{{time_field}}=" + sdate + "&before_{{time_field}}=" + sdate + "&item_type=file";
+                    window.location.href = url;
                 }
             }
 

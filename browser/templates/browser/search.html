@@ -26,20 +26,47 @@
 {% block content %}
 <h2>Filename search</h2>
  <form>
-filename pattern:<input name="q" value="{{q}}">
-under dir: <input name="under" value="{{under}}">
-added since: <input name="since" value="{{since|default_if_none:''}}">
-added before: <input name="before" value="{{before|default_if_none:''}}">
-regex date since: <input name="regex_date_since" value="{{regex_date_since|default_if_none:''}}">
-regex date before: <input name="regex_date_before" value="{{regex_date_before|default_if_none:''}}">
+<div class="row">
+  <div class="form-floating mb-3 col-md-3">
+  <label for="floatingInput1">Filename pattern</label>
+  <input type="text" class="form-control" id="floatingInput1" placeholder="e.g *.txt" name="q" value="{{q|default_if_none:''}}">
+</div>
 
-item type: <select name="item_type">
-    <option value="" {% if item_type == "" %}selected{% endif %}>any</option>
-    <option value="file" {% if item_type == "file" %}selected{% endif %}>file</option>
-    <option value="dir" {% if item_type == "dir" %}selected{% endif %}>directory</option>
-    <option value="link" {% if item_type == "link" %}selected{% endif %}>link</option>
-</select>
-<button type="submit">Search</button>
+<div class="mb-3 col-md-3">
+    item type: <select name="item_type" class="form-select">
+        <option value="" {% if item_type == "" %}selected{% endif %}>any</option>
+        <option value="file" {% if item_type == "file" %}selected{% endif %}>file</option>
+        <option value="dir" {% if item_type == "dir" %}selected{% endif %}>directory</option>
+        <option value="link" {% if item_type == "link" %}selected{% endif %}>link</option>
+    </select>
+</div>
+
+  <div class="form-floating mb-3 col-md-6">
+    <label for="floatingInput2">Under directory</label>
+    <input type="text" class="form-control" id="floatingInput2" placeholder="e.g /badc" name="under" value="{{under|default_if_none:''}}">
+  </div>
+</div>
+
+<div class="row">
+  <div class="input-group mb-3 col-md-6">
+    <span class="input-group-text" id="basic-addon1">Added to the archive between</span>
+    <input type="date" class="form-control" id="floatingInput3"  name="since_last_modified" value="{{since_last_modified|default_if_none:''}}">
+    <span class="input-group-text" id="basic-addon1">and</span>
+    <input type="date" class="form-control" id="floatingInput4"  name="before_last_modified" value="{{before_last_modified|default_if_none:''}}">
+  </div>
+
+  <div class="input-group mb-3 col-md-6">
+    <span class="input-group-text" id="basic-addon1">Data coverage between</span>
+    <input type="date" class="form-control" id="floatingInput5"  name="since_regex_date" value="{{since_regex_date|default_if_none:''}}">
+    <span class="input-group-text" id="basic-addon1">and</span>
+    <input type="date" class="form-control" id="floatingInput6"  name="before_regex_date" value="{{before_regex_date|default_if_none:''}}">
+  </div>
+</div>
+
+
+
+
+<button type="submit" class="btn btn-primary">Search</button>
 </form>
 
 <h2>Results:</h2>
