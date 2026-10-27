@@ -1,0 +1,18 @@
+{% extends data_centre_template %}
+{% load static %}
+{% load humanize %}
+
+{% block head_title %}CEDA Archive Web Browser{% endblock %}
+
+{% block page_title %}
+{% endblock %}
+
+{% block content %}
+<h4>Advanced views</h4>
+
+back to <a href="{{redirect}}">{{redirect}}</a> 
+You have advanced viewed switched {% if advanced %}  on {% else %} off {% endif %}
+{% if advanced %}  <a href="/advanced?advanced=&redirect={{redirect}}" class="btn btn-primary"> Turn off</a>
+{% else %} <a href="/advanced?advanced=1&redirect={{redirect}}" class="btn btn-primary"> Turn On</a>{% endif %}
+<a href="{% url 'cache' %}">Cache</a>
+{% endblock %}

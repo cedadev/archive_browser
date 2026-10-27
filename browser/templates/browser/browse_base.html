@@ -61,6 +61,11 @@
         </div>
       </div>
 
+    {% if advanced %}
+    <div class="alert alert-with-icon alert-warning text-center" role="alert">
+            <i class="fa fa-exclamation-circle"></i>&nbsp;Advanced options set. <a href="{% url 'advanced' %}?redirect={{path}}">Switch off here</a>
+        </div> {% endif %}
+
     {% for message in messages_ %}
         <div class="alert alert-with-icon alert-danger text-center" role="alert">
             <i class="fa fa-exclamation-circle"></i>&nbsp;{{ message | safe}}
@@ -119,7 +124,6 @@
                        title="Timelines for files in this directory and below">
                                 <i class="fa-solid fa-timeline"></i> Timelines
                             </a>
-                </button>
                 </div>
             </div>
         </div>
@@ -167,9 +171,15 @@
                                 title="" data-toggle="tooltip" data-original-title="File on tape"><i class="fa fa-info-circle"></i></a></td>                 
                         </tr>
                 {% else %}
+
                 <tr>
-                    <td class="align-middle">{{item.icon|safe}}&nbsp;
-                        <a href="{% if item.type == 'file' %}{{item.download}}{% else %}{{item.path}}{% endif %}">{{item.name}}</a></td>
+                    <td class="align-middle">{{item.icon|safe}}&nbsp; 
+                        {% if item.removed and item.type == 'file' %} <span class="text-muted"><i class="fa fa-trash"></i> {{item.name}}</span>
+                        {% elif item.removed %} <span class="text-muted"><i class="fa fa-trash" title="Removed"></i> <a class="link-warning" href="{{item.path}}">{{item.name}}</a></span>
+                        {% elif item.type == 'file' %} <a href="{{item.download}}">{{item.name}}</a>
+                        {% else %} <a href="{{item.path}}">{{item.name}}</a>
+                        {% endif %}
+                    </td>
                     <td class="align-middle">{{item.description|safe}}
                         {% if item.type == 'link' %}<i class="fa fa-bullseye"></i>&nbsp;{{item.target}}{% endif %}
                     </td>

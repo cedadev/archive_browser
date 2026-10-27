@@ -13,6 +13,7 @@ from .lru_cache_expires import lru_cache_expires
 import os
 import urllib.request
 import urllib.error
+import urllib.parse
 import json 
 from functools import lru_cache 
 from fbi_core import archive_summary, fbi_listdir, get_record, ls_query, es, indexname
@@ -186,8 +187,15 @@ def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     return {"total_size": total_size, "ave_size": ave_size, "item_types": item_types, "exts": exts, 
             "vars": vars, "tape_size": tape_total_size, "nfiles": nfiles}
 
+def path_view_options(request):
+    """For views that use the path and have an advanced option"""
+    path = request.path
+    advanced = "advanced" in request.GET and bool(request.GET.get("advanced"))
+    breadcrumbs = make_breadcrumbs(path, advanced)
+    return path, advanced, breadcrumbs
 
 def make_breadcrumbs(path):
+    """Make navigation urls and labels."""
     index_list = [{"path": "", "dir": "archive"}]
     if path == "/":
         return index_list
@@ -199,8 +207,26 @@ def make_breadcrumbs(path):
     return index_list   
 
 @csrf_exempt
+def set_advanced(request):
+    """set an advanced session key"""
+    redirect = "/"
+    advanced = 1 
+    if "redirect" in request.GET:
+        redirect = request.GET.get("redirect")
+    if "advanced" in request.GET:
+        advanced = request.GET.get("advanced")
+    request.session["advanced"] = advanced
+    print(f"ADVANCED SET: {advanced}")
+    print(f"session: {request.session.items()}")
+    return render(request, 'browser/advanced.html', {"advanced": advanced, "redirect": redirect})
+
+@csrf_exempt
 def browse(request):
+
     path = request.path
+    index_list = make_breadcrumbs(path)
+    advanced = request.session.get("advanced", 0)
+    print(f"ADVANCED: {advanced}")
     download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
 
     path = path.rstrip('/')
@@ -217,14 +243,9 @@ def browse(request):
     if path_record["type"] == "link":
         return HttpResponseRedirect(f'{path_record["target"]}')
 
-    index_list = make_breadcrumbs(path)
-    show_hidden = "hidden" in request.GET
-    show_removed = "removed" in request.GET
-    if show_removed: show_hidden = True
-    
     items = []
     try:
-        for item in fbi_listdir(path, removed=show_removed, hidden=show_hidden):
+        for item in fbi_listdir(path, removed=advanced, hidden=advanced):
             if item["type"] == "file":
                 item["download"] = f'{download_service}{item.get("path")}?download=1'
             if item["type"] == "dir" and agg_info(item.get("path")):
@@ -268,12 +289,8 @@ def browse(request):
     #    refresh = True
 
     template = 'browser/browse_base.html'
-    if show_removed:
-        template = 'browser/browse_removed.html'
+    if advanced:
         messages.warning(request, f'Viewing removed and hidden files. <a href="{path}">Normal view</a>')
-    elif show_hidden:
-        template = 'browser/browse_hidden.html'
-        messages.info(request, f'Viewing hidden files. <a href="{path}">Normal view</a>')
 
     status = 200
     if "forbidden" in request.GET:
@@ -295,7 +312,8 @@ def browse(request):
         "counts": counts,
         "refresh": refresh,
         "access_rules": access_rules,
-        "DOWNLOAD_SERVICE": download_service
+        "DOWNLOAD_SERVICE": download_service,
+        "advanced": advanced,
     }
  
     return render(request, template, context, status=status)
@@ -352,13 +370,13 @@ def get_time_rows(path, time_field):
         }}
 
     aggs = {"timeline": {"date_histogram": {"field": time_field, "calendar_interval": "day"}}}
-
+    print(json.dumps(query, indent=4))
+    print(json.dumps(aggs, indent=4))
     try:
         result = es.search(index=indexname, query=query, aggs=aggs, size=0)
     except Exception as e:
         print(f"Error running elasticsearch query: {e}")
-        return {"timeline": {"rows": "", "years": 1, "median_value": 0}, 
-                "mod_timeline": {"rows": "", "years": 1, "median_value": 0}}
+        return {"rows": "", "years": 1, "median_value": 0}
     
     rows = []
     years = 1
@@ -379,6 +397,7 @@ def get_time_rows(path, time_field):
     median_value = sorted(values)[len(values)//2] if values else 0  
     return {"rows": ', '.join(rows), "years": years, "median_value": median_value}
 
+
 @csrf_exempt
 def timelines(request, path="/"): 
 
@@ -397,14 +416,17 @@ def timelines(request, path="/"):
     if path_record is None:
         return render(request, 'browser/notfound.html', {"path": path}, status=404)
 
-    template = f'browser/timeline_{time_field}.html'
+    template = f'browser/timeline.html'
     tl_tables = get_time_rows(path, time_field)
     context = {"path": path, 
-               "time_field": time_field, 
-               "timeline": tl_tables["rows"], 
-               "scale": tl_tables["median_value"] * 2, 
-               "height": tl_tables["years"] * 70 + 100,
-               "plot_title": f"Files available by {time_field} date"}
+            "time_field": time_field, 
+            "display": not tl_tables["rows"] == '',
+            "timeline": tl_tables["rows"], 
+            "scale": tl_tables["median_value"] * 2, 
+            "height": tl_tables["years"] * 70 + 100,
+            "plot_title": f"Files available by {time_field} date",
+            "advanced": request.session.get("advanced", 0),
+            "breadcrumbs": make_breadcrumbs(path)}
 
     return render(request, template, context)
     
@@ -472,13 +494,13 @@ def item_info(request):
 
 
 def cache_control(request):
-    context = {"directory_desc": directory_desc.cache_info(), 
+    context = {"get_access_rules": get_access_rules.cache_info(), 
                "agg": agg_info.cache_info()}
     if "clear_all" in request.GET:
-        directory_desc.cache_clear()
+        get_access_rules.cache_clear()
     if "clear" in request.GET:
         path = request.GET.get("clear")
-        directory_desc.cache_clear_key(path)
+        get_access_rules.cache_clear_key(path)
         agg_info.cache_clear_key(path)
     return render(request, 'browser/cache.html', context)
 

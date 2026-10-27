@@ -60,15 +60,30 @@
     
     
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-8">
             Back to the files in <a href="{{path}}">{{path}}</a>
-            
-            <div class="alert alert-warning" role="alert">
-  
-This is an experimental view of the timeline of data in this directory and below. We would love to hear any comments or suggestions for improvement.
-                Please email any feedback to the CEDA helpdesk </div>
 
-        </div>
+                        <ol class="breadcrumb">
+                            {% for dir in breadcrumbs %}
+                                <li class="breadcrumb-item"><a href="/{{ dir.path }}">{{ dir.dir }}</a></li>
+                            {% endfor %}
+                        </ol>
+   
+            
+
+                        
+        {% if advanced %}
+        <div class="float-left">
+                    <a href="{% url 'timelines' path=path %}?time_field=regex_date" class="btn btn-outline-primary m-1" role="button" 
+                       title="Timelines for files in this directory and below">
+                                <i class="fa-solid fa-timeline"></i> Date coverage</a>
+                    <a href="{% url 'timelines' path=path %}?time_field=last_modified" class="btn btn-outline-primary m-1" role="button" 
+                       title="Timelines for files in this directory and below">
+                                <i class="fa-solid fa-timeline"></i> Last Modified</a>
+                    <a href="{% url 'timelines' path=path %}?time_field=last_audit" class="btn btn-outline-primary m-1" role="button" 
+                       title="Timelines for files in this directory and below">
+                                <i class="fa-solid fa-timeline"></i> Last Audit</a>                                
+                </div>{% endif %}
     </div>
     {% endblock timeline_js %}
 
@@ -76,15 +91,26 @@ This is an experimental view of the timeline of data in this directory and below
     
     <div class="row">
         <div class="col-md-12">
-            {% block timeline_title %}
-            <h5>----- coverage</h5>
-            <p>The dates the data cover are often trivially extractable from the filename.
-               This timeline shows the number of files with a given date in the filename or file path. The methodology is not 
-               100% accurate, but for a lot of data
-               it gives a good indication of the data coverage.
-            </p>
-            {% endblock timeline_title %}
-            <div id="timeline" style="width: 500px; height: {{height}}px;"></div>
+            {% if time_field == 'regex_date' %}
+                <h5>Data time coverage</h5>
+                <p>The dates the data cover are often trivially extractable from the filename.
+                    This timeline shows the number of files with a given date in the filename or file path. The methodology is not 
+                    100% accurate, but for a lot of data
+                    it gives a good indication of the data coverage.
+                </p>
+            {% elif time_field == 'last_modified' %} 
+                <h5>Data Arrival Timeline</h5>
+                <p>The date the data were last modified mostly indicates when the data arrived in the archive.
+                </p>
+            {% elif time_field == 'last_audit' %} 
+                <h5>Audit Timeline</h5>
+                <p>The audit date shows the last time the files checked against checksums.
+                </p>
+            {% else %}
+                Not a time field in the record
+            {% endif %}
+
+            {% if display %}<div id="timeline" style="width: 500px; height: {{height}}px;"></div>{% else %}Nothing to show!{% endif %}
         </div>
     </div>
     

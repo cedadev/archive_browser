@@ -33,6 +33,7 @@ urlpatterns = [
     path('search', views.search, name='search'),
     path('item_info', views.item_info, name='item_info'),
     path('download', views.download, name='download'),
+    path('advanced', views.set_advanced, name='advanced'),
     re_path('stac(?P<path>/.*)$', views.stac, name='stac'),
     re_path('timelines(?P<path>/.*)$', views.timelines, name='timelines'),
     re_path('jsonlist(?P<path>/.*)$', views.jsonlist, name='jsonlist'),
