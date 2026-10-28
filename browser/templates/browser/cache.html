@@ -12,8 +12,8 @@
 
 {% block head_js_extra %}
     <script src="//artefacts.ceda.ac.uk/themes/orgtheme/0.1/_vendor/jquery/dist/jquery.min.js"></script>
+    <meta http-equiv="refresh" content="1" >
 {% endblock head_js_extra %}
-
 
 {% block content %}
 
@@ -23,6 +23,14 @@
 <h2>Aggregations</h2>
 {{agg}}
 
+<h2>Obs</h2>
+{{obs_cache_len}}
+
+<h2>Coll</h2>
+{{collections_cache_len}}
+                
+<h2>Projects</h2>
+{{projects_cache_len}} 
 
 {% endblock %}
 

@@ -92,20 +92,26 @@
     <div class="row">
         <div class="col-md-12">
             {% if time_field == 'regex_date' %}
-                <h5>Data time coverage</h5>
-                <p>The dates the data cover are often trivially extractable from the filename.
-                    This timeline shows the number of files with a given date in the filename or file path. The methodology is not 
-                    100% accurate, but for a lot of data
-                    it gives a good indication of the data coverage.
-                </p>
+                <h5>Temporal coverage</h5>
+                <p>The dates covered by a dataset can often be identified from its file names or directory structure. 
+                    For example, a path such as <code>/badc/ds/data/2014/04/29/...</code> clearly contains a date, 
+                    and a filename like <code>.../fesa_20250910_yx.dat</code> includes a date encoded as a number.</p>
+
+                <p>This plot is created by detecting dates within file paths and filenames and counting how many 
+                    files correspond to each date. While this approach is not completely accurate, it provides a useful 
+                    indication of the temporal coverage of many datasets.</p>
+
             {% elif time_field == 'last_modified' %} 
-                <h5>Data Arrival Timeline</h5>
-                <p>The date the data were last modified mostly indicates when the data arrived in the archive.
-                </p>
+                <h5>Arrival Timeline</h5>
+                <p>The last modified date of a file is often a good indicator of when it was added to, or updated within, 
+                    the archive. This timeline shows the distribution of file modification dates and can provide a 
+                    useful view of when data arrived in the archive.</p>
+
             {% elif time_field == 'last_audit' %} 
                 <h5>Audit Timeline</h5>
-                <p>The audit date shows the last time the files checked against checksums.
-                </p>
+                <p>The audit date records the last time a file was verified against its checksum. This timeline shows the 
+                    number of files audited over time, providing an indication of when data integrity checks were 
+                    performed across the archive.</p>
             {% else %}
                 Not a time field in the record
             {% endif %}

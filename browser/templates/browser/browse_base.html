@@ -1,4 +1,4 @@
-{% extends data_centre_template %}
+{% extends "browser/base.html" %}
 {% load static %}
 {% load humanize %}
 
@@ -7,103 +7,7 @@
 {% block page_title %}
 {% endblock %}
 
-{% block head_js_extra %}
-    {# meta tags to force refresh #}
-    <meta name="description" content="Web based directory browser for the CEDA Archive.
-    Provides download links and access to the relevant CEDA Catalogue record.">
-    <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
-    {% if refresh %}<meta http-equiv="refresh" content="3" > {% endif %}
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script>
-        function copyPath() {
-            var copyText = document.getElementById("path_for_copy_button");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); /* For mobile devices */
-            navigator.clipboard.writeText(copyText.value);
-        }
-    </script>
-    <script>$(function () {$('[data-toggle="tooltip"]').tooltip()})
-    </script>
- 
-{% endblock head_js_extra %}
-
-{% block content %}
-    <!-- For copy button -->
-    <div style="position: absolute; top: -1000px"><input type="text" value="{{request.path}}" id="path_for_copy_button"></div>
-
-    <div class="collapse" id="collapseBulkDownload">
-        <div class="alert alert-info" role="alert">
-            <h3>Bulk Download Options</h3>
-            See our <a href="https://help.ceda.ac.uk/article/4431-ceda-archive-web-download-and-services#Download-multiple-files-gSfQC" target="_blank">Help page</a> 
-            for more information about bulk download options.
-            <p>
-                <ul>
-                
-                <li><b>WGET:</b> 
-                    
-                    Use <code class="bg-light">&nbsp;wget -e robots=off --mirror --no-parent -r {{ DOWNLOAD_SERVICE }}{{ request.path }}/ &nbsp;</code> 
-                   
-                    to download all 
-                    files below this point in the archive.
-                    Note that some datasets, including MIDAS Open, require you to use token authentication in order to download data. See 
-                        <a href="https://help.ceda.ac.uk/article/5191-downloading-multiple-files-with-wget" target="_blank">downloading multiple files with wget</a> for more information
-                        on using wget and token authentication.
-                    </li>
-                    <p></p>
-                <li><b>DAP:</b> If you need to just get a subset of NetCDF files have a look at
-                    help page about interacting <a href="https://help.ceda.ac.uk/article/5100-archive-access-tokens" target="_blank">
-                        programmatically with the data</a></li>
-                        <p></p>
-                <li><b>JSON listing:</b> Use <a href="?json">json listing</a> of this directory to script download. </li>
-        </ul>
-    </p>
-        </div>
-      </div>
-
-    {% if advanced %}
-    <div class="alert alert-with-icon alert-warning text-center" role="alert">
-            <i class="fa fa-exclamation-circle"></i>&nbsp;Advanced options set. <a href="{% url 'advanced' %}?redirect={{path}}">Switch off here</a>
-        </div> {% endif %}
-
-    {% for message in messages_ %}
-        <div class="alert alert-with-icon alert-danger text-center" role="alert">
-            <i class="fa fa-exclamation-circle"></i>&nbsp;{{ message | safe}}
-        </div>
-    {% endfor %}
-
-
-
-    <div class="row">
-
-        {% block breadcrumbs %}
-        <div class="col-8">
-            <div class="float-left">
-                <ol class="breadcrumb">
-                    {% for dir in index_list %}
-                        {% if forloop.last %}
-                        <li class="breadcrumb-item active text-grey">{{ dir.dir }}</li>
-                        {% else %}
-                        <li class="breadcrumb-item"><a href="/{{ dir.path }}">{{ dir.dir }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                </ol>
-            </div>
-            <div>
-                <div class="float-left">
-                <button type="button" id="copy" class="btn btn-outline-primary mt-1 ml-1" data-bs-toggle="tooltip" onclick="copyPath()"
-                        data-original-title="Copy directory path" title="Copy directory path">
-                    <i class="fa-regular fa-copy" aria-hidden="true"></i>
-                </button>
-                </div>
-
-            </div>
-
-        </div>
-        {% endblock %}
-
-        <div class="col-4">
-            <div class="float-right">
+{% block breadcrumbsbuttons %}
                 {% if agg_info %}
                     {% if agg_info.total_size <= 1000000000 %}
                         {% if agg_info.item_types.0.1 <= 5000 %}
@@ -119,18 +23,15 @@
                            <span class="fas fa-cart-arrow-down"></span>
                     </button>
                 </span>
-                <div class="float-left">
-                    <a href="{% url 'timelines' path=request.path %}" class="btn btn-outline-primary m-1" role="button" 
-                       title="Timelines for files in this directory and below">
-                                <i class="fa-solid fa-timeline"></i> Timelines
-                            </a>
-                </div>
-            </div>
-        </div>
-    </div>  
+                    <a href="{% url 'timelines' path=request.path %}" class="btn btn-outline-primary mt-1" role="button" 
+                       title="Timelines for files in this directory and below"><i class="fa-solid fa-timeline"></i> Timelines</a>        
+{% endblock %}
 
-    <!-- for copy path function -->
-    <input class="hide" type="text" id="path" value="{{ path }}" style="display: none">
+
+{% block innercontent %}
+ 
+
+
 
     <div class="row">
         <div class="col" id="collection_link">{% if cat_info %}{{cat_info|safe}}{% endif %}</div>

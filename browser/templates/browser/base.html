@@ -1,0 +1,89 @@
+{% extends data_centre_template %}
+{% load static %}
+{% load humanize %}
+
+{% block head_title %}CEDA Archive Web Browser{% endblock %}
+
+{% block page_title %}
+{% endblock %}
+
+{% block head_js_extra %}
+    {# meta tags to force refresh #}
+    <meta name="description" content="Web based directory browser for the CEDA Archive.
+    Provides download links and access to the relevant CEDA Catalogue record.">
+    <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
+    {% if refresh %}<meta http-equiv="refresh" content="3" > {% endif %}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script>
+        function copyPath() {
+            var copyText = document.getElementById("path_for_copy_button");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); /* For mobile devices */
+            navigator.clipboard.writeText(copyText.value);
+        }
+    </script>
+    <script>$(function () {$('[data-toggle="tooltip"]').tooltip()})
+    </script>
+ 
+{% endblock head_js_extra %}
+
+{% block content %}
+    <!-- For copy button -->
+    <div style="position: absolute; top: -1000px"><input type="text" value="{{request.path}}" id="path_for_copy_button"></div>
+
+    {% if advanced %}
+    <div class="alert alert-with-icon alert-warning text-center m-1 p-1" role="alert">
+            <i class="fa fa-exclamation-circle"></i>&nbsp;Advanced mode: Viewing removed and hidden files. <a href="{% url 'advanced' %}?redirect={{path}}">Switch off here</a>
+        </div> {% endif %}
+
+    {% for message in messages_ %}
+        <div class="alert alert-with-icon alert-danger text-center" role="alert">
+            <i class="fa fa-exclamation-circle"></i>&nbsp;{{ message | safe}}
+        </div>
+    {% endfor %}
+
+    
+    {% block breadcrumbs %}
+    <div class="row">
+        <div class="col-9">
+            <div class="float-left">
+                <ol class="breadcrumb">
+                    {% for dir in index_list %}
+                        {% if forloop.last %}
+                        <li class="breadcrumb-item active text-grey">{{ dir.dir }}</li>
+                        {% else %}
+                        <li class="breadcrumb-item"><a href="/{{ dir.path }}">{{ dir.dir }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ol>
+            </div>
+            <div class="float-left">
+                <button type="button" id="copy" class="btn btn-outline-primary mt-1 ml-1" data-bs-toggle="tooltip" onclick="copyPath()"
+                        data-original-title="Copy directory path" title="Copy directory path">
+                    <i class="fa-regular fa-copy" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="float-right">   
+                {% block breadcrumbsbuttons %}
+                {% endblock %}
+            </div> 
+        </div>
+    </div>
+    {% endblock %}
+    
+
+    {% block innercontent %}
+
+    {% endblock %}
+
+{% endblock %}
+
+
+{% block footer %}
+    {{ block.super }}
+    <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
+    <script type="text/javascript">window.Beacon('init', '{{ beacon }}')</script>
+{% endblock footer %}

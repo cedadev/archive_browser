@@ -86,7 +86,7 @@ def get_access_rules(path):
     else:
         return data[shortest]
 
-@lru_cache(maxsize=16384)
+@lru_cache_expires(maxsize=16384, max_expire_period=2*3600, default=None)
 def readme_line(path):
     """get readme line"""
     print(f"🐔", end='')
@@ -159,9 +159,9 @@ def directory_desc(path, item_type=None, mod_time=None):
     return f"{cat_button(cat_info, cat_type)} {cat_info['title']}"
 
 
-@lru_cache_expires(maxsize=16384, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
+@lru_cache_expires(maxsize=16384, max_expire_period=10*3600, default=None)  
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
-    print(f"🐸", end='')
+    print(f"🐸 {path}")
     summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, max_exts=max_ext)
     total_size = summary["size_stats"]["sum"]
     ave_size = summary["size_stats"]["avg"]
@@ -288,10 +288,6 @@ def browse(request):
     #if summary is None:
     #    refresh = True
 
-    template = 'browser/browse_base.html'
-    if advanced:
-        messages.warning(request, f'Viewing removed and hidden files. <a href="{path}">Normal view</a>')
-
     status = 200
     if "forbidden" in request.GET:
         messages.error(request, f'''You don't have permission to access files in this directory. You need to 
@@ -316,7 +312,7 @@ def browse(request):
         "advanced": advanced,
     }
  
-    return render(request, template, context, status=status)
+    return render(request, 'browser/browse_base.html', context, status=status)
 
 
 @csrf_exempt
@@ -495,7 +491,10 @@ def item_info(request):
 
 def cache_control(request):
     context = {"get_access_rules": get_access_rules.cache_info(), 
-               "agg": agg_info.cache_info()}
+               "agg": agg_info.cache_info(), 
+               "obs_cache_len": len(obs_cache),
+               "collections_cache_len": len(collections_cache), 
+               "projects_cache_len": len(projects_cache)}
     if "clear_all" in request.GET:
         get_access_rules.cache_clear()
     if "clear" in request.GET:
