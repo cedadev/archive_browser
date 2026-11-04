@@ -10,7 +10,7 @@ import datetime
 
 # feilds to keep from the catalogue records
 KEEP_FIELDS = ("title", "uuid", "ob_id", "publicationState", "status")
-REFRESH = 30
+REFRESH = 60 * 60  # refresh every hour
 
 def records_for_path_parent(path_to_uuid: dict[str, set], path: str, uuids: set[str]):
     """Find paths that are unambiguously associated with a single observation/project."""
@@ -37,7 +37,7 @@ def obs(obs_store, coll_store, proj_store, mod_since):
     project_sets = defaultdict(set) 
   
     while True:
-        print(url)
+        print(f"Fetching URL: {url}")
         try: 
             page = urllib.request.urlopen(url)
         except urllib.error.HTTPError:
@@ -103,5 +103,4 @@ if __name__ == "__main__":
     s, c, p = observation_cache()
     while True:
         print(len(s), len(c), len(p))
-#        print(c)
         time.sleep(1)

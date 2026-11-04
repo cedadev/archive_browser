@@ -17,19 +17,19 @@
 
 {% block content %}
 
-<h2>Access control info</h2>
+<h4>Access control info</h4>
 {{get_access_rules}} 
 
-<h2>Aggregations</h2>
+<h4>Aggregations</h4>
 {{agg}}
 
-<h2>Obs</h2>
+<h4>Obs</h4>
 {{obs_cache_len}}
 
-<h2>Coll</h2>
+<h4>Coll</h4>
 {{collections_cache_len}}
                 
-<h2>Projects</h2>
+<h4>Projects</h4>
 {{projects_cache_len}} 
 
 {% endblock %}

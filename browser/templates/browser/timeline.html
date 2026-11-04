@@ -102,8 +102,9 @@
         </div>
         <div class="col-md-8">
             {% if display %}<div id="timeline" style="width: 500px; height: {{height}}px;"></div>
-            {% else %}<p>There is no timeline data available for <code>{{path}}</code>. This either means the directory does not contain temporal information or 
-                has too many values to display.</p>
+            {% else %}<div class="alert alert-warning" role="alert"><p>There is no timeline data available for <code>{{path}}</code>. 
+                This either means the directory does not contain temporal information or 
+                it has too many values to display.</p></div>
             {% endif %}
         </div>
                     

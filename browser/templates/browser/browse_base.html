@@ -29,12 +29,13 @@
                     <a href="{% url 'search' path=request.path %}" class="btn btn-outline-primary m-1 float-right" role="button" 
                        title="Search for files in this directory and below"><i class="fa-solid fa-search"></i> Search</a>      
                     <a href="{% url 'advanced' %}?redirect={{request.path}}" class="btn btn-outline-primary m-1 float-right" role="button" 
-                       title="Advanced options"><i class="fa-solid fa-cog"></i> Advanced</a
+                       title="Advanced options"><i class="fa-solid fa-cog"></i></a
 {% endblock %}
 
 
 {% block innercontent %}
 
+    <div class="row"> <div class="col-12"></div>
     <div class="collapse" id="collapseBulkDownload">
         <div class="alert alert-info m-2" role="alert">
             <h3>Bulk Download Options</h3>
@@ -62,22 +63,19 @@
         </ul>
     </p>
         </div>
-      </div>
+    </div>
+    </div></div>
 
 
     <div class="row">
-        <div class="col" id="collection_link">{% if cat_info %}{{cat_info|safe}}{% endif %}</div>
+        <div class="col-10" id="collection_link">{% if cat_info %}{{cat_info|safe}}{% endif %} </div>
+        <div class="col-2">{% if access_rules %}{% for rule in access_rules %}<span class="badge badge-primary m-1"> 
+        <a href="{{rule.licence.url_link}}">{{rule.licence.title}}</a> </span>
+        {% endfor %}{% endif %} </div>   
     </div>
 
-    <div>{% if access_rules %}{% for rule in access_rules %}<span class="badge badge-primary">Licence: 
-        <a href="{{rule.licence.url_link}}">{{rule.licence.title}}</a> </span>
-        {% endfor %}{% endif %}</div>    
+     
    
-    
-  
-    <div class="row"> 
-        <div class="col messages"></div>
-    </div>
 
 
     {% block item_table %}
@@ -134,10 +132,6 @@
         </tbody>
     </table>
     {% endblock %}
-
-    <div class="row">
-        <div class="col messages"></div>
-    </div>
 
 {% endblock %}
 

@@ -321,6 +321,7 @@ def browse(request):
 
 @csrf_exempt
 def stac(request, path="/"):
+    """View to display a STAC catalog or item for a directory or file."""
     download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
 
     path = path.rstrip('/')
@@ -400,7 +401,7 @@ def get_time_rows(path, time_field):
 
 @csrf_exempt
 def timelines(request, path="/"): 
-
+    """View to display a timeline of files in a directory based on a time field."""
     path = path.rstrip('/')
     if path == "": 
         path = "/"
@@ -465,6 +466,7 @@ def jsonlist(request, path="/"):
 
 @csrf_exempt
 def item_info(request):
+    """View to display information about a file or directory."""
     path = request.GET.get("path")
     path_record = get_record(path)
     if path_record is None:
@@ -494,6 +496,7 @@ def item_info(request):
 
 
 def cache_control(request):
+    """View to display information about the caches."""
     context = {"get_access_rules": get_access_rules.cache_info(), 
                "agg": agg_info.cache_info(), 
                "obs_cache_len": len(obs_cache),
