@@ -17,20 +17,52 @@
                         {% endif %}
                     {% endif %}
                 {% endif %}
+
                 <span data-toggle="tooltip" title="View bulk download information">
-                    <button class="btn btn-primary mt-1" type="button" data-bs-toggle="collapse"
+                    <button class="btn btn-outline-primary m-1 float-right" type="button" data-bs-toggle="collapse"
                            data-bs-target="#collapseBulkDownload" aria-expanded="false" aria-controls="collapseExample">
-                           <span class="fas fa-cart-arrow-down"></span>
+                           <span class="fas fa-cart-arrow-down"></span> Bulk Download 
                     </button>
                 </span>
-                    <a href="{% url 'timelines' path=request.path %}" class="btn btn-outline-primary mt-1" role="button" 
-                       title="Timelines for files in this directory and below"><i class="fa-solid fa-timeline"></i> Timelines</a>        
+                    <a href="{% url 'timelines' path=request.path %}" class="btn btn-outline-primary m-1 float-right" role="button" 
+                       title="Timelines for files in this directory and below"><i class="fa-solid fa-timeline"></i><span class="btn-text"> Timelines</span></area>      
+                    <a href="{% url 'search' path=request.path %}" class="btn btn-outline-primary m-1 float-right" role="button" 
+                       title="Search for files in this directory and below"><i class="fa-solid fa-search"></i> Search</a>      
+                    <a href="{% url 'advanced' %}?redirect={{request.path}}" class="btn btn-outline-primary m-1 float-right" role="button" 
+                       title="Advanced options"><i class="fa-solid fa-cog"></i> Advanced</a
 {% endblock %}
 
 
 {% block innercontent %}
- 
 
+    <div class="collapse" id="collapseBulkDownload">
+        <div class="alert alert-info m-2" role="alert">
+            <h3>Bulk Download Options</h3>
+            See our <a href="https://help.ceda.ac.uk/article/4431-ceda-archive-web-download-and-services#Download-multiple-files-gSfQC" target="_blank">Help page</a> 
+            for more information about bulk download options.
+            <p>
+                <ul>
+                
+                <li><b>WGET:</b> 
+                    
+                    Use <code class="bg-light">&nbsp;wget -e robots=off --mirror --no-parent -r {{ DOWNLOAD_SERVICE }}{{ request.path }}/ &nbsp;</code> 
+                   
+                    to download all 
+                    files below this point in the archive.
+                    Note that some datasets, including MIDAS Open, require you to use token authentication in order to download data. See 
+                        <a href="https://help.ceda.ac.uk/article/5191-downloading-multiple-files-with-wget" target="_blank">downloading multiple files with wget</a> for more information
+                        on using wget and token authentication.
+                    </li>
+                    <p></p>
+                <li><b>DAP:</b> If you need to just get a subset of NetCDF files have a look at
+                    help page about interacting <a href="https://help.ceda.ac.uk/article/5100-archive-access-tokens" target="_blank">
+                        programmatically with the data</a></li>
+                        <p></p>
+                <li><b>JSON listing:</b> Use <a href="?json">json listing</a> of this directory to script download. </li>
+        </ul>
+    </p>
+        </div>
+      </div>
 
 
     <div class="row">
@@ -74,12 +106,12 @@
                 {% else %}
 
                 <tr>
-                    <td class="align-middle">{{item.icon|safe}}&nbsp; 
+                    <td class="align-middle">{{item.icon|safe}}&nbsp;<code>
                         {% if item.removed and item.type == 'file' %} <span class="text-muted"><i class="fa fa-trash"></i> {{item.name}}</span>
                         {% elif item.removed %} <span class="text-muted"><i class="fa fa-trash" title="Removed"></i> <a class="link-warning" href="{{item.path}}">{{item.name}}</a></span>
                         {% elif item.type == 'file' %} <a href="{{item.download}}">{{item.name}}</a>
                         {% else %} <a href="{{item.path}}">{{item.name}}</a>
-                        {% endif %}
+                        {% endif %}</code>
                     </td>
                     <td class="align-middle">{{item.description|safe}}
                         {% if item.type == 'link' %}<i class="fa fa-bullseye"></i>&nbsp;{{item.target}}{% endif %}

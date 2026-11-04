@@ -1,4 +1,4 @@
-{% extends data_centre_template %}
+{% extends "browser/base.html" %}
 {% load static %}
 {% load humanize %}
 
@@ -23,7 +23,7 @@
     </script>
 {% endblock head_js_extra %}
 
-{% block content %}
+{% block innercontent %}
 <h2>Filename search</h2>
  <form>
 <div class="row">
@@ -41,10 +41,7 @@
     </select>
 </div>
 
-  <div class="form-floating mb-3 col-md-6">
-    <label for="floatingInput2">Under directory</label>
-    <input type="text" class="form-control" id="floatingInput2" placeholder="e.g /badc" name="under" value="{{under|default_if_none:''}}">
-  </div>
+
 </div>
 
 <div class="row">

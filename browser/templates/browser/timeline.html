@@ -1,5 +1,5 @@
 
-{% extends data_centre_template %}
+{% extends "browser/base.html" %}
 {% load static %}
 
 {% block head_title %}CEDA Archive Web Browser{% endblock %}
@@ -11,11 +11,25 @@
 {% block page_title %}
 {% endblock %}
 
+{% block breadcrumbsbuttons %}
+    {% if advanced %}
+        <div class="float-left">
+                    <a href="{% url 'timelines' path=path %}?time_field=regex_date" class="btn btn{% if time_field != 'regex_date' %}-outline{% endif %}-primary m-1" role="button" 
+                       title="Timelines for files in this directory and below">
+                                <i class="fa-solid fa-timeline"></i> Date coverage</a>
+                    <a href="{% url 'timelines' path=path %}?time_field=last_modified" class="btn btn{% if time_field != 'last_modified' %}-outline{% endif %}-primary m-1" role="button" 
+                       title="Timelines for files in this directory and below">
+                                <i class="fa-solid fa-timeline"></i> Last Modified</a>
+                    <a href="{% url 'timelines' path=path %}?time_field=last_audit" class="btn btn{% if time_field != 'last_audit' %}-outline{% endif %}-primary m-1" role="button" 
+                       title="Timelines for files in this directory and below">
+                                <i class="fa-solid fa-timeline"></i> Last Audit</a>                                
+                </div>
+    {% endif %}
+{% endblock %}
 
+{% block innercontent %}
 
-{% block content %}
-
-    {% block timeline_js %}
+{% block timeline_js %}
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
         google.charts.load("current", { packages: ["calendar"] });
@@ -46,51 +60,18 @@
                 if (selection.length > 0) {
                     var date = dataTable.getValue(selection[0].row, 0);
                     sdate = date.toISOString().split('T')[0];
-                    const url = "/search?under={{path}}&since_{{time_field}}=" + sdate + "&before_{{time_field}}=" + sdate + "&item_type=file";
+                    const url = "/search{{path}}?since_{{time_field}}=" + sdate + "&before_{{time_field}}=" + sdate + "&item_type=file";
                     window.location.href = url;
                 }
             }
 
             google.visualization.events.addListener(chart, 'select', selectHandler);
         };
-
-
-
     </script>
-    
-    
-    <div class="row">
-        <div class="col-md-8">
-            Back to the files in <a href="{{path}}">{{path}}</a>
-
-                        <ol class="breadcrumb">
-                            {% for dir in breadcrumbs %}
-                                <li class="breadcrumb-item"><a href="/{{ dir.path }}">{{ dir.dir }}</a></li>
-                            {% endfor %}
-                        </ol>
-   
-            
-
-                        
-        {% if advanced %}
-        <div class="float-left">
-                    <a href="{% url 'timelines' path=path %}?time_field=regex_date" class="btn btn-outline-primary m-1" role="button" 
-                       title="Timelines for files in this directory and below">
-                                <i class="fa-solid fa-timeline"></i> Date coverage</a>
-                    <a href="{% url 'timelines' path=path %}?time_field=last_modified" class="btn btn-outline-primary m-1" role="button" 
-                       title="Timelines for files in this directory and below">
-                                <i class="fa-solid fa-timeline"></i> Last Modified</a>
-                    <a href="{% url 'timelines' path=path %}?time_field=last_audit" class="btn btn-outline-primary m-1" role="button" 
-                       title="Timelines for files in this directory and below">
-                                <i class="fa-solid fa-timeline"></i> Last Audit</a>                                
-                </div>{% endif %}
-    </div>
     {% endblock timeline_js %}
-
-    
     
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-4">
             {% if time_field == 'regex_date' %}
                 <h5>Temporal coverage</h5>
                 <p>The dates covered by a dataset can often be identified from its file names or directory structure. 
@@ -103,8 +84,9 @@
 
             {% elif time_field == 'last_modified' %} 
                 <h5>Arrival Timeline</h5>
-                <p>The last modified date of a file is often a good indicator of when it was added to, or updated within, 
-                    the archive. This timeline shows the distribution of file modification dates and can provide a 
+                <p>The last modified date usually indicates when files were added to the archive. They may also 
+                    show when files were updated, but for the majoriy dataset files are unchanged. 
+                    This timeline shows the distribution of file modification dates and can provide a 
                     useful view of when data arrived in the archive.</p>
 
             {% elif time_field == 'last_audit' %} 
@@ -116,8 +98,15 @@
                 Not a time field in the record
             {% endif %}
 
-            {% if display %}<div id="timeline" style="width: 500px; height: {{height}}px;"></div>{% else %}Nothing to show!{% endif %}
+
         </div>
+        <div class="col-md-8">
+            {% if display %}<div id="timeline" style="width: 500px; height: {{height}}px;"></div>
+            {% else %}<p>There is no timeline data available for <code>{{path}}</code>. This either means the directory does not contain temporal information or 
+                has too many values to display.</p>
+            {% endif %}
+        </div>
+                    
     </div>
     
 

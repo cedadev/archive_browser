@@ -118,20 +118,23 @@ def cat_button(cat_info, cat_type):
             publication_badge = f'<span class="badge badge-warning">{cat_info["publicationState"]}</span>'
         else:
             publication_badge = ""  
-        return f'''<a href="{cat_url}" class="btn {button_type} btn-sm">
+        return f'''<a href="{cat_url}" class="btn {button_type} btn-sm m-1">
                      <i class="fa-lg fa fa-database" style="color: #4f81bd" title="Dataset information" data-toggle="tooltip"></i> 
                      Dataset {status_badge} {publication_badge}</a>'''
     elif cat_type == "collection":
-        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
+        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm m-1">
                    <i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets." data-toggle="tooltip"></i> Collection</a>'''    
     elif cat_type == "project":
-        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm">
+        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm m-1">
                    <i class="fas fa-users project" style="color: #ea3838" title="A project." data-toggle="tooltip"></i> Project</a>'''
 
 
 def directory_desc(path, item_type=None, mod_time=None):
     if item_type == "file":
-        return f"{mod_time}"
+        print(f"{mod_time} {type(mod_time)}")
+        display_time = mod_time.replace('T', ' ')[:16]
+        return f"{display_time}"  
+       
 
     cat_info = obs_cache[path]
     if cat_info is not None:
@@ -216,7 +219,7 @@ def set_advanced(request):
     if "advanced" in request.GET:
         advanced = request.GET.get("advanced")
     request.session["advanced"] = advanced
-    print(f"ADVANCED SET: {advanced}")
+    request.session["advanced_btn"] = 1
     print(f"session: {request.session.items()}")
     return render(request, 'browser/advanced.html', {"advanced": advanced, "redirect": redirect})
 
@@ -310,6 +313,7 @@ def browse(request):
         "access_rules": access_rules,
         "DOWNLOAD_SERVICE": download_service,
         "advanced": advanced,
+        "advanced_btn": request.session.get("advanced_btn", False)
     }
  
     return render(request, 'browser/browse_base.html', context, status=status)
@@ -422,7 +426,7 @@ def timelines(request, path="/"):
             "height": tl_tables["years"] * 70 + 100,
             "plot_title": f"Files available by {time_field} date",
             "advanced": request.session.get("advanced", 0),
-            "breadcrumbs": make_breadcrumbs(path)}
+            "index_list": make_breadcrumbs(path)}
 
     return render(request, template, context)
     
@@ -515,14 +519,10 @@ def storage_types(request):
 def robots(request):
     return HttpResponseRedirect(f"/static/robots.txt")
 
-def search(request):
+def search(request, path="/"):
     print("search...")
     q = ''
     files = []
-    if "under" in request.GET and request.GET.get("under"):
-        under = request.GET.get("under")
-    else: 
-        under="/"
 
     if "since_last_modified" in request.GET and request.GET.get("since_last_modified"):
         since_last_modified = request.GET.get("since_last_modified")
@@ -555,14 +555,15 @@ def search(request):
     else:
         item_type = None
 
-    files = list(ls_query(under, name_regex=q_regex, 
+    files = list(ls_query(path, name_regex=q_regex, 
                           since=since_last_modified, 
                           before=before_last_modified, 
                           regex_date_since=since_regex_date, 
                           regex_date_before=before_regex_date,
                           item_type=item_type, size=10000))
 
-    return render(request, 'browser/search.html', {"q": q, "results": files, "under": under, "since_last_modified": since_last_modified, 
+    return render(request, 'browser/search.html', {"q": q, "results": files, "path": path, "index_list": make_breadcrumbs(path),
+                                                   "since_last_modified": since_last_modified, 
                                                    "before_last_modified": before_last_modified, 
                                                    "since_regex_date": since_regex_date, "before_regex_date": before_regex_date,
                                                    "item_type": item_type})
