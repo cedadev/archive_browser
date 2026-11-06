@@ -1,4 +1,4 @@
-{% extends data_centre_template %}
+{% extends "browser/base.html" %}
 {% load static %}
 {% load humanize %}
 
@@ -7,30 +7,37 @@
 {% block page_title %}
 {% endblock %}
 
-{% block head_js_extra %}
-    {# meta tags to force refresh #}
-    <meta name="description" content="Web based directory browser for the CEDA Archive.
-    Provides download links and access to the relevant CEDA Catalogue record.">
-    <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
-    {% if refresh %}<meta http-equiv="refresh" content="3" > {% endif %}
+{% block breadcrumbsbuttons %}
+                {% if agg_info %}
+                    {% if agg_info.total_size <= 1000000000 %}
+                        {% if agg_info.item_types.0.1 <= 5000 %}
+                            <a href="{% url 'download' %}?path={{request.path}}" class="btn btn-primary mt-1" role="button" title="This is a small directory - Download as a ZIP file?">
+                                <i class="fa-solid fa-download"></i>
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
 
-    <script>
-        function copyPath() {
-            var copyText = document.getElementById("path_for_copy_button");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); /* For mobile devices */
-            navigator.clipboard.writeText(copyText.value);
-        }
-    </script>
-    
-{% endblock head_js_extra %}
+                <span data-toggle="tooltip" title="View bulk download information">
+                    <button class="btn btn-outline-primary m-1 float-right" type="button" data-bs-toggle="collapse"
+                           data-bs-target="#collapseBulkDownload" aria-expanded="false" aria-controls="collapseExample">
+                           <span class="fas fa-cart-arrow-down"></span> Bulk Download 
+                    </button>
+                </span>
+                    <a href="{% url 'timelines' path=request.path %}" class="btn btn-outline-primary m-1 float-right" role="button" 
+                       title="Timelines for files in this directory and below"><i class="fa-solid fa-timeline"></i><span class="btn-text"> Timelines</span></area>      
+                    <a href="{% url 'search' path=request.path %}" class="btn btn-outline-primary m-1 float-right" role="button" 
+                       title="Search for files in this directory and below"><i class="fa-solid fa-search"></i> Search</a>      
+                    {% if advanced%}<a href="{% url 'advanced' %}?redirect={{request.path}}" class="btn btn-outline-primary m-1 float-right" role="button" 
+                       title="Advanced options"><i class="fa-solid fa-cog"></i></a>{% endif %}
+{% endblock %}
 
-{% block content %}
-    <!-- For copy button -->
-    <div style="position: absolute; top: -1000px"><input type="text" value="{{request.path}}" id="path_for_copy_button"></div>
 
+{% block innercontent %}
+
+    <div class="row"> <div class="col-12"></div>
     <div class="collapse" id="collapseBulkDownload">
-        <div class="alert alert-info" role="alert">
+        <div class="alert alert-info m-2" role="alert">
             <h3>Bulk Download Options</h3>
             See our <a href="https://help.ceda.ac.uk/article/4431-ceda-archive-web-download-and-services#Download-multiple-files-gSfQC" target="_blank">Help page</a> 
             for more information about bulk download options.
@@ -56,127 +63,37 @@
         </ul>
     </p>
         </div>
-      </div>
-
-    {% for message in messages_ %}
-        <div class="alert alert-with-icon alert-danger text-center" role="alert">
-            <i class="fa fa-exclamation-circle"></i>&nbsp;{{ message | safe}}
-        </div>
-    {% endfor %}
-
-
-
-    <div class="row">
-
-        {% block breadcrumbs %}
-        <div class="col-8">
-            <div class="float-left">
-                <ol class="breadcrumb">
-                    {% for dir in index_list %}
-                        {% if forloop.last %}
-                        <li class="breadcrumb-item active text-grey">{{ dir.dir }}</li>
-                        {% else %}
-                        <li class="breadcrumb-item"><a href="/{{ dir.path }}">{{ dir.dir }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                </ol>
-            </div>
-            <div>
-                <div class="float-left">
-                <button type="button" id="copy" class="btn btn-outline-primary mt-1 ml-1" data-bs-toggle="tooltip" onclick="copyPath()"
-                        data-original-title="Copy directory path" title="Copy directory path">
-                    <i class="fa-regular fa-copy" aria-hidden="true"></i>
-                </button>
-                </div>
-
-            </div>
-
-        </div>
-        {% endblock %}
-
-        <div class="col-4">
-            <div class="float-right">
-                {% if agg_info %}
-                    {% if agg_info.total_size <= 1000000000 %}
-                        {% if agg_info.item_types.0.1 <= 5000 %}
-                            <a href="{% url 'download' %}?path={{request.path}}" class="btn btn-primary mt-1" role="button" title="This is a small directory - Download as a ZIP file?">
-                                <i class="fa-solid fa-download"></i>
-                            </a>
-                        {% endif %}
-                    {% endif %}
-                {% endif %}
-                <span data-toggle="tooltip" title="View bulk download information">
-                    <button class="btn btn-primary mt-1" type="button" data-bs-toggle="collapse"
-                           data-bs-target="#collapseBulkDownload" aria-expanded="false" aria-controls="collapseExample">
-                           <span class="fas fa-cart-arrow-down"></span>
-                    </button>
-                </span>
-                <div class="float-left">
-                    <a href="{% url 'timelines' path=request.path %}" class="btn btn-outline-warning m-1" role="button" 
-                       title="Experimental: Timelines for files in this directory and below">
-                                <i class="fa-solid fa-timeline"></i>
-                            </a>
-                </button>
-                </div>
-                {% if  agg_info %}
-                <span data-toggle="tooltip" title="Archive contents summary from current location">
-                    <button type="button" class="btn btn-primary mt-1" data-bs-toggle="collapse" data-bs-target="#aggs"><small>
-                        {{agg_info.total_size|filesizeformat}} | {{agg_info.nfiles | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}
-                    </small></button>
-                </span>
-                {% endif %}
-            </div>
-        </div>
-    </div>  
-
-    <!-- for copy path function -->
-    <input class="hide" type="text" id="path" value="{{ path }}" style="display: none">
-
-    <div class="row">
-        <div class="col" id="collection_link">{% if cat_info %}{{cat_info|safe}}{% endif %}</div>
     </div>
+    </div></div>
 
-  <!--  <div>{% if access_rules %}{% for rule in access_rules %}<span class="badge badge-primary">Licence: 
+
+    <div class="row">
+        <div class="col-10" id="collection_link">{% if cat_info %}{{cat_info|safe}}{% endif %} </div>
+        <div class="col-2">{% if access_rules %}{% for rule in access_rules %}<span class="badge badge-primary m-1"> 
         <a href="{{rule.licence.url_link}}">{{rule.licence.title}}</a> </span>
-        {% endfor %}{% endif %}</div>    
-   -->     
-    
-    <div id="aggs" class="collapse">
-        <div class="alert alert-info">
-                <h5>Aggregate information</h5>
-                <p>Average File Size: {{agg_info.ave_size|filesizeformat}} </p>
-                <p>Size of files held on tape only: {{agg_info.tape_size|filesizeformat}} </p>
-                <p>Item Types: {% for t, n in agg_info.item_types %} <span class="badge badge-warning">{{t}}: {{n|intcomma}}</span> {% endfor %} </p>
-                <p>Commmon Extensions: {% for e, n in agg_info.exts %} <span class="badge badge-light">{{e}}: {{n|intcomma}}</span> {% endfor %} </p>
-                <p>Variables: {% for v in agg_info.vars %}<span class="badge badge-primary">{{v}}</span> {% endfor %}</p> 
-                
-
-
-
-
-      
-          </div>
+        {% endfor %}{% endif %} </div>   
     </div>
-  
-    <div class="row"> 
-        <div class="col messages"></div>
-    </div>
+
+     
+   
 
 
     {% block item_table %}
     <table class="table table-sm">
         <thead>
-        <th style="width:25.3%"><span class="text-muted small" id="dir_count">{{counts.dir}} dirs</span>&nbsp;<span
+        <th {% if longest_filename < 30 %}style="width:25%;"{% endif %}><span class="text-muted small" id="dir_count">{{counts.dir}} dirs</span>&nbsp;<span
                 class="text-muted small" id="file_count">{{counts.file}} files</span></th>
-        <th style="width:41.5%">Description</th>
-        <th style="width:8.3%">Size</th>
-        <th style="width:16.6%">Actions</th>
+        <th>Description/Last Modified</th>
+        <th><span data-placement="left" data-toggle="tooltip" 
+                 title="{{agg_info.total_size|filesizeformat}} | {{agg_info.nfiles | intword| intcomma}} files | mostly {{agg_info.exts.0.0}}">
+                        {{agg_info.total_size|filesizeformat}}</span></th>
+        <th>Actions</th>
         </thead>
 
         <tbody id="results">
           
                 {% for item in items %}
-                    {% if item.location == 'on_tape' %}
+                    {% if item.on_tape %}
                         <tr class="text-muted">
                             <td class="align-middle">{{item.icon|safe}}&nbsp;{{item.name}}</a></td>
                             <td class="align-middle">{{item.description|safe}}</td>
@@ -184,26 +101,36 @@
                             <td class="align-middle"><a class="btn btn-lg" href="/storage_types#on_tape" 
                                 title="" data-toggle="tooltip" data-original-title="File on tape"><i class="fa fa-info-circle"></i></a></td>                 
                         </tr>
-                {% else %}
-                <tr>
-                    <td class="align-middle">{{item.icon|safe}}&nbsp;
-                        <a href="{% if item.type == 'file' %}{{item.download}}{% else %}{{item.path}}{% endif %}">{{item.name}}</a></td>
-                    <td class="align-middle">{{item.description|safe}}
-                        {% if item.type == 'link' %}<i class="fa fa-bullseye"></i>&nbsp;{{item.target}}{% endif %}
-                    </td>
-                    <td class="align-middle">{% if item.type == 'file' %}{{item.size|filesizeformat}}{% endif %}</td>
-                    <td class="align-middle">{{item.actions|safe}}</td>
-                </tr>
-                {% endif %}
+                    {% else %}
+                        <tr>
+                            <td class="align-middle">{{item.icon|safe}}&nbsp;<code>
+                                {% if item.removed and item.type == 'file' %} <span class="text-muted"><i class="fa fa-trash"></i> {{item.name}}</span>
+                                {% elif item.removed %} <span class="text-muted"><i class="fa fa-trash" title="Removed"></i> <a class="link-warning" href="{{item.path}}">{{item.name}}</a></span>
+                                {% elif item.type == 'file' %} <a href="{{item.download}}">{{item.name}}</a>
+                                {% else %} <a href="{{item.path}}">{{item.name}}</a>
+                                {% endif %}</code>
+                            </td>
+                            <td class="align-middle">{{item.description|safe}}
+                                {% if item.type == 'link' %}<i class="fa fa-bullseye"></i>&nbsp;{{item.target}}{% endif %}
+                            </td>
+                            <td class="align-middle">
+                                {% if item.type == 'file' %} {{item.size|filesizeformat}}
+                                {% elif item.type == 'dir' and item.agg_info %}
+                                <span data-placement="left" data-toggle="tooltip" 
+                                title="{{item.agg_info.total_size|filesizeformat}} | {{item.agg_info.nfiles | intword| intcomma}} files | mostly {{item.agg_info.exts.0.0}}">
+                                {{item.agg_info.total_size|filesizeformat}}</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td class="align-middle">{{item.actions|safe}}</td>
+                        </tr>
+                    {% endif %}
                 {% endfor %}
                
         </tbody>
     </table>
     {% endblock %}
-
-    <div class="row">
-        <div class="col messages"></div>
-    </div>
 
 {% endblock %}
 
@@ -212,5 +139,6 @@
     {{ block.super }}
     <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
     <script type="text/javascript">window.Beacon('init', '{{ beacon }}')</script>
+    
     
 {% endblock footer %}

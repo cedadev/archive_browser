@@ -1,0 +1,71 @@
+{% extends data_centre_template %}
+{% load static %}
+{% load humanize %}
+
+{% block head_title %}CEDA Archive Web Browser{% endblock %}
+
+{% block page_title %}
+{% endblock %}
+
+{% block head_js_extra %}
+    {# meta tags to force refresh #}
+    <meta name="description" content="Web based directory browser for the CEDA Archive.
+    Provides download links and access to the relevant CEDA Catalogue record.">
+    <meta name="keywords" content="climate data, netcdf, satellite, earth observation, observations, CEDA">
+    {% if refresh %}<meta http-equiv="refresh" content="3" > {% endif %}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script>$(function () {$('[data-toggle="tooltip"]').tooltip()})
+    </script>
+ 
+
+
+{% endblock head_js_extra %}
+
+{% block content %}
+
+    {% if advanced %}
+    <div class="alert alert-with-icon alert-warning text-center m-1 p-1" role="alert">
+            <i class="fa fa-exclamation-circle"></i>&nbsp;Advanced mode: Viewing removed and hidden files. <a href="{% url 'advanced' %}?redirect={{path}}">Switch off here</a>
+        </div> {% endif %}
+
+    {% for message in messages_ %}
+        <div class="alert alert-with-icon alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} text-center" role="alert">
+            <i class="fa fa-exclamation-circle"></i>&nbsp;{{ message | safe}}
+        </div>
+    {% endfor %}
+
+    
+    {% block breadcrumbs %}
+    <div class="row">
+        <div class="col-6">
+            <div class="float-left p-1">
+                <ol class="breadcrumb">
+                    {% for dir in index_list %}
+                        <li class="breadcrumb-item"><a href="/{{ dir.path }}"><code>{{ dir.dir }}</code></a></li>
+                    {% endfor %}
+                </ol>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="float-right">   
+                {% block breadcrumbsbuttons %}
+                {% endblock %}
+            </div> 
+        </div>
+    </div>
+    {% endblock %}
+    
+
+    {% block innercontent %}
+
+    {% endblock %}
+
+{% endblock %}
+
+
+{% block footer %}
+    {{ block.super }}
+    <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
+    <script type="text/javascript">window.Beacon('init', '{{ beacon }}')</script>
+{% endblock footer %}

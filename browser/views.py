@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import fnmatch
 from hashlib import sha1
 from typing import DefaultDict
 from django.conf import settings
@@ -12,10 +13,15 @@ from .lru_cache_expires import lru_cache_expires
 import os
 import urllib.request
 import urllib.error
+import urllib.parse
 import json 
 from functools import lru_cache 
 from fbi_core import archive_summary, fbi_listdir, get_record, ls_query, es, indexname
 from elasticsearch.helpers import ScanError
+from .catalogue_cache import observation_cache
+
+obs_cache, collections_cache, projects_cache = observation_cache()
+
 
 
 def getIcon(type, extension):
@@ -40,25 +46,27 @@ def generate_actions(ext, path, item_type, download_service):
     
     if ext:
         ext = ext.lower()
-    
+
+    # Generate button for info action
+    info_link = f'<a class="btn" href="/item_info?path={path}" title="Info" data-toggle="tooltip"><i class="fa fa-info-circle"></i> Info</a> '
+
     if item_type in ("dir", "link"):
         return ""
  
-    download_link = f"<a class='btn btn-lg' href='{download_service}{path}?download=1' title='Download file' data-toggle='tooltip'><i class='fa fa-download'></i></a>"
-
     # Generate button for view action
-    view_link = f'<a class="btn btn-lg" href="{download_service}{path}" title="View file" data-toggle="tooltip"><i class="fa fa-eye"></i></a>'
+    view_link = f'<a class="btn" href="{download_service}{path}" title="View file" data-toggle="tooltip"><i class="fa fa-eye"></i> View</a>'
 
     # Generate button for subset action
-    subset_link = f"<a class='btn btn-lg' href='{download_service}/thredds/dodsC{path}.html' title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i></a>"
+    subset_link = f"""<a class='btn' href='{download_service}/thredds/dodsC{path}.html' 
+                    title='Extract subset' data-toggle='tooltip'><i class='fa fa-cogs'></i> Subset</a>"""
 
     if ext in ("nc", ".nc", ".hdf", ".h4", ".hdf4"):
-        return download_link + subset_link
+        return subset_link + info_link
     if ext in (".gif", ".jpg", ".jpeg", ".png", ".svg", ".svgz", ".wbmp", ".webp", ".ico", ".jng", ".bmp", ".txt", ".pdf", ".html", ".mp4"):
-        return view_link + download_link
+        return view_link + info_link
     if os.path.basename(path) == '00README':
-        return view_link
-    return download_link
+        return view_link + info_link
+    return info_link
 
 @lru_cache_expires(maxsize=16384, max_expire_period=2*3600, default=None)
 def get_access_rules(path):
@@ -72,29 +80,16 @@ def get_access_rules(path):
     for key in data:
         if len(key) < len(shortest):
             shortest = key 
-    return data[shortest]
+    print(f"👾 get_access_rules for {path}: {data[shortest]}")
+    if data[shortest] == "no matching paths":
+        return []
+    else:
+        return data[shortest]
 
-@lru_cache(maxsize=16384)
-def moles_record(path):
-    for CAT_URL in settings.CAT_URLS:
-        try:
-            with urllib.request.urlopen(CAT_URL + path) as url:
-                data = json.loads(url.read().decode())
-            if data.get("record_type") == 'Dataset':
-                uuid = os.path.basename(data["url"])
-                full_record_url  = f"http://api.catalogue.ceda.ac.uk/api/v2/observations/?format=json&uuid={uuid}"
-                with urllib.request.urlopen(full_record_url) as full_record_page:
-                    full_record = json.loads(full_record_page.read().decode())
-                # print(full_record)
-                data["status"] = full_record["results"][0]["status"]
-                data["status_warning"] = data["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated')
-            return data
-        except (ConnectionResetError, urllib.error.HTTPError):
-            continue
-    return None
-
+@lru_cache_expires(maxsize=16384, max_expire_period=2*3600, default=None)
 def readme_line(path):
     """get readme line"""
+    #print(f"🐔", end='')
     for readme_filename in ("00README.txt", "00README"):
         readme_file = os.path.join(path, readme_filename)
         readme_record = get_record(readme_file)
@@ -105,34 +100,71 @@ def readme_line(path):
 
     if "content" in readme_record: 
         first_chars = readme_record["content"][:500]
-        return first_chars.splitlines()[0]
+        if first_chars:
+            return first_chars.splitlines()[0]
     else:
         return None
- 
-@lru_cache_expires(maxsize=16384, max_expire_period=2*3600, default=None)
-def directory_desc(path):
-    cat_info = moles_record(path)
-    if cat_info is not None and cat_info["record_type"] == "Dataset":
-        if cat_info["status_warning"]:
+
+def cat_button(cat_info, cat_type):
+    cat_url = f'https://catalogue.ceda.ac.uk/uuid/{cat_info["uuid"]}'
+    if cat_type == "observation":
+        if cat_info["status"] in ('superseded', 'obsolete', 'historicalArchive', 'retired', 'deprecated'):
             status_badge = f'<span class="badge badge-danger">{cat_info["status"]}</span>'
+            button_type = "btn-outline-warning"
         else:
             status_badge = ""
-        return f'''<i class="fa-lg fa fa-database" style="color: #4f81bd" title="These records describe and link to the actual data in our archive. 
-                     They also provide spatial and temporal information, 
-                     access and usage information and link to background information on why and how the data were collected." data-toggle="tooltip">
-                     </i> {status_badge} {cat_info["title"]} 
-                     <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
-    elif cat_info is not None and cat_info["record_type"] == "Dataset Collection":   
-        return f'''<i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets that share some common purpose, theme or association. 
-                   " data-toggle="tooltip"></i> {cat_info["title"]} 
-                   <a class='pl-1' href = '{cat_info["url"]}' title = 'See catalogue entry' data-toggle='tooltip'><i class='fa fa-info-circle'></i></a>'''
-    readme_info = readme_line(path)
-    if readme_info and readme_info != 'HIDE DIRECTORY':
-        return f'{readme_info}' 
-    return ""
+            button_type = "btn-outline-primary"
+        if cat_info["publicationState"] in ('working', 'preview'):
+            publication_badge = f'<span class="badge badge-warning">{cat_info["publicationState"]}</span>'
+        else:
+            publication_badge = ""  
+        return f'''<a href="{cat_url}" class="btn {button_type} btn-sm m-1">
+                     <i class="fa-lg fa fa-database" style="color: #4f81bd" title="Dataset information" data-toggle="tooltip"></i> 
+                     Dataset {status_badge} {publication_badge}</a>'''
+    elif cat_type == "collection":
+        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm m-1">
+                   <i class="fas fa-copy collection" style="color: #4807b3" title="A collection of Datasets." data-toggle="tooltip"></i> Collection</a>'''    
+    elif cat_type == "project":
+        return f'''<a href="{cat_url}" class="btn btn-outline-primary btn-sm m-1">
+                   <i class="fas fa-users project" style="color: #ea3838" title="A project." data-toggle="tooltip"></i> Project</a>'''
 
-@lru_cache_expires(maxsize=16384, max_expire_period=10*3600, default=None)   #, min_call_time_for_caching=1.0, run_based_expire_factor=1000)
+
+def directory_desc(path, item_type=None, mod_time=None):
+    if item_type == "file":
+        #print(f"{mod_time} {type(mod_time)}")
+        display_time = mod_time.replace('T', ' ')[:16]
+        return f"{display_time}"  
+       
+
+    cat_info = obs_cache[path]
+    if cat_info is not None:
+        cat_type = "observation"
+    else:
+        cat_info = collections_cache.get(path)
+        if cat_info is not None:
+            cat_type = "collection"
+        else:
+            cat_info = projects_cache.get(path)
+            if cat_info is not None:
+                cat_type = "project"
+            else:
+                cat_type = None
+
+    # if there is no catalogue info, check for a readme file
+    if cat_info is None:
+        readme_info = readme_line(path)
+        if readme_info and readme_info != 'HIDE DIRECTORY':
+            return f'{readme_info}' 
+        else:
+            return ""
+
+    #print(f"collections_cache: {collections_cache}")
+    return f"{cat_button(cat_info, cat_type)} {cat_info['title']}"
+
+
+@lru_cache_expires(maxsize=16384, max_expire_period=10*3600, default=None)  
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
+    #print(f"🐸 {path}")
     summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, max_exts=max_ext)
     total_size = summary["size_stats"]["sum"]
     ave_size = summary["size_stats"]["avg"]
@@ -147,6 +179,7 @@ def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     else:
         vars = ["Many Variables detected..."]
 
+    nfiles = 0
     for item_type, number in item_types:
         if item_type == "file":
             nfiles = number
@@ -154,12 +187,18 @@ def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
     summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, 
                               max_exts=max_ext, location="on_tape")
     tape_total_size = summary["size_stats"]["sum"]
-
     return {"total_size": total_size, "ave_size": ave_size, "item_types": item_types, "exts": exts, 
             "vars": vars, "tape_size": tape_total_size, "nfiles": nfiles}
 
+def path_view_options(request):
+    """For views that use the path and have an advanced option"""
+    path = request.path
+    advanced = "advanced" in request.GET and bool(request.GET.get("advanced"))
+    breadcrumbs = make_breadcrumbs(path, advanced)
+    return path, advanced, breadcrumbs
 
 def make_breadcrumbs(path):
+    """Make navigation urls and labels."""
     index_list = [{"path": "", "dir": "archive"}]
     if path == "/":
         return index_list
@@ -170,22 +209,33 @@ def make_breadcrumbs(path):
         index_list.append({"path": '/'.join(subset), "dir": dir}) 
     return index_list   
 
-def browse_query(path, show_hidden, show_removed):
-    body = {
-            "sort": {"name.keyword": {"order": "asc"}}, 
-            "query": {"bool": {"must": [{"term": {"directory.keyword": path}}], 
-                    "must_not": []
-                    }}, "size": settings.MAX_FILES_PER_PAGE}
-    
-    if not show_removed:
-        body["query"]["bool"]["must_not"].append({"exists": {"field": "removed"}})
-    if not show_hidden:
-        body["query"]["bool"]["must_not"].append({"regexp": {"name.keyword": "[.].*"}})    
-    return body
+@csrf_exempt
+def set_advanced(request):
+    """set an advanced session key"""
+    redirect = "/"
+    advanced = 1 
+    if "redirect" in request.GET:
+        redirect = request.GET.get("redirect")
+    if "advanced" in request.GET:
+        advanced = request.GET.get("advanced")
+    request.session["advanced"] = advanced
+    request.session["advanced_btn"] = 1
+    print(f"session: {request.session.items()}")
+    context = {"get_access_rules": get_access_rules.cache_info(), 
+                   "agg": agg_info.cache_info(), 
+                   "obs_cache_len": len(obs_cache),
+                   "collections_cache_len": len(collections_cache), 
+                   "projects_cache_len": len(projects_cache),
+                   "advanced": advanced, "redirect": redirect}
+    return render(request, 'browser/advanced.html', context)
 
 @csrf_exempt
 def browse(request):
+
     path = request.path
+    index_list = make_breadcrumbs(path)
+    advanced = request.session.get("advanced", 0)
+    #print(f"ADVANCED: {advanced}")
     download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
 
     path = path.rstrip('/')
@@ -202,64 +252,52 @@ def browse(request):
     if path_record["type"] == "link":
         return HttpResponseRedirect(f'{path_record["target"]}')
 
-    index_list = make_breadcrumbs(path)
-    show_hidden = "hidden" in request.GET
-    show_removed = "removed" in request.GET
-    if show_removed: show_hidden = True
-    
     items = []
     try:
-        for item in fbi_listdir(path, removed=show_removed, hidden=show_hidden):
+        for item in fbi_listdir(path, removed=advanced, hidden=advanced):
             if item["type"] == "file":
                 item["download"] = f'{download_service}{item.get("path")}?download=1'
+            if item["type"] == "dir" and agg_info(item.get("path")):
+                item["agg_info"] = agg_info(item.get("path"))
             if item["path"] not in settings.DO_NOT_DISPLAY:
                 items.append(item)
     except ScanError: 
         return HttpResponseRedirect(f"{download_service}{path}/")
 
-    cat_info = moles_record(path)
+    cat_info = obs_cache[path]
+    if cat_info is None:
+        cat_info = collections_cache.get(path)
+    if cat_info is None:
+        cat_info = projects_cache.get(path)
 
     if "json" in request.GET:
         return JsonResponse({"path": path, "items": items})
 
     access_rules = get_access_rules(path)
+    #print(f"🤖 access_rules for {path}: {access_rules}")
 
     counts = DefaultDict(int)
+    longest_filename = 0
     for item in items:
         counts[item["type"]] += 1
         item["icon"] = getIcon(item.get("type"), item.get("ext"))
+        item["on_tape"] = item.get("location") == ["on_tape"]
         item["actions"] = generate_actions(item.get("ext"), item.get("path"), item.get("type"), download_service)
+        longest_filename = max(longest_filename, len(item.get("name")))
 
     # work out what to show in the description field
-    path_desc = directory_desc(path)
+    path_desc = directory_desc(path, item_type="dir")
     refresh = False
-    if cat_info is not None and cat_info["record_type"] != "Dataset":
-        for item in items:
-            if item["type"] in ("dir", "link"):
-                if item["type"] == "dir":
-                    item_desc = directory_desc(item.get("path"))
-                elif item["type"] == "link":
-                    item_desc = directory_desc(item.get("path"))
-                    if not item_desc:
-                        item_desc = directory_desc(item.get("target"))
-
-                if item_desc is None:
-                    item_desc = '<img src="/static/browser/img/loading.gif" width="25" >'
-                    refresh = True
-                if item_desc != path_desc:
-                    item["description"] = item_desc
+    #print(f"cat_info: {cat_info}")
+    
+    for item in items:
+        item_desc = directory_desc(item.get("path"), item.get("type"), mod_time=item.get("last_modified"))
+        if item_desc != path_desc:
+            item["description"] = item_desc
 
     summary = agg_info(path)
-    if summary is None:
-        refresh = True
-
-    template = 'browser/browse_base.html'
-    if show_removed:
-        template = 'browser/browse_removed.html'
-        messages.warning(request, f'Viewing removed and hidden files. <a href="{path}">Normal view</a>')
-    elif show_hidden:
-        template = 'browser/browse_hidden.html'
-        messages.info(request, f'Viewing hidden files. <a href="{path}">Normal view</a>')
+    #if summary is None:
+    #    refresh = True
 
     status = 200
     if "forbidden" in request.GET:
@@ -267,8 +305,10 @@ def browse(request):
                 <a href="{moles_record(path)['url']}">apply for access</a>.''')
         status = 403
 
-    if cat_info and cat_info.get("status_warning"):
-        messages.warning(request, f'''This data is {cat_info["status"]}! See <a href="{moles_record(path)['url']}">catalogue</a>''')
+    if cat_info and cat_info.get("publicationState") == "working":
+        messages.error(request, f'''This data is in a working state! This means it is under construction. The catalogue record will not be visible.''')
+    if cat_info and cat_info.get("publicationState") == "preview":
+        messages.warning(request, f'''This data is in a preview state! This means it is under review and may change. The catalogue record will not be searchable.''')
 
     context = {
         "path": path,
@@ -281,14 +321,18 @@ def browse(request):
         "counts": counts,
         "refresh": refresh,
         "access_rules": access_rules,
-        "DOWNLOAD_SERVICE": download_service
+        "DOWNLOAD_SERVICE": download_service,
+        "advanced": advanced,
+        "longest_filename": longest_filename,
+        "advanced_btn": request.session.get("advanced_btn", False)
     }
  
-    return render(request, template, context, status=status)
+    return render(request, 'browser/browse_base.html', context, status=status)
 
 
 @csrf_exempt
 def stac(request, path="/"):
+    """View to display a STAC catalog or item for a directory or file."""
     download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
 
     path = path.rstrip('/')
@@ -327,53 +371,56 @@ def stac(request, path="/"):
     return render(request, template, context)
 
 
-def get_time_rows(path, start_date=None, end_date=None):
-
+def get_time_rows(path, time_field):
+    """ES quary to grab the date histogram of files in the archive.
+       returns a dictionaary containing the things you need for a plot."""
     query ={"bool": {"must": [
-            {"term": {"directory.tree": {"value": path}}}
+            {"term": {"directory.tree": {"value": path}}},
+            {"term": {"type": {"value": "file"}}}
         ],
         "must_not": [{"exists": {"field": "removed"}}]
         }}
 
-    aggs = {"timeline": {"date_histogram": {"field": "regex_date", "calendar_interval": "day"}},
-            "mod_timeline": {"date_histogram": {"field": "last_modified", "calendar_interval": "day"}}}
-
+    aggs = {"timeline": {"date_histogram": {"field": time_field, "calendar_interval": "day"}}}
+    #print(json.dumps(query, indent=4))
+    #print(json.dumps(aggs, indent=4))
     try:
         result = es.search(index=indexname, query=query, aggs=aggs, size=0)
     except Exception as e:
         print(f"Error running elasticsearch query: {e}")
-        return {"timeline": {"rows": "", "years": 1, "median_value": 0}, 
-                "mod_timeline": {"rows": "", "years": 1, "median_value": 0}}
+        return {"rows": "", "years": 1, "median_value": 0}
+    
+    rows = []
+    years = 1
+    values = []
+    timeline = result["aggregations"]["timeline"]["buckets"]
+    if len(timeline) > 0:
+        startyear = int(timeline[0]["key_as_string"][:4])
+        endyear = int(timeline[-1]["key_as_string"][:4])
+        years = endyear - startyear + 1
+                        
+    for bucket in result["aggregations"]["timeline"]["buckets"]:
+        date_str = f"new Date({bucket['key']})"
+        value = bucket["doc_count"]
+        if value > 0: 
+            rows.append(f"[{date_str}, {value}]")
+            values.append(value)
 
-    tl_tables = {}
-    for tl in ("timeline", "mod_timeline"):
-        rows = []
-        years = 1
-        values = []
-        timeline = result["aggregations"][tl]["buckets"]
-        if len(timeline) > 0:
-            startyear = int(timeline[0]["key_as_string"][:4])
-            endyear = int(timeline[-1]["key_as_string"][:4])
-            years = endyear - startyear + 1
-                            
-        for bucket in result["aggregations"][tl]["buckets"]:
-            date_str = f"new Date({bucket['key']})"
-            value = bucket["doc_count"]
-            if value > 0: 
-                rows.append(f"[{date_str}, {value}]")
-                values.append(value)
+    median_value = sorted(values)[len(values)//2] if values else 0  
+    return {"rows": ', '.join(rows), "years": years, "median_value": median_value}
 
-        median_value = sorted(values)[len(values)//2] if values else 0
-        tl_tables[tl] = {"rows": ', '.join(rows), "years": years, "median_value": median_value}
-  
-    return tl_tables
 
 @csrf_exempt
-def timelines(request, path="/"):
-
+def timelines(request, path="/"): 
+    """View to display a timeline of files in a directory based on a time field."""
     path = path.rstrip('/')
     if path == "": 
         path = "/"
+
+    if "time_field" in request.GET and request.GET.get("time_field"):
+        time_field = request.GET.get("time_field")
+    else: 
+        time_field="regex_date"
 
     # Check if the request is a file and redirect for direct download
     path_record = get_record(path)
@@ -381,22 +428,20 @@ def timelines(request, path="/"):
     if path_record is None:
         return render(request, 'browser/notfound.html', {"path": path}, status=404)
 
-    if path_record["type"] == "link":
-        return HttpResponseRedirect(f'/describe?p={path_record["target"]}')
-
-    cat_info = moles_record(path)
-    # print(cat_info)
-    template = 'browser/timelines.html'
-    tl_tables = get_time_rows(path)
-    context = {"path": path}
-    for tl in ("timeline", "mod_timeline"):
-        context[tl] = tl_tables[tl]["rows"]
-        context[f"{tl}_height"] = tl_tables[tl]["years"] * 70 + 100
-        context[f"{tl}_scale"] = tl_tables[tl]["median_value"] * 2
+    template = f'browser/timeline.html'
+    tl_tables = get_time_rows(path, time_field)
+    context = {"path": path, 
+            "time_field": time_field, 
+            "display": not tl_tables["rows"] == '',
+            "timeline": tl_tables["rows"], 
+            "scale": tl_tables["median_value"] * 2, 
+            "height": tl_tables["years"] * 70 + 100,
+            "plot_title": f"Files available by {time_field} date",
+            "advanced": request.session.get("advanced", 0),
+            "index_list": make_breadcrumbs(path)}
 
     return render(request, template, context)
     
-
 
 @csrf_exempt
 def jsonlist(request, path="/"):
@@ -431,23 +476,34 @@ def jsonlist(request, path="/"):
 
 @csrf_exempt
 def item_info(request):
-    path = request.GET.get("p")
+    """View to display information about a file or directory."""
+    path = request.GET.get("path")
     path_record = get_record(path)
     if path_record is None:
         render(request, 'browser/notfound.html', {"path": path}, status=404)
-    return JsonResponse(path_record)
+    if request.GET.get("json"):
+        return JsonResponse(path_record)
 
+    index_list = make_breadcrumbs(path)
+    item_type = path_record["type"]
+    if item_type == 'file':
+        obs_path = path_record["directory"]
+    elif item_type == 'link':
+        obs_path = path_record["target"]
+        target_record = get_record(path_record["target"])
+        if target_record and target_record["type"] == "file":
+            obs_path = target_record["directory"]
+    else:
+        obs_path = path
 
-def cache_control(request):
-    context = {"directory_desc": directory_desc.cache_info(), 
-               "agg": agg_info.cache_info()}
-    if "clear_all" in request.GET:
-        directory_desc.cache_clear()
-    if "clear" in request.GET:
-        path = request.GET.get("clear")
-        directory_desc.cache_clear_key(path)
-        agg_info.cache_clear_key(path)
-    return render(request, 'browser/cache.html', context)
+    path_record = json.dumps(path_record, indent=4)
+    obs_record = json.dumps(obs_cache[path], indent=4)
+    coll_record = json.dumps(collections_cache.get(obs_path), indent=4)
+    proj_record = json.dumps(projects_cache.get(obs_path), indent=4)
+    context = {"path_record": path_record, "obs": obs_record, "project": proj_record, 
+               "coll": coll_record, "item_type": item_type, "path": path, "index_list": index_list } 
+    return render(request, 'browser/item_info.html', context)
+
 
 def storage_types(request):
     """
@@ -461,18 +517,54 @@ def storage_types(request):
 def robots(request):
     return HttpResponseRedirect(f"/static/robots.txt")
 
-def search(request):
+def search(request, path="/"):
+    #print("search...")
     q = ''
     files = []
-    if "under" in request.GET:
-        under = request.GET.get("under")
-    else: 
-        under="/"
 
-    if "q" in request.GET:
+    if "since_last_modified" in request.GET and request.GET.get("since_last_modified"):
+        since_last_modified = request.GET.get("since_last_modified")
+    else:
+        since_last_modified = None
+
+    if "before_last_modified" in request.GET and request.GET.get("before_last_modified"):
+        before_last_modified = request.GET.get("before_last_modified")
+    else:
+        before_last_modified = None
+
+    if "since_regex_date" in request.GET and request.GET.get("since_regex_date"):
+        since_regex_date = request.GET.get("since_regex_date")
+    else:
+        since_regex_date = None
+
+    if "before_regex_date" in request.GET and request.GET.get("before_regex_date"):
+        before_regex_date = request.GET.get("before_regex_date")
+    else:
+        before_regex_date = None    
+
+    if "q" in request.GET and request.GET.get("q"):
         q = request.GET.get("q")
-        files = ls_query(under, name_regex=q)
-    return render(request, 'browser/search.html', {"q": q, "results": files})
+        q_regex = fnmatch.translate(q)[4:-3]
+    else:
+        q_regex = None
+
+    if "item_type" in request.GET and request.GET.get("item_type"):
+        item_type = request.GET.get("item_type")
+    else:
+        item_type = None
+
+    files = list(ls_query(path, name_regex=q_regex, 
+                          since=since_last_modified, 
+                          before=before_last_modified, 
+                          regex_date_since=since_regex_date, 
+                          regex_date_before=before_regex_date,
+                          item_type=item_type, size=10000))
+
+    return render(request, 'browser/search.html', {"q": q, "results": files, "path": path, "index_list": make_breadcrumbs(path),
+                                                   "since_last_modified": since_last_modified, 
+                                                   "before_last_modified": before_last_modified, 
+                                                   "since_regex_date": since_regex_date, "before_regex_date": before_regex_date,
+                                                   "item_type": item_type})
 
 def download(request):
     directory = request.GET.get("path")

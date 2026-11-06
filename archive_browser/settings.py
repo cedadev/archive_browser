@@ -60,6 +60,8 @@ TEMPLATES = [
     },
 ]
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+
 WSGI_APPLICATION = 'archive_browser.wsgi.application'
 
 CORS_ALLOWED_ORIGINS = ["https://radiantearth.github.io"]

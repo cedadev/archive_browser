@@ -14,6 +14,7 @@ class CacheInfo(NamedTuple):
     expired: int
     maxsize: int
     currsize: int
+    queued: int
 
 
 class LruCache:
@@ -61,13 +62,15 @@ class _LruCacheFunctionWrapper:
         cache_values = self.__cache.get(arg)
         if cache_values is None:
             self.__misses += 1
-            self.queue.put(arg)
+            if not self.queue.full():
+                self.queue.put(arg)
             return self.default
 
         ret, expire_time = cache_values  
         if expire_time < time.time():
             self.__expired += 1
-            self.queue.put(arg)
+            if not self.queue.full():
+                self.queue.put(arg)
         else:
             self.__hits += 1
 
@@ -79,7 +82,7 @@ class _LruCacheFunctionWrapper:
             try:      
                 ret = self.__wrapped__(arg)
             except Exception as e:
-                sys.stderr.write(f"Excption running function {self.__wrapped__} with argument {arg}\n")
+                sys.stderr.write(f"Exception running function {self.__wrapped__} with argument {arg}\n")
                 sys.stderr.write(f"{e}\n")
                 sys.stderr.write("continuing.\n")
                 continue
@@ -94,6 +97,7 @@ class _LruCacheFunctionWrapper:
             expired=self.__expired,
             currsize=len(self.__cache),
             maxsize=self.__cache.capacity,
+            queued=self.queue.qsize()
         )
 
     def cache_clear(self) -> None:
