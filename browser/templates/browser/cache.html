@@ -17,20 +17,68 @@
 
 {% block content %}
 
-<h4>Access control info</h4>
-{{get_access_rules}} 
+<div class="mb-3">
+<h3>Archive browser cache</h3>
+The archive browser maintains various caches to make sure the application is fast
+This page shows the current state of the caches.
+</div>
 
-<h4>Aggregations</h4>
-{{agg}}
+<div class="mb-3">
+<h4>Directory caches</h4>
+<p>The access control cache is used to determine licences for a given directory. 
 
+
+<div class="card">
+    <div class="card-body">
+        <code>{{get_access_rules}}</code>
+    </div>
+</div>
+</p>
+
+<p>Size and number of file information entries for each directory.
+<div class="card">
+    <div class="card-body">
+        <code>{{agg}}</code>
+    </div>
+</div>
+</div>
+</p>
+
+
+<div class="mb-3">
+<h4>Catalogue caches</h4>
+<p>Discovery record caches for observations, collections and projects.</p>
 <h4>Obs</h4>
-{{obs_cache_len}}
 
-<h4>Coll</h4>
-{{collections_cache_len}}
-                
-<h4>Projects</h4>
-{{projects_cache_len}} 
+<div class="row">
+    <div class="col-4">
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <code>Number of observation records: {{obs_cache_len}}</code>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <code>Number of collection records: {{collections_cache_len}}</code>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <code>Number of project records: {{projects_cache_len}}</code>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</p>
+</div>
+</div>
 
 {% endblock %}
 

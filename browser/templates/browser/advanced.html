@@ -9,10 +9,80 @@
 
 {% block content %}
 <h4>Advanced views</h4>
+<p>
+In advanced view, the archive browser will show hidden and removed files.  
+This is useful for debugging and for checking that files have been removed from the archive.  
+You can switch advanced view on or off here.
+</p>
 
 back to <a href="{{redirect}}">{{redirect}}</a> 
 You have advanced viewed switched {% if advanced %}  on {% else %} off {% endif %}
-{% if advanced %}  <a href="/advanced?advanced=&redirect={{redirect}}" class="btn btn-primary"> Turn off</a>
-{% else %} <a href="/advanced?advanced=1&redirect={{redirect}}" class="btn btn-primary"> Turn On</a>{% endif %}
-<a href="{% url 'cache' %}">Cache</a>
+{% if advanced %}  <a href="/advanced?advanced=&redirect={{redirect}}" class="btn btn-warning">Advanced mode on</a>
+{% else %} <a href="/advanced?advanced=1&redirect={{redirect}}" class="btn btn-outline-primary">Advanced mode off</a>{% endif %}
+
+
+
+<div class="mb-3">
+<h3>Cache Information</h3>
+The archive browser maintains various caches to make sure the application is fast
+This page shows the current state of the caches.
+</div>
+
+<div class="mb-3">
+<h4>Directory caches</h4>
+<p>The access control cache is used to determine licences for a given directory. 
+
+
+<div class="card">
+    <div class="card-body">
+        <code>{{get_access_rules}}</code>
+    </div>
+</div>
+</p>
+
+<p>Size and number of file information entries for each directory.
+<div class="card">
+    <div class="card-body">
+        <code>{{agg}}</code>
+    </div>
+</div>
+</div>
+</p>
+
+
+<div class="mb-3">
+<h4>Catalogue caches</h4>
+<p>Discovery record caches for observations, collections and projects.</p>
+<h4>Obs</h4>
+
+<div class="row">
+    <div class="col-4">
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <code>Number of observation records: {{obs_cache_len}}</code>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <code>Number of collection records: {{collections_cache_len}}</code>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <code>Number of project records: {{projects_cache_len}}</code>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</p>
+</div>
+</div>
+
 {% endblock %}

@@ -30,7 +30,7 @@
         </div> {% endif %}
 
     {% for message in messages_ %}
-        <div class="alert alert-with-icon alert-danger text-center" role="alert">
+        <div class="alert alert-with-icon alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} text-center" role="alert">
             <i class="fa fa-exclamation-circle"></i>&nbsp;{{ message | safe}}
         </div>
     {% endfor %}

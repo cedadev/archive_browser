@@ -72,7 +72,7 @@ length: {{results|length}}<br/>
     <tr><th>Directory/Filename</th><th>Last modified</th></tr>
 {% for record in results %}
     <tr>
-        <td><a href="{{record.directory}}">{{record.directory}}</a> / <a href="{{record.path}}">{{record.name}}</a></td>
+        <td><code><a href="{{record.directory}}">{{record.directory}}</a> / <a href="{{record.path}}">{{record.name}}</a></code></td>
         <td>{{record.last_modified|naturaltime}}</td>
     </tr>
 {% endfor %}

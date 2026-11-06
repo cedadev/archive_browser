@@ -89,7 +89,7 @@ def get_access_rules(path):
 @lru_cache_expires(maxsize=16384, max_expire_period=2*3600, default=None)
 def readme_line(path):
     """get readme line"""
-    print(f"🐔", end='')
+    #print(f"🐔", end='')
     for readme_filename in ("00README.txt", "00README"):
         readme_file = os.path.join(path, readme_filename)
         readme_record = get_record(readme_file)
@@ -131,7 +131,7 @@ def cat_button(cat_info, cat_type):
 
 def directory_desc(path, item_type=None, mod_time=None):
     if item_type == "file":
-        print(f"{mod_time} {type(mod_time)}")
+        #print(f"{mod_time} {type(mod_time)}")
         display_time = mod_time.replace('T', ' ')[:16]
         return f"{display_time}"  
        
@@ -164,7 +164,7 @@ def directory_desc(path, item_type=None, mod_time=None):
 
 @lru_cache_expires(maxsize=16384, max_expire_period=10*3600, default=None)  
 def agg_info(path, maxtypes=5, vars_max=1000, max_ext=10):
-    print(f"🐸 {path}")
+    #print(f"🐸 {path}")
     summary = archive_summary(path, max_types=maxtypes, max_vars=vars_max, max_exts=max_ext)
     total_size = summary["size_stats"]["sum"]
     ave_size = summary["size_stats"]["avg"]
@@ -221,7 +221,13 @@ def set_advanced(request):
     request.session["advanced"] = advanced
     request.session["advanced_btn"] = 1
     print(f"session: {request.session.items()}")
-    return render(request, 'browser/advanced.html', {"advanced": advanced, "redirect": redirect})
+    context = {"get_access_rules": get_access_rules.cache_info(), 
+                   "agg": agg_info.cache_info(), 
+                   "obs_cache_len": len(obs_cache),
+                   "collections_cache_len": len(collections_cache), 
+                   "projects_cache_len": len(projects_cache),
+                   "advanced": advanced, "redirect": redirect}
+    return render(request, 'browser/advanced.html', context)
 
 @csrf_exempt
 def browse(request):
@@ -229,7 +235,7 @@ def browse(request):
     path = request.path
     index_list = make_breadcrumbs(path)
     advanced = request.session.get("advanced", 0)
-    print(f"ADVANCED: {advanced}")
+    #print(f"ADVANCED: {advanced}")
     download_service = settings.THREDDS_SERVICE if not settings.USE_FTP else settings.FTP_SERVICE
 
     path = path.rstrip('/')
@@ -268,19 +274,21 @@ def browse(request):
         return JsonResponse({"path": path, "items": items})
 
     access_rules = get_access_rules(path)
-    print(f"🤖 access_rules for {path}: {access_rules}")
+    #print(f"🤖 access_rules for {path}: {access_rules}")
 
     counts = DefaultDict(int)
+    longest_filename = 0
     for item in items:
         counts[item["type"]] += 1
         item["icon"] = getIcon(item.get("type"), item.get("ext"))
         item["on_tape"] = item.get("location") == ["on_tape"]
         item["actions"] = generate_actions(item.get("ext"), item.get("path"), item.get("type"), download_service)
+        longest_filename = max(longest_filename, len(item.get("name")))
 
     # work out what to show in the description field
     path_desc = directory_desc(path, item_type="dir")
     refresh = False
-    print(f"cat_info: {cat_info}")
+    #print(f"cat_info: {cat_info}")
     
     for item in items:
         item_desc = directory_desc(item.get("path"), item.get("type"), mod_time=item.get("last_modified"))
@@ -297,8 +305,10 @@ def browse(request):
                 <a href="{moles_record(path)['url']}">apply for access</a>.''')
         status = 403
 
-    if cat_info and cat_info.get("status_warning"):
-        messages.warning(request, f'''This data is {cat_info["status"]}! See <a href="{moles_record(path)['url']}">catalogue</a>''')
+    if cat_info and cat_info.get("publicationState") == "working":
+        messages.error(request, f'''This data is in a working state! This means it is under construction. The catalogue record will not be visible.''')
+    if cat_info and cat_info.get("publicationState") == "preview":
+        messages.warning(request, f'''This data is in a preview state! This means it is under review and may change. The catalogue record will not be searchable.''')
 
     context = {
         "path": path,
@@ -313,6 +323,7 @@ def browse(request):
         "access_rules": access_rules,
         "DOWNLOAD_SERVICE": download_service,
         "advanced": advanced,
+        "longest_filename": longest_filename,
         "advanced_btn": request.session.get("advanced_btn", False)
     }
  
@@ -371,8 +382,8 @@ def get_time_rows(path, time_field):
         }}
 
     aggs = {"timeline": {"date_histogram": {"field": time_field, "calendar_interval": "day"}}}
-    print(json.dumps(query, indent=4))
-    print(json.dumps(aggs, indent=4))
+    #print(json.dumps(query, indent=4))
+    #print(json.dumps(aggs, indent=4))
     try:
         result = es.search(index=indexname, query=query, aggs=aggs, size=0)
     except Exception as e:
@@ -431,7 +442,6 @@ def timelines(request, path="/"):
 
     return render(request, template, context)
     
-
 
 @csrf_exempt
 def jsonlist(request, path="/"):
@@ -523,7 +533,7 @@ def robots(request):
     return HttpResponseRedirect(f"/static/robots.txt")
 
 def search(request, path="/"):
-    print("search...")
+    #print("search...")
     q = ''
     files = []
 
