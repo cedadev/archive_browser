@@ -505,21 +505,6 @@ def item_info(request):
     return render(request, 'browser/item_info.html', context)
 
 
-def cache_control(request):
-    """View to display information about the caches."""
-    context = {"get_access_rules": get_access_rules.cache_info(), 
-               "agg": agg_info.cache_info(), 
-               "obs_cache_len": len(obs_cache),
-               "collections_cache_len": len(collections_cache), 
-               "projects_cache_len": len(projects_cache)}
-    if "clear_all" in request.GET:
-        get_access_rules.cache_clear()
-    if "clear" in request.GET:
-        path = request.GET.get("clear")
-        get_access_rules.cache_clear_key(path)
-        agg_info.cache_clear_key(path)
-    return render(request, 'browser/cache.html', context)
-
 def storage_types(request):
     """
     Page to display information about different storage types
