@@ -1,6 +1,6 @@
 [project]
 name = "archive-browser"
-version = "1.0.0"
+version = "1.0.1"
 description = "Directory browser for the CEDA Archive"
 authors = [
     {name = "Sam Pepler",email = "sam.pepler@stfc.ac.uk"}
