@@ -11,4 +11,3 @@ __pycache__
 .vscode
 .static
 .DS_Store
-poetry.lock
