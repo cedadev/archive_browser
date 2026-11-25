@@ -515,7 +515,7 @@ def storage_types(request):
 
 
 def robots(request):
-    return HttpResponseRedirect(f"/static/robots.txt")
+    return render(request, 'browser/robots.txt', content_type="text/plain")
 
 def search(request, path="/"):
     #print("search...")
