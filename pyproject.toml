@@ -14,7 +14,8 @@ dependencies = [
     "fbi-core @ git+https://github.com/cedadev/fbi-core.git",
     "django-flexi-settings @ git+https://github.com/cedadev/django-flexi-settings.git@0.2.0",
     "fwtheme-django @ git+https://github.com/cedadev/fwtheme-django.git@1.1.0",
-    "fwtheme-django-ceda-serv @ git+https://github.com/cedadev/fwtheme-django-ceda-serv.git"
+    "fwtheme-django-ceda-serv @ git+https://github.com/cedadev/fwtheme-django-ceda-serv.git",
+    "psycopg2-binary (>=2.9.7,<3.0.0)",
 ]
 
 
